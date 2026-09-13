@@ -10,7 +10,7 @@ LinkBeacon 是一个开源 Android 网络分析与故障诊断工具箱，帮助
 
 ## Current version
 
-- Application version: `0.5.0` (release candidate preparation; not published yet)
+- Application version: `0.5.0` (latest stable release)
 - Minimum Android version: Android 12 (API 31)
 - Target Android SDK: API 36
 - Android application ID: `com.networktoolbox` (kept for upgrade continuity)
@@ -55,7 +55,7 @@ v0.5 功能范围已冻结。本 README 不把尚未实现的 Stable Identity V2
 
 Requires Android 12 or later.
 
-The signed `0.5.0` APK is ready for the stable GitHub Release; no v0.5.0 GitHub Release has been published yet. The latest public APK remains the published `v0.4.0` release on [GitHub Releases](https://github.com/zhibo7841-hue/LinkBeacon/releases).
+Download [LinkBeacon-v0.5.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.5.0/LinkBeacon-v0.5.0.apk) from the [GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.5.0). The matching SHA-256 checksum is provided with the release assets.
 
 ## Privacy
 
@@ -72,7 +72,7 @@ LinkBeacon 不要求账号，不上传网络诊断数据；应用本地数据默
 - [Architecture](docs/ARCHITECTURE.md)
 - [Decision log](docs/DECISIONS.md)
 - [Release plan](docs/RELEASE_PLAN.md)
-- [v0.5.0 release notes draft](docs/V0.5_RELEASE_NOTES.md)
+- [v0.5.0 release notes](docs/V0.5_RELEASE_NOTES.md)
 - [Published v0.4.0 release notes](docs/releases/v0.4.0.md)
 - [Development workflow](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI design system](docs/UI_DESIGN_SYSTEM.md)
