@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108" viewBox="0 0 108 108">
+  <!-- Vector master for the pre-adaptive density bitmaps. Never scale the small reference PNG. -->
+  <rect id="icon-background" x="4" y="4" width="100" height="100" rx="22" fill="#102239"/>
+  <g id="network-path" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
+    <path d="M35 71 L35 37 L73 71" stroke="#C3DFF0"/>
+    <path d="M73 71 L73 37" stroke="#93DCE3"/>
+  </g>
+  <g id="network-nodes">
+    <circle cx="35" cy="71" r="8" fill="#368FF0" fill-opacity="0.18"/>
+    <circle cx="73" cy="71" r="8" fill="#27C4CA" fill-opacity="0.18"/>
+    <circle cx="73" cy="37" r="8" fill="#368FF0" fill-opacity="0.18"/>
+    <circle cx="35" cy="71" r="5.5" fill="#368FF0"/>
+    <circle cx="73" cy="71" r="5.5" fill="#27C4CA"/>
+    <circle cx="73" cy="37" r="5.5" fill="#368FF0"/>
+    <circle cx="35" cy="71" r="1.5" fill="#E5F5FC"/>
+    <circle cx="73" cy="71" r="1.5" fill="#E5F5FC"/>
+    <circle cx="73" cy="37" r="1.5" fill="#E5F5FC"/>
+  </g>
+</svg>

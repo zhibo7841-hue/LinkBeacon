@@ -424,3 +424,14 @@ This log records the confirmed project decisions. New scope or changes to these 
 - Consequence: Scheduling, batch wake, repeated broadcast, WAN/Internet wake,
   cloud/relay/router-proxy paths, wake verification, new permissions, and
   additional persistence remain out of scope.
+
+## Decision: v0.5 final launcher icon
+
+- Date: 2026-09-13
+- Status: Accepted
+- Decision: Use the maintainer-approved dark Navy adaptive launcher icon with
+  a light-blue/cyan N/network path and three blue/cyan nodes (lower left,
+  lower right, upper right). Legacy, round, and monochrome variants retain this
+  same symbol; the monochrome variant has no background or glow.
+- Boundary: This is a visual asset decision only. The App name, applicationId,
+  product scope, and version are unchanged.

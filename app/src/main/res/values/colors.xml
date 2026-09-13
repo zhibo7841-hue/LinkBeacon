@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#0E1420</color>
-    <color name="ic_launcher_path">#75B8FF</color>
-    <color name="ic_launcher_node">#D9E7FF</color>
-    <color name="ic_launcher_center_node">#4C8DFF</color>
+    <color name="ic_launcher_background">#102239</color>
+    <color name="ic_launcher_path_light">#C3DFF0</color>
+    <color name="ic_launcher_path_cyan">#93DCE3</color>
+    <color name="ic_launcher_node_blue">#368FF0</color>
+    <color name="ic_launcher_node_cyan">#27C4CA</color>
+    <color name="ic_launcher_node_highlight">#E5F5FC</color>
 </resources>
