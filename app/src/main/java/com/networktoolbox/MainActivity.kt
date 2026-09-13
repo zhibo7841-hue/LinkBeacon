@@ -119,7 +119,7 @@ class MainActivity : ComponentActivity() {
 
     private fun copyDiagnosticReport(text: String) {
         val clipboard = getSystemService(ClipboardManager::class.java) ?: return
-        clipboard.setPrimaryClip(ClipData.newPlainText("NetworkToolbox 报告", text))
+        clipboard.setPrimaryClip(ClipData.newPlainText("LinkBeacon 报告", text))
     }
 
     private fun saveDiagnosticReportPdf(bytes: ByteArray, fileName: String) {

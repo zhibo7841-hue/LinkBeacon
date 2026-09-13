@@ -6,4 +6,4 @@ Report privately to project maintainers. When GitHub private vulnerability repor
 
 Security reports should include the affected component, reproduction steps, impact, and any suggested mitigation. Please allow maintainers reasonable time to investigate and prepare a fix before public disclosure.
 
-NetworkToolbox is designed to keep network test results and history local to the device. Suspected data leakage, unintended network upload, exposed secrets, or unsafe permission behavior should be reported as security issues.
+LinkBeacon is designed to keep network test results and history local to the device. Suspected data leakage, unintended network upload, exposed secrets, or unsafe permission behavior should be reported as security issues.

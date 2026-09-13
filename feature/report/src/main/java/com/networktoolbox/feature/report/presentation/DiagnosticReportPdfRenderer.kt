@@ -136,15 +136,15 @@ internal object DiagnosticReportPdfLayout {
     fun pages(presentation: DiagnosticReportPresentation): List<List<String>> =
         reportLines(presentation)
             .chunked(LINES_PER_PAGE)
-            .ifEmpty { listOf(listOf("NetworkToolbox 网络诊断完整报告")) }
+            .ifEmpty { listOf(listOf("LinkBeacon 网络诊断完整报告")) }
 
     fun fileName(timestamp: Long): String = runCatching {
         val formatter = DateTimeFormatter.ofPattern(
             "yyyyMMdd-HHmm",
             Locale.ROOT,
         ).withZone(ZoneId.systemDefault())
-        "NetworkToolbox-Diagnostic-${formatter.format(Instant.ofEpochMilli(timestamp))}.pdf"
-    }.getOrDefault("NetworkToolbox-Diagnostic-report.pdf")
+        "LinkBeacon-Diagnostic-${formatter.format(Instant.ofEpochMilli(timestamp))}.pdf"
+    }.getOrDefault("LinkBeacon-Diagnostic-report.pdf")
 
     /**
      * Wraps mixed Chinese/Latin technical text without splitting normal words,

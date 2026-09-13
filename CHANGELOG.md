@@ -6,6 +6,37 @@
 
 - Updated GitHub Actions dependencies to remove deprecated Node.js 20 runtime warnings.
 
+## 0.5.0
+
+### Branding
+
+- NetworkToolbox renamed to LinkBeacon for the official v0.5 product brand.
+- Added the LinkBeacon by LY brand signature and retained the approved launcher icon.
+
+### UI / Navigation
+
+- Added the Home / Tools / Devices shell and shared Drawer navigation.
+- Refined Home, Tools, Drawer, Back, and scroll-state presentation.
+
+### Device Center
+
+- Added saved device profiles, Favorites, Custom Names, and Device Details.
+- Added Device Center Search / Filters and Ping / TCP integration.
+
+### Wake-on-LAN
+
+- Added local manual Wake-on-LAN from Device Detail.
+- Added saved-profile Quick Wake with explicit packet-sent semantics.
+
+### Diagnostics
+
+- Added automatic diagnostics and complete local diagnostic reports.
+- Improved History reopening, PDF saving, and PDF sharing.
+
+### Fixes
+
+- Preserved local profiles and history across the v0.5 branding transition.
+
 ## [0.4.0] - 2026-09-06
 
 ### Added

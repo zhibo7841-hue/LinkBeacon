@@ -435,3 +435,28 @@ This log records the confirmed project decisions. New scope or changes to these 
   same symbol; the monochrome variant has no background or glow.
 - Boundary: This is a visual asset decision only. The App name, applicationId,
   product scope, and version are unchanged.
+
+## Decision: LinkBeacon official brand and v0.5 transition
+
+- Date: 2026-09-13
+- Status: Accepted
+- Decision: The official product name is **LinkBeacon** and the brand signature
+  is **LinkBeacon by LY**. The v0.5 release candidate is the first candidate to
+  use the official product name in user-facing app surfaces and release
+  materials.
+- Continuity: Android `applicationId`, namespace, package identity, module and
+  class names, database name, and existing persistence keys remain unchanged.
+  In particular, `com.networktoolbox` is retained so v0.4 installations can
+  upgrade in place and saved History, Device Profiles, Favorites, Custom Names,
+  and Wake-on-LAN configuration remain available.
+- Reason: LinkBeacon is more distinctive than the generic development name
+  NetworkToolbox while remaining aligned with the product's network-analysis
+  positioning. Keeping the Android identity avoids creating a second app and
+  preserves upgrade continuity.
+- Scope: This decision changes branding and release metadata only. The v0.5
+  feature scope remains frozen; it does not authorize Stable Identity V2, First
+  Seen / Last Seen, Multi-network management, Wi-Fi Analyzer, or any other new
+  feature.
+- Icon reference: The maintained Launcher Icon is the approved Task 074 final
+  dark-Navy adaptive/round/legacy/monochrome asset. The brand rename does not
+  redesign or replace that icon.

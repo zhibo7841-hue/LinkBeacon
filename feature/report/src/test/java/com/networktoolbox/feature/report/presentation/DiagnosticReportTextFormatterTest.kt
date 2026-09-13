@@ -437,7 +437,7 @@ class DiagnosticReportTextFormatterTest {
         val text = DiagnosticReportTextFormatter.formatReport(normalPresentation())
 
         assertContains(text, "完整报告可能包含本机地址")
-        assertContains(text, "不会上传到 NetworkToolbox 服务")
+        assertContains(text, "不会上传到 LinkBeacon 服务")
     }
 
     @Test

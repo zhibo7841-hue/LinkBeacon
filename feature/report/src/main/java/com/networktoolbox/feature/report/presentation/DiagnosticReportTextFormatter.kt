@@ -94,7 +94,7 @@ internal object DiagnosticReportTextFormatter {
         )
         val lines = mutableListOf<String>()
 
-        lines += "NetworkToolbox 网络诊断完整报告"
+        lines += "LinkBeacon 网络诊断完整报告"
         lines += "基本信息"
         lines += "诊断时间：${formatTimestamp(presentation.timestamp)}"
         lines += "总体状态：${presentation.overallStatus.displayName()}"
@@ -195,7 +195,7 @@ internal object DiagnosticReportTextFormatter {
         lines += ""
         lines += "隐私说明"
         lines += "完整报告可能包含本机地址、网关、网络配置 DNS、VPN/私人 DNS 状态及探测目标。"
-        lines += "报告由 NetworkToolbox 在本机生成，不会上传到 NetworkToolbox 服务。"
+        lines += "报告由 LinkBeacon 在本机生成，不会上传到 LinkBeacon 服务。"
         return lines.joinToString("\n")
     }
 

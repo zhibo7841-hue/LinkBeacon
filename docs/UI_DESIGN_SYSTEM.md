@@ -1,14 +1,14 @@
-# NetworkToolbox UI Design System
+# LinkBeacon UI Design System
 
 Status: accepted foundation for the v0.5.x development line.
 
 This document records the first implementation-ready visual vocabulary for
-NetworkToolbox. It is deliberately small: the foundation supplies stable
+LinkBeacon. It is deliberately small: the foundation supplies stable
 tokens and a few primitives while existing screens migrate incrementally.
 
 ## Brand direction
 
-NetworkToolbox uses **Deep Network Blue** with a **Dark-first** brand
+LinkBeacon uses **Deep Network Blue** with a **Dark-first** brand
 presentation. The visual intent is:
 
 - Clear
@@ -249,7 +249,7 @@ being introduced.
 
 The Home destination is the compact entry point for current network context and
 the most-used checks. It does not repeat the App Icon, App Name, or a large
-brand header after the user has entered NetworkToolbox. Its vertical order is
+brand header after the user has entered LinkBeacon. Its vertical order is
 stable:
 
 1. Network summary hero.
@@ -520,7 +520,7 @@ The core network tools use one predictable Compose reading order:
 1. **Tool header** — a source-aware back action, the tool icon, and the tool
    name. Tool headers do not show a subtitle; tool explanations remain in the
    content area where they are useful. Core screens do not repeat the
-   NetworkToolbox brand header.
+   LinkBeacon brand header.
 2. **Input / target** — one `OutlinedNetworkCard` groups the target fields and
    any optional parameters. Each input uses the Material 3
    `OutlinedTextField`; validation remains inline and user-readable.
@@ -602,7 +602,7 @@ description, and dynamic version without a giant outer Card. Each secondary
 page uses a Back arrow and title only: no header icon, subtitle, or Drawer
 button. A secondary page opened from the Drawer uses ordinary caller-aware Back
 navigation and does not automatically reopen the Drawer. Light and dark themes
-reuse the same NetworkToolbox surface, outline, typography, and semantic
+reuse the same LinkBeacon surface, outline, typography, and semantic
 tokens.
 
 Home renders only the `快速工具` section title; it does not render supporting

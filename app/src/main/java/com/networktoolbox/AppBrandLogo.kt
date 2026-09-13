@@ -15,7 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
 /**
- * The complete NetworkToolbox brand mark used by the launcher and information
+ * The complete LinkBeacon brand mark used by the launcher and information
  * surfaces. Keeping the background and foreground together prevents callers
  * from accidentally rendering only the adaptive-icon foreground.
  */

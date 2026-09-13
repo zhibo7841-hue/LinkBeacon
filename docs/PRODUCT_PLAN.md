@@ -1,10 +1,20 @@
 # Product Plan
 
+## Product identity
+
+- Official product name: **LinkBeacon**.
+- Brand signature: **LinkBeacon by LY**.
+- Android `applicationId` and package identity remain `com.networktoolbox` so
+  existing installations can upgrade without becoming a new app.
+- `NetworkToolbox` is the former development name and remains in historical
+  release records, technical identifiers, and compatibility-sensitive storage
+  names where changing it would be misleading or break continuity.
+
 ## Project positioning
 
-NetworkToolbox is an open-source Android network analysis and troubleshooting toolkit. It helps users understand network status, run focused checks, and obtain troubleshooting references.
+LinkBeacon is an open-source Android network analysis and troubleshooting toolkit. It helps users understand network status, run focused checks, and obtain troubleshooting references.
 
-NetworkToolbox is a network analysis tool, not an automatic troubleshooting or repair system. Its results provide observations and references; they do not claim to automatically identify every network failure or determine a single definitive cause.
+LinkBeacon is a network analysis tool, not an automatic troubleshooting or repair system. Its results provide observations and references; they do not claim to automatically identify every network failure or determine a single definitive cause.
 
 ## Target users
 
@@ -27,7 +37,7 @@ The product is intended to assist investigation, not to replace network administ
 
 ## User experience principle
 
-NetworkToolbox combines an understandable experience for general users with professional-level underlying capabilities:
+LinkBeacon combines an understandable experience for general users with professional-level underlying capabilities:
 
 - By default, show network status, the result of the check, and a simple explanation.
 - Allow advanced information to be expanded when needed, including raw detection data, technical parameters, and detailed results.
@@ -72,7 +82,7 @@ The initial scope is frozen around a focused local diagnostic workflow:
 
 ### V0.2.0 — Released
 
-NetworkToolbox v0.2.0 is released. Its published capabilities include:
+The published v0.2.0 release was issued under the former NetworkToolbox name. Its published capabilities include:
 
 - Enhanced Ping and DNS diagnostics.
 - TCP Port Check and IPv4 subnet calculation.
@@ -87,7 +97,7 @@ The scope of the next version is TBD and requires a separate product decision.
 
 ## V0.2 Network Diagnostic Enhancement
 
-The goal of V0.2 is to evolve NetworkToolbox from a basic network toolkit into a more capable network diagnostic tool, while keeping the local-first and evidence-based product principles.
+The goal of V0.2 was to evolve LinkBeacon from a basic network toolkit into a more capable network diagnostic tool, while keeping the local-first and evidence-based product principles.
 
 ### First phase: diagnostic capability enhancements
 
@@ -191,7 +201,7 @@ v0.4.0 does not include automatic network repair, cloud AI diagnosis, account
 requirements, report upload, Wi-Fi Analyzer, Wake-on-LAN, SSL/TLS inspection,
 WHOIS, iPerf, IPv6 Traceroute, Traceroute History, MAC/OUI, ASN, GeoIP, or MTR.
 
-NetworkToolbox v0.4.0 is **Released**. The published GitHub Release and the
+The former NetworkToolbox v0.4.0 release is **Released**. The published GitHub Release and the
 frozen `v0.4.0` tag contain this confirmed scope; no additional product scope
 is implied by the release status.
 
@@ -201,10 +211,15 @@ The next development line is confirmed as a visual and device-management
 refresh. It is intentionally expressed as a v0.5.x line rather than a locked
 minor-version breakdown.
 
+The v0.5 feature scope remains frozen for the LinkBeacon brand transition.
+Branding and release metadata do not authorize Stable Identity V2, First Seen /
+Last Seen, Multi-network management, Wi-Fi Analyzer, or any other additional
+feature.
+
 Core goals:
 
 - **Visual Refresh Phase 1:** establish and incrementally adopt one
-  NetworkToolbox design system across the app shell and existing screens.
+  LinkBeacon design system across the app shell and existing screens.
 - **LAN Device Center:** provide a focused home for managing already discovered
   local devices through separately approved implementation phases.
 - **Wake-on-LAN:** add a local-device wake action only after its product,
@@ -332,7 +347,7 @@ Release scope and readiness criteria are not yet defined. The future directions 
 
 ## SSH/Telnet boundary
 
-SSH/Telnet-related scope is limited to service discovery, port detection, and basic identification. NetworkToolbox is not an SSH or Telnet client. It will not provide a complete interactive SSH terminal, SFTP, a Telnet client, terminal session management, or related remote-shell workflows.
+SSH/Telnet-related scope is limited to service discovery, port detection, and basic identification. LinkBeacon is not an SSH or Telnet client. It will not provide a complete interactive SSH terminal, SFTP, a Telnet client, terminal session management, or related remote-shell workflows.
 
 ## Privacy principles
 

@@ -36,7 +36,9 @@ class AppInformationPresentationTest {
     @Test
     fun aboutUsesRealAppIdentityAndBuildVersion() {
         assertEquals("关于", AppInformationPresentation.aboutTitle)
-        assertEquals("NetworkToolbox", AppInformationPresentation.appName)
+        assertEquals("LinkBeacon", AppInformationPresentation.appName)
+        assertEquals("LinkBeacon by LY", AppInformationPresentation.brandSignature)
+        assertEquals("by LY", AppInformationPresentation.brandByline)
         assertEquals("开源网络分析与故障诊断工具箱", AppInformationPresentation.appDescription)
         assertEquals("当前版本", AppInformationPresentation.versionTitle)
         assertEquals(

@@ -1,14 +1,19 @@
-# NetworkToolbox
+# LinkBeacon
 
-An open-source Android network analysis and troubleshooting toolkit.
+![LinkBeacon logo](docs/assets/linkbeacon-logo.png)
 
-NetworkToolbox 是一个开源 Android 网络分析与故障排查工具箱，帮助用户了解网络状态、执行针对性的本地检测，并获得排障参考。它不是自动修复工具，也不承诺自动准确诊断所有网络故障。
+Open-source Android network analysis and troubleshooting toolbox.
+
+**LinkBeacon by LY**
+
+LinkBeacon 是一个开源 Android 网络分析与故障诊断工具箱，帮助用户了解网络状态、执行针对性的本地检测，并获得排障参考。它不是自动修复工具，也不承诺自动准确诊断所有网络故障。
 
 ## Current version
 
-- Application version: `0.4.0`
+- Application version: `0.5.0` (release candidate preparation; not published yet)
 - Minimum Android version: Android 12 (API 31)
 - Target Android SDK: API 36
+- Android application ID: `com.networktoolbox` (kept for upgrade continuity)
 
 ## Core principles
 
@@ -21,50 +26,34 @@ NetworkToolbox 是一个开源 Android 网络分析与故障排查工具箱，�
 
 ## Features
 
-当前已实现功能包括：
+当前 v0.5 代码已实现：
 
-- ✅ 首页网络状态
+- ✅ Home：网络状态摘要、快速工具与最近诊断
+- ✅ Tools：Ping、DNS、TCP、Traceroute、IPv4 Subnet Calculator、LAN Scanner
+- ✅ Devices：当前网络下的 LAN Device Center
+- ✅ Device Center：设备详情、本地 Saved Devices、Favorites、Custom Names
+- ✅ Device Search / Filters
+- ✅ Wake-on-LAN：设备详情手动唤醒与已保存设备 Quick Wake
+- ✅ Automatic Diagnostics 与 Diagnostic Report
+- ✅ 本地 History、报告文本复制、PDF 保存与分享
 - ✅ Ping（网络质量、连续检测与详细统计）
 - ✅ DNS Lookup（A、AAAA、CNAME、MX、TXT 与 TTL）
 - ✅ TCP Port Check
-- ✅ IPv4 子网计算
-- ✅ 网络诊断
-- ✅ 本地 History
-- ✅ LAN Scanner
-- ✅ 自定义 IPv4 扫描范围（RFC1918，单次最多 254 个地址）
+- ✅ LAN Scanner（当前网络与 RFC1918 自定义 IPv4 范围，单次最多 254 个地址）
 - ✅ IPv4 Traceroute
 - ✅ LAN Device Identification（Reverse DNS、mDNS/Bonjour、SSDP/UPnP）
 
-## Roadmap
-
-以下内容仅为 Planned，不代表已承诺的发布范围：
-
-- Wi-Fi Analyzer
-- Wake-on-LAN
+v0.5 功能范围已冻结。本 README 不把尚未实现的 Stable Identity V2、First Seen / Last Seen、Multi-network Manager 或 Wi-Fi Analyzer 宣传为现有能力。
 
 ## Screenshots
 
-截图目录已预留在 [`docs/screenshots/`](docs/screenshots/)。当前仓库不包含伪造或占位图片。
-
-![Home](docs/screenshots/home.png)
-
-![Tools](docs/screenshots/tools.png)
-
-![Ping](docs/screenshots/ping.png)
-
-![DNS Lookup](docs/screenshots/dnslookup.png)
-
-![IPv4 Subnet Calculator](docs/screenshots/ipv4cidr.png)
-
-![Diagnostic Report](docs/screenshots/diagnostic.png)
+当前仓库中的旧截图来自较早版本 UI，未作为 v0.5 当前效果展示。真实的 v0.5 Sony Xperia 1 VII / Android 16 截图将在维护者完成 RC 回归后补充到 [`docs/screenshots/`](docs/screenshots/)。
 
 ## Installation
 
-Download the published APK from GitHub Releases.
-
 Requires Android 12 or later.
 
-The published `0.4.0` release is available on GitHub Releases.
+The signed `0.5.0` APK is an unreleased RC candidate for maintainer testing; no v0.5.0 GitHub Release has been published yet. The latest public APK remains the published `v0.4.0` release on [GitHub Releases](https://github.com/zhibo7841-hue/NetworkToolbox/releases).
 
 ## Privacy
 
@@ -73,7 +62,7 @@ The published `0.4.0` release is available on GitHub Releases.
 - No network data upload.
 - App-local data does not participate in Android system cloud backup by default.
 
-NetworkToolbox 不要求账号，不上传网络诊断数据；应用本地数据默认不参与系统云备份。应用访问网络是为了执行用户主动选择的检测，不代表会上传检测数据。
+LinkBeacon 不要求账号，不上传网络诊断数据；应用本地数据默认不参与系统云备份。应用访问网络是为了执行用户主动选择的检测，不代表会上传检测数据。
 
 ## Documentation
 
@@ -81,8 +70,10 @@ NetworkToolbox 不要求账号，不上传网络诊断数据；应用本地数�
 - [Architecture](docs/ARCHITECTURE.md)
 - [Decision log](docs/DECISIONS.md)
 - [Release plan](docs/RELEASE_PLAN.md)
-- [Release notes](docs/releases/v0.4.0.md)
+- [v0.5.0 release notes draft](docs/V0.5_RELEASE_NOTES.md)
+- [Published v0.4.0 release notes](docs/releases/v0.4.0.md)
 - [Development workflow](docs/DEVELOPMENT_WORKFLOW.md)
+- [UI design system](docs/UI_DESIGN_SYSTEM.md)
 - [OSS research](docs/OSS_RESEARCH.md)
 
 ## Contributing
@@ -95,4 +86,4 @@ NetworkToolbox 不要求账号，不上传网络诊断数据；应用本地数�
 
 ## License
 
-NetworkToolbox 使用 [Apache License 2.0](LICENSE) 发布。
+LinkBeacon 使用 [Apache License 2.0](LICENSE) 发布。

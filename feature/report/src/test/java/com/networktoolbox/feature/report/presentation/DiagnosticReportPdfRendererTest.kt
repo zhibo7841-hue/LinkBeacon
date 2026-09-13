@@ -18,13 +18,13 @@ import org.junit.Test
 
 class DiagnosticReportPdfRendererTest {
     @Test
-    fun privacySentenceKeepsNetworkToolboxTogether() {
+    fun privacySentenceKeepsLinkBeaconTogether() {
         val lines = DiagnosticReportPdfLayout.wrapLine(
-            "报告由 NetworkToolbox 在本机生成，不会上传到 NetworkToolbox 服务。",
+            "报告由 LinkBeacon 在本机生成，不会上传到 LinkBeacon 服务。",
         )
 
-        assertTrue(lines.count { it.contains("NetworkToolbox") } == 2)
-        assertFalse(lines.any { it.contains("NetworkToolbo") && !it.contains("NetworkToolbox") })
+        assertTrue(lines.count { it.contains("LinkBeacon") } == 2)
+        assertFalse(lines.any { it.contains("LinkBeaco") && !it.contains("LinkBeacon") })
         assertFalse(lines.any { it == "x" })
     }
 
@@ -43,7 +43,7 @@ class DiagnosticReportPdfRendererTest {
     @Test
     fun technicalWordsDomainsEndpointsAndIpv6MoveAsWholeTokens() {
         val domainLines = DiagnosticReportPdfLayout.wrapLine("查询 example.com", maxWidth = 12)
-        val productLines = DiagnosticReportPdfLayout.wrapLine("报告 NetworkToolbox", maxWidth = 14)
+        val productLines = DiagnosticReportPdfLayout.wrapLine("报告 LinkBeacon", maxWidth = 14)
         val fakeIpLines = DiagnosticReportPdfLayout.wrapLine("状态 Fake-IP", maxWidth = 7)
         val privateDnsLines = DiagnosticReportPdfLayout.wrapLine("配置 Private DNS", maxWidth = 7)
         val endpointLines = DiagnosticReportPdfLayout.wrapLine(
@@ -53,7 +53,7 @@ class DiagnosticReportPdfRendererTest {
         val ipv6Lines = DiagnosticReportPdfLayout.wrapLine("DNS 2001:db8::53", maxWidth = 13)
 
         assertTrue(domainLines.any { it == "example.com" })
-        assertTrue(productLines.any { it == "NetworkToolbox" })
+        assertTrue(productLines.any { it == "LinkBeacon" })
         assertTrue(fakeIpLines.any { it == "Fake-IP" })
         assertTrue(privateDnsLines.any { it == "Private" })
         assertTrue(privateDnsLines.any { it == "DNS" })
@@ -84,13 +84,13 @@ class DiagnosticReportPdfRendererTest {
     @Test
     fun longChineseAndMixedLinesStayWithinLayoutWidth() {
         val lines = DiagnosticReportPdfLayout.wrapLine(
-            "中文网络诊断报告 NetworkToolbox 2001:db8::53 30 ms",
+            "中文网络诊断报告 LinkBeacon 2001:db8::53 30 ms",
             maxWidth = 20,
         )
 
         assertTrue(lines.size > 1)
         assertTrue(lines.all { DiagnosticReportPdfLayout.measuredWidth(it) <= 20 })
-        assertTrue(lines.joinToString("").contains("NetworkToolbox"))
+        assertTrue(lines.joinToString("").contains("LinkBeacon"))
         assertTrue(lines.joinToString("").contains("2001:db8::53"))
     }
 
@@ -100,7 +100,7 @@ class DiagnosticReportPdfRendererTest {
         val lines = pages.flatten()
 
         assertTrue(pages.isNotEmpty())
-        assertEquals("NetworkToolbox 网络诊断完整报告", lines.first())
+        assertEquals("LinkBeacon 网络诊断完整报告", lines.first())
         assertContains(lines, "诊断结论")
         assertContains(lines, "建议")
         assertContains(lines, "网络类型：Wi-Fi")
@@ -175,10 +175,10 @@ class DiagnosticReportPdfRendererTest {
     fun fileNameIsTimestampedAndSafeForCreateDocument() {
         val fileName = DiagnosticReportPdfRenderer.fileName(1_700_000_000_000L)
 
-        assertTrue(fileName.startsWith("NetworkToolbox-Diagnostic-"))
+        assertTrue(fileName.startsWith("LinkBeacon-Diagnostic-"))
         assertTrue(fileName.endsWith(".pdf"))
         assertFalse(fileName.contains(':'))
-        assertTrue(fileName.matches(Regex("NetworkToolbox-Diagnostic-\\d{8}-\\d{4}\\.pdf")))
+        assertTrue(fileName.matches(Regex("LinkBeacon-Diagnostic-\\d{8}-\\d{4}\\.pdf")))
     }
 
     private fun normalPresentation(
