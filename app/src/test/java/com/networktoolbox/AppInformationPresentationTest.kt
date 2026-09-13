@@ -24,6 +24,16 @@ class AppInformationPresentationTest {
     }
 
     @Test
+    fun drawerHeaderUsesSharedAppIdentityVersionAndLogo() {
+        val header = AppShellPresentation.drawerHeader(BuildConfig.VERSION_NAME)
+
+        assertEquals(AppInformationPresentation.appName, header.appName)
+        assertEquals("Version ${BuildConfig.VERSION_NAME}", header.versionLabel)
+        assertEquals(AboutIconPresentation.foregroundResource, header.logoForegroundResource)
+        assertEquals(AboutIconPresentation.backgroundResource, header.logoBackgroundResource)
+    }
+
+    @Test
     fun aboutUsesRealAppIdentityAndBuildVersion() {
         assertEquals("关于", AppInformationPresentation.aboutTitle)
         assertEquals("NetworkToolbox", AppInformationPresentation.appName)

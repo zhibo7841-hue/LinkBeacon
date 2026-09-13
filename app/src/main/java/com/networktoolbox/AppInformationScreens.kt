@@ -1,9 +1,6 @@
 package com.networktoolbox
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,12 +10,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.networktoolbox.core.designsystem.NetworkToolboxSpacing
 import com.networktoolbox.core.designsystem.SecondaryInformationHeader
@@ -45,19 +38,7 @@ internal fun AboutScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.MD),
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(colorResource(AboutIconPresentation.backgroundResource)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Image(
-                        painter = painterResource(AboutIconPresentation.foregroundResource),
-                        contentDescription = null,
-                        modifier = Modifier.size(56.dp),
-                    )
-                }
+                AppBrandLogo(modifier = Modifier.size(56.dp))
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS),

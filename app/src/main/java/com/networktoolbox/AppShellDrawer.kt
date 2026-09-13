@@ -2,10 +2,13 @@ package com.networktoolbox
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
@@ -19,7 +22,9 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.networktoolbox.core.designsystem.NetworkToolboxSpacing
 
 @Composable
@@ -64,12 +69,33 @@ private fun AppDrawerContent(
             ),
         verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
     ) {
-        Text("NetworkToolbox", style = MaterialTheme.typography.titleLarge)
-        Text(
-            AppShellPresentation.versionLabel(BuildConfig.VERSION_NAME),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        val header = AppShellPresentation.drawerHeader(BuildConfig.VERSION_NAME)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.MD),
+        ) {
+            AppBrandLogo(
+                modifier = Modifier.size(NetworkToolboxSpacing.XXL + NetworkToolboxSpacing.SM),
+                shape = RoundedCornerShape(12.dp),
+                foregroundResource = header.logoForegroundResource,
+                backgroundResource = header.logoBackgroundResource,
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS),
+            ) {
+                Text(
+                    header.appName,
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                Text(
+                    header.versionLabel,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(NetworkToolboxSpacing.SM))
         HorizontalDivider()
         AppShellPresentation.drawerItems.forEach { item ->
