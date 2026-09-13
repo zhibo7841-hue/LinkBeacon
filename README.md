@@ -47,13 +47,15 @@ v0.5 功能范围已冻结。本 README 不把尚未实现的 Stable Identity V2
 
 ## Screenshots
 
-当前仓库中的旧截图来自较早版本 UI，未作为 v0.5 当前效果展示。真实的 v0.5 Sony Xperia 1 VII / Android 16 截图将在维护者完成 RC 回归后补充到 [`docs/screenshots/`](docs/screenshots/)。
+<p align="center">
+  <img src="docs/screenshots/linkbeacon-overview.png" alt="LinkBeacon v0.5 overview" width="100%">
+</p>
 
 ## Installation
 
 Requires Android 12 or later.
 
-The signed `0.5.0` APK is an unreleased RC candidate for maintainer testing; no v0.5.0 GitHub Release has been published yet. The latest public APK remains the published `v0.4.0` release on [GitHub Releases](https://github.com/zhibo7841-hue/NetworkToolbox/releases).
+The signed `0.5.0` APK is ready for the stable GitHub Release; no v0.5.0 GitHub Release has been published yet. The latest public APK remains the published `v0.4.0` release on [GitHub Releases](https://github.com/zhibo7841-hue/LinkBeacon/releases).
 
 ## Privacy
 
