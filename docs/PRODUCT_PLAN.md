@@ -480,3 +480,12 @@ maintainer-authorized G8142 Android 13 acceptance; no complete bilingual Release
 claim is made. Legacy prose remains preserved where structure is insufficient. Scope,
 version and the released APK are unchanged; Android 12 runtime verification and
 GitHub bilingual documentation remain deferred.
+
+Task 084 implementation status: bilingual runtime acceptance is complete on the
+maintainer-designated real Android 12 / API 31 test phone (reported by ADB as Sony
+XQ-AT72). AppCompat locale persistence, SYSTEM matching, English, Simplified
+Chinese, Japanese fallback, Traditional-Chinese non-matching, in-place upgrade,
+controlled user-data continuity, dynamic History and three real DocumentsUI PDF
+exports passed. No production-code, scope, version or released-APK change was
+required. GitHub bilingual documentation and the full bilingual release candidate
+remain future release work.

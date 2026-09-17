@@ -1329,5 +1329,68 @@ Debug APK SHA-256:
 Dynamic diagnostic/report localization complete; legacy text remains preserved
 where structure is insufficient.
 
-**Android 12 runtime verification pending.** GitHub bilingual documentation,
-version changes and Release remain outside this task.
+## Task 084 - Android 12 bilingual runtime verification (2026-09-18)
+
+The Android 12 minimum-platform gap is closed on a **real device**. The
+maintainer-designated G8142 test phone reports itself through ADB as Sony
+XQ-AT72, Android 12 / API 31, build fingerprint
+`Sony/XQ-AT72_CN/XQ-AT72:12/58.2.A.10.44A/058002A0100044A0891821322:user/release-keys`.
+No emulator result is included or presented as hardware acceptance.
+
+### Locale and upgrade acceptance
+
+- AppCompat 1.7.1 application locales remain the only language state. Manifest
+  `autoStoreLocales` is active: explicit `en` and `zh-Hans` survived force-stop
+  and process restart, while Follow system removed the AppCompat locales file.
+  No custom preference, DataStore or Compose language state was introduced.
+- In Follow system mode, system English selected English and system Simplified
+  Chinese selected Chinese. A Japanese-only system list fell back to English;
+  Japanese followed by Simplified Chinese selected Chinese. Traditional Chinese
+  followed by Japanese fell back to English and therefore did not impersonate
+  `zh-Hans` support. The device was restored to its original single
+  `zh-Hans-CN` system locale, font scale 1.0 and light mode.
+- The pre-Task-083 APK (`6fe6da947f85bbd024d502e975f4cb85cf6d8724b137fd7d830efd5624eba9f1`)
+  and current Debug APK share the Android debug certificate. An in-place
+  `adb install -r` upgrade retained the original first-install timestamp and did
+  not uninstall or clear data. With no old app-locale preference, the upgraded
+  app started in SYSTEM mode rather than pinning Chinese.
+- Controlled data survived byte-for-byte: two diagnostic History rows (including
+  one imported legacy natural-language snapshot) and one saved/favorite profile
+  named `主力机`, including MAC identity and Wake-on-LAN UDP 9 configuration.
+  Opening, changing language, copying and exporting did not re-run diagnosis,
+  add History or rewrite either snapshot. The legacy snapshot kept its original
+  Chinese prose in English UI as designed.
+
+### UI, export and recreation evidence
+
+- Home, Tools, Devices, Settings, Ping, DNS, TCP, Traceroute, IPv4 Subnet,
+  LAN Scanner, Network Diagnosis, Device Detail, About, Privacy and History were
+  exercised through the real Activity/resources on API 31. Light and dark
+  Settings, caller-aware Back navigation, drawer closure and user-name
+  preservation passed. No missing resource key or runtime crash was observed.
+- One production diagnosis created exactly one History row. The same row rendered
+  localized diagnosis, explanation and recommendations in English and Chinese
+  without changing its stored facts or SHA-256.
+- Three PDFs were saved by the production app through real Android 12
+  DocumentsUI / Storage Access Framework: English, Chinese, and English UI with
+  legacy Chinese device text `主力机`. All are three-page A4 PDFs, opened by the
+  API-31 native `PdfRenderer`, and were visually reviewed for CJK glyphs, long
+  English wrapping, addresses and pagination. Copy used the active locale; Share
+  opened the Android chooser with the expected PDF without uploading it.
+- Instrumentation on this device passed Task 080 recreation **17/17**, Core UI
+  localization **6/6**, dynamic report tests **2 executed + 1 opt-in skip**, and
+  the separate opt-in native-PDF acceptance **1/1**. Language tests passed the
+  three API-31-applicable cases; the Android-13 platform-override case was an
+  expected assumption skip. Scan, diagnosis, device Ping/TCP, WoL and PDF
+  pending-request no-repeat regressions are included in those suites.
+- A single automation attempt injected Back before the locale-recreated Activity
+  regained a focused window and Android reported an input-dispatch ANR. The app
+  recovered with Wait; controlled switches with the proper recreation wait and
+  the full recreation/language suites did not reproduce it. The log is retained
+  under ignored Task-084 evidence and no product workaround was added.
+
+No production Kotlin, resource, dependency, permission, Room schema, version or
+README change was required. GitHub bilingual documentation and a full bilingual
+release candidate remain separate follow-up work.
+
+**Android 12 runtime verification complete on real API 31 hardware.**
