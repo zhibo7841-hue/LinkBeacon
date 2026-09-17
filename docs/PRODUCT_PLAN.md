@@ -430,3 +430,38 @@ Phase 1 local wake path, not a new sender or discovery mechanism:
 This phase keeps the existing Device Center ordering, scan state, profile
 fields, and History behavior unchanged. A Quick Wake action does not mutate a
 profile, trigger another probe, or create a detection-history record.
+
+## Confirmed next-stage direction — Chinese / English internationalization
+
+Status: confirmed product direction, **not yet implemented** in the released
+v0.5.0 APK. The next release number and implementation schedule remain subject
+to maintainer confirmation; this section does not assign v0.5.1 or v0.6.0.
+
+- Ship one APK supporting Simplified Chinese and English. The default is
+  continuously following the system language preferences, not remembering
+  only the installation-time language. Allow explicit System / 简体中文 /
+  English selection and a return to following the system.
+- Place the language control at Drawer -> Settings -> Language. This is the
+  confirmed configuration need that justifies a minimal Settings destination;
+  it does not restore a Settings bottom tab, occupy Home, or authorize other
+  settings. The released v0.5 Drawer description above remains historical.
+- Cover user-facing interface, diagnostic explanations, compatible history
+  presentation, errors, accessibility, and newly generated text/PDF report
+  exports. Language must not change network evidence,
+  diagnostic rules, status meaning, device identity, or stored user data.
+  Preserve user-created names, SSIDs, hostnames, protocol values, and old
+  history. Legacy text without sufficient structured meaning remains original
+  text rather than receiving an invented translation or diagnosis.
+- Use English-first GitHub presentation: `README.md` is the primary English
+  introduction and `README.zh-CN.md` is the Chinese counterpart, with language
+  links at the top of both. Internal development documents do not require
+  wholesale translation. This file remains the sole formal product-scope
+  baseline; a translated README is not another product plan.
+- Preserve `com.networktoolbox`, upgrade continuity, local-only persistence,
+  existing permissions, network behavior, and the no-account/no-upload
+  principles. Do not describe the current APK as bilingual before end-to-end
+  implementation and acceptance are complete.
+
+[I18N_SCOPE_AUDIT.md](I18N_SCOPE_AUDIT.md) records the implementation audit and
+recommendations. Its proposed APIs, work packages, and compatibility mechanics
+are not additional accepted product decisions or completed functionality.

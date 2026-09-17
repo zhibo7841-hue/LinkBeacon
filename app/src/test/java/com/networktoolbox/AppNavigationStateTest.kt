@@ -5,6 +5,22 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class AppNavigationStateTest {
+    @Test
+    fun savedReportIdSurvivesSaverAndBackKeepsHistoryCaller() {
+        val original = AppNavigationState().selectTopLevel(TopLevelDestination.DEVICES)
+            .openSecondaryDestination(ToolScreen.HISTORY)
+            .openTool(ToolScreen.REPORT).copy(reportHistoryId = 42)
+        val encoded = with(AppNavigationState.Saver) {
+            SaverScope { true }.save(original)
+        }
+        val restored = requireNotNull(AppNavigationState.Saver.restore(requireNotNull(encoded)))
+        assertEquals(42L, restored.reportHistoryId)
+        assertEquals(ToolScreen.HISTORY, restored.goBack().toolScreen)
+        assertEquals(null, restored.goBack().reportHistoryId)
+        assertEquals(TopLevelDestination.DEVICES, restored.goBack().goBack().topLevelDestination)
+        assertEquals(null, restored.selectTopLevel(TopLevelDestination.HOME).reportHistoryId)
+    }
+
     private val toolScreens = listOf(
         ToolScreen.PING,
         ToolScreen.DNS,

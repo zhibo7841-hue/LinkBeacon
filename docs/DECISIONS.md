@@ -460,3 +460,29 @@ This log records the confirmed project decisions. New scope or changes to these 
 - Icon reference: The maintained Launcher Icon is the approved Task 074 final
   dark-Navy adaptive/round/legacy/monochrome asset. The brand rename does not
   redesign or replace that icon.
+
+## Decision: Chinese / English app and English-first GitHub direction
+
+- Date: 2026-09-17
+- Status: Accepted product direction; implementation pending.
+- Decision: One APK will support Simplified Chinese and English, defaulting to
+  ongoing system-language following. Users may select System / 简体中文 /
+  English and clear an explicit choice to resume following the system.
+- Entry: Drawer -> Settings -> Language. Language is now a real, confirmed
+  configuration need, unlike the placeholder Settings rejected for v0.5.
+  Add no Home language switch, bottom Settings tab, or unrelated settings.
+- Semantics and compatibility: Translate product-owned presentation, not user
+  data, protocol values, device identity, or network conclusions. Preserve old
+  history and the distinction between structured results and legacy prose;
+  never infer a diagnosis by translating or reverse-parsing stored sentences.
+  Network rules, evidence, permissions, local-first privacy, and Android
+  application identity remain unchanged.
+- Public documentation: English-first `README.md` and Chinese
+  `README.zh-CN.md` will cross-link at the top. Keep Chinese feedback welcome.
+  Internal docs need not all be translated, and `PRODUCT_PLAN.md` remains the
+  single formal product baseline. Do not rewrite historical decisions or
+  claim that the published v0.5.0 APK already supports both languages.
+- Boundary: The next version number, Android API integration, dependency
+  choice, persistence mechanics, and task sequence are not fixed by this
+  decision. [I18N_SCOPE_AUDIT.md](I18N_SCOPE_AUDIT.md) contains recommendations
+  for separate review; this documentation task authorizes no runtime change.

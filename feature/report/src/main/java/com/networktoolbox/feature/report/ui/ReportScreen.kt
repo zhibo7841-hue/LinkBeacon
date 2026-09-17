@@ -88,6 +88,7 @@ fun ReportScreen(
     context: ReportPresentationContext = ReportPresentationContext.LIVE_TOOL,
     restoredReport: DiagnosticReportV2? = null,
     restoredAutomaticResult: AutomaticDiagnosticResult? = null,
+    savedReportLoading: Boolean = false,
     onRunCheck: () -> Unit,
     onStopCheck: () -> Unit,
     onBack: () -> Unit,
@@ -98,7 +99,8 @@ fun ReportScreen(
     onSharePdf: (ByteArray, String) -> Unit = { _, _ -> },
 ) {
     val hasRestoredReport = restoredReport != null || restoredAutomaticResult != null
-    val isRunning = !hasRestoredReport && uiState.status is ReportStatus.Running
+    val isRunning = context == ReportPresentationContext.LIVE_TOOL &&
+        !hasRestoredReport && uiState.status is ReportStatus.Running
 
     Surface(modifier = modifier.fillMaxSize()) {
         Column(
@@ -116,7 +118,7 @@ fun ReportScreen(
                 backEnabled = !isRunning,
             )
 
-            if (!isRunning && !hasRestoredReport) {
+            if (context == ReportPresentationContext.LIVE_TOOL && !isRunning && !hasRestoredReport) {
                 StartDiagnosticCard(
                     status = uiState.status,
                     onRunCheck = onRunCheck,
@@ -124,6 +126,11 @@ fun ReportScreen(
             }
 
             when {
+                context == ReportPresentationContext.SAVED_REPORT && !hasRestoredReport ->
+                    OutlinedNetworkCard {
+                        Text(if (savedReportLoading) "正在读取已保存报告…" else "该报告已删除或无法恢复，请返回历史记录。")
+                    }
+
                 restoredAutomaticResult != null -> AutomaticReportContent(
                     result = restoredAutomaticResult,
                     onCopyReport = onCopyReport,

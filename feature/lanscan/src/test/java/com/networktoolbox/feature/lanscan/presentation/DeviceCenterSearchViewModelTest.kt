@@ -36,6 +36,23 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeviceCenterSearchViewModelTest {
+    @Test
+    fun `small saved search state restores in a new owner without restoring scan`() = runTest(testDispatcher) {
+        val handle = androidx.lifecycle.SavedStateHandle()
+        val first = viewModel(readiness(context("10.0.1.206")), savedState = handle)
+        advanceUntilIdle()
+        first.openDeviceCenterSearch()
+        first.onDeviceCenterSearchQueryChanged("saved query")
+        first.setDeviceCenterFilter(DeviceCenterFilter.FAVORITES)
+        advanceUntilIdle()
+        val restoredHandle = androidx.lifecycle.SavedStateHandle(handle.keys().associateWith { handle.get<Any?>(it) })
+        val second = viewModel(readiness(context("10.0.1.206")), savedState = restoredHandle)
+        advanceUntilIdle()
+        assertEquals(first.deviceCenterSearchState.value, second.deviceCenterSearchState.value)
+        assertTrue(second.uiState.value is LanScannerUiState.Ready)
+        assertEquals(setOf("deviceSearchActive", "deviceSearchQuery", "deviceSearchFilter"), handle.keys())
+    }
+
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
@@ -224,11 +241,13 @@ class DeviceCenterSearchViewModelTest {
         readiness: LanScanReadiness,
         runner: RunLanScan = RunLanScan { _, _ -> error("scan should not be started in this test") },
         readinessFlow: Flow<LanScanReadiness> = flowOf(readiness),
+        savedState: androidx.lifecycle.SavedStateHandle = androidx.lifecycle.SavedStateHandle(),
     ): LanScannerViewModel = LanScannerViewModel(
         observeReadiness = ObserveLanScanReadiness { readinessFlow },
         runScan = runner,
         reverseDnsEnricher = ReverseDnsEnricher { _, _ -> },
         mdnsEnricher = MdnsEnricher { _, _, _, _ -> },
+        savedState = savedState,
     )
 
     private fun readiness(context: NetworkContext) = LanScanReadiness(

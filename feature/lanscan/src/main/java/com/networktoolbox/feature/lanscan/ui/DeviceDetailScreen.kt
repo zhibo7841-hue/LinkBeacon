@@ -99,12 +99,14 @@ fun DeviceDetailScreen(
         )
     }
     LaunchedEffect(detail?.detailKey, detail?.customName) {
-        draftName = detail?.customName.orEmpty()
+        if (!showNameDialog) draftName = detail?.customName.orEmpty()
     }
     LaunchedEffect(detail?.detailKey, detail?.wakeOnLan?.config) {
-        draftWakeOnLanMac = detail?.wakeOnLan?.config?.macAddress?.toString().orEmpty()
-        draftWakeOnLanPort = detail?.wakeOnLan?.config?.udpPort?.toString()
-            ?: WakeOnLanConfig.DEFAULT_UDP_PORT.toString()
+        if (!showWakeOnLanDialog) {
+            draftWakeOnLanMac = detail?.wakeOnLan?.config?.macAddress?.toString().orEmpty()
+            draftWakeOnLanPort = detail?.wakeOnLan?.config?.udpPort?.toString()
+                ?: WakeOnLanConfig.DEFAULT_UDP_PORT.toString()
+        }
     }
 
     Box(modifier = modifier.fillMaxSize()) {

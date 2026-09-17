@@ -25,7 +25,7 @@ android {
         versionCode = 5
         versionName = "0.5.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.networktoolbox.RecreationTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -79,6 +79,15 @@ kapt {
     correctErrorTypes = true
 }
 
+// AGP's lint source model includes Hilt's AndroidTest generated Java. Finish its
+// producer before analysis, including when lint and AndroidTest assembly share
+// one invocation; otherwise K2 lint can read a temporarily missing supplier file.
+tasks.matching {
+    it.name in setOf("lintAnalyzeDebug", "lintAnalyzeDebugUnitTest", "lintAnalyzeDebugAndroidTest")
+}.configureEach {
+    dependsOn("hiltJavaCompileDebugAndroidTest")
+}
+
 dependencies {
     implementation(project(":feature:dashboard"))
     implementation(project(":feature:dns"))
@@ -110,5 +119,13 @@ dependencies {
     kapt(libs.com.google.dagger.hilt.compiler)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.com.google.dagger.hilt.android.testing)
+    kaptAndroidTest(libs.com.google.dagger.hilt.compiler)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

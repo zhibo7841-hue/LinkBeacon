@@ -1,6 +1,7 @@
 package com.networktoolbox.feature.lanscan.presentation
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.networktoolbox.core.common.favorites.DeviceDisplayNameResolver
 import com.networktoolbox.core.common.favorites.FavoriteDevice
@@ -67,6 +68,7 @@ class LanScannerViewModel @Inject constructor(
     private val savedDeviceRepository: SavedDeviceRepository = NoOpSavedDeviceRepository,
     private val lanNetworkBindingProvider: LanNetworkBindingProvider = NoOpLanNetworkBindingProvider,
     private val sendWakeOnLan: SendWakeOnLan = NoOpSendWakeOnLan,
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<LanScannerUiState>(LanScannerUiState.Idle)
     val uiState: StateFlow<LanScannerUiState> = _uiState.asStateFlow()
@@ -74,7 +76,15 @@ class LanScannerViewModel @Inject constructor(
     val favoriteDevices: StateFlow<List<FavoriteDevice>> = _favoriteDevices.asStateFlow()
     private val _savedProfiles = MutableStateFlow<List<FavoriteDevice>>(emptyList())
     val savedProfiles: StateFlow<List<FavoriteDevice>> = _savedProfiles.asStateFlow()
-    private val _deviceCenterSearchState = MutableStateFlow(DeviceCenterSearchState())
+    private val _deviceCenterSearchState = MutableStateFlow(
+        DeviceCenterSearchState(
+            isSearchActive = savedState["deviceSearchActive"] ?: false,
+            query = savedState["deviceSearchQuery"] ?: "",
+            filter = DeviceCenterFilter.entries.firstOrNull {
+                it.name == savedState.get<String>("deviceSearchFilter")
+            } ?: DeviceCenterFilter.ALL,
+        ),
+    )
     val deviceCenterSearchState: StateFlow<DeviceCenterSearchState> =
         _deviceCenterSearchState.asStateFlow()
     private val _favoriteActionError = MutableStateFlow<String?>(null)
@@ -113,7 +123,7 @@ class LanScannerViewModel @Inject constructor(
                 if (previousNetworkContext != null &&
                     !LanNetworkFingerprint.matches(previousNetworkContext, readiness.networkContext)
                 ) {
-                    _deviceCenterSearchState.value = DeviceCenterSearchState()
+                    updateSearchState(DeviceCenterSearchState())
                 }
                 latestReadiness = readiness
                 val state = _uiState.value
@@ -172,23 +182,30 @@ class LanScannerViewModel @Inject constructor(
     }
 
     fun openDeviceCenterSearch() {
-        _deviceCenterSearchState.value = _deviceCenterSearchState.value.copy(isSearchActive = true)
+        updateSearchState(_deviceCenterSearchState.value.copy(isSearchActive = true))
     }
 
     fun closeDeviceCenterSearch() {
-        _deviceCenterSearchState.value = DeviceCenterSearchState()
+        updateSearchState(DeviceCenterSearchState())
     }
 
     fun clearDeviceCenterSearchQuery() {
-        _deviceCenterSearchState.value = _deviceCenterSearchState.value.copy(query = "")
+        updateSearchState(_deviceCenterSearchState.value.copy(query = ""))
     }
 
     fun onDeviceCenterSearchQueryChanged(value: String) {
-        _deviceCenterSearchState.value = _deviceCenterSearchState.value.copy(query = value)
+        updateSearchState(_deviceCenterSearchState.value.copy(query = value))
     }
 
     fun setDeviceCenterFilter(filter: DeviceCenterFilter) {
-        _deviceCenterSearchState.value = _deviceCenterSearchState.value.copy(filter = filter)
+        updateSearchState(_deviceCenterSearchState.value.copy(filter = filter))
+    }
+
+    private fun updateSearchState(state: DeviceCenterSearchState) {
+        savedState["deviceSearchActive"] = state.isSearchActive
+        savedState["deviceSearchQuery"] = state.query
+        savedState["deviceSearchFilter"] = state.filter.name
+        _deviceCenterSearchState.value = state
     }
 
     fun modifyRange() {

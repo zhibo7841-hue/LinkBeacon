@@ -63,6 +63,8 @@ internal data class AppNavigationState(
     val deviceDetailKey: String? = null,
     /** A one-time target supplied by a Device Detail tool entry. */
     val toolInitialTarget: String? = null,
+    /** Only an ID is saved; the original snapshot is read from History. */
+    val reportHistoryId: Long? = null,
 ) {
     fun openTool(screen: ToolScreen): AppNavigationState = copy(
         topLevelDestination = TopLevelDestination.TOOLS,
@@ -75,6 +77,7 @@ internal data class AppNavigationState(
         toolBackDestination = toolScreen.takeIf { it != ToolScreen.NONE } ?: ToolScreen.NONE,
         deviceDetailKey = null,
         toolInitialTarget = null,
+        reportHistoryId = null,
     )
 
     fun openSecondaryDestination(screen: ToolScreen): AppNavigationState = copy(
@@ -87,6 +90,7 @@ internal data class AppNavigationState(
         toolBackDestination = ToolScreen.NONE,
         deviceDetailKey = null,
         toolInitialTarget = null,
+        reportHistoryId = null,
     )
 
     fun openDeviceDetail(key: String): AppNavigationState = copy(
@@ -96,6 +100,7 @@ internal data class AppNavigationState(
         toolBackDestination = ToolScreen.NONE,
         deviceDetailKey = key,
         toolInitialTarget = null,
+        reportHistoryId = null,
     )
 
     /** Opens an existing tool with a transient target and a Device Detail back path. */
@@ -110,6 +115,7 @@ internal data class AppNavigationState(
         toolBackDestination = ToolScreen.DEVICE_DETAIL,
         deviceDetailKey = detailKey,
         toolInitialTarget = initialTarget,
+        reportHistoryId = null,
     )
 
     fun selectTopLevel(destination: TopLevelDestination): AppNavigationState = copy(
@@ -118,6 +124,7 @@ internal data class AppNavigationState(
         toolBackDestination = ToolScreen.NONE,
         deviceDetailKey = null,
         toolInitialTarget = null,
+        reportHistoryId = null,
     )
 
     fun goBack(): AppNavigationState = when {
@@ -128,12 +135,14 @@ internal data class AppNavigationState(
             toolBackDestination = ToolScreen.NONE,
             deviceDetailKey = null,
             toolInitialTarget = null,
+            reportHistoryId = null,
         )
         toolBackDestination != ToolScreen.NONE -> copy(
             toolScreen = toolBackDestination,
             toolBackDestination = ToolScreen.NONE,
             deviceDetailKey = deviceDetailKey.takeIf { toolBackDestination == ToolScreen.DEVICE_DETAIL },
             toolInitialTarget = null,
+            reportHistoryId = null,
         )
         else -> copy(
             topLevelDestination = toolOrigin.backDestination(),
@@ -141,6 +150,7 @@ internal data class AppNavigationState(
             toolBackDestination = ToolScreen.NONE,
             deviceDetailKey = null,
             toolInitialTarget = null,
+            reportHistoryId = null,
         )
     }
 
@@ -154,6 +164,7 @@ internal data class AppNavigationState(
                     state.toolBackDestination.name,
                     state.deviceDetailKey,
                     state.toolInitialTarget,
+                    state.reportHistoryId,
                 )
             },
             restore = { saved ->
@@ -169,6 +180,7 @@ internal data class AppNavigationState(
                         ?: ToolScreen.NONE,
                     deviceDetailKey = saved.getOrNull(4) as? String,
                     toolInitialTarget = saved.getOrNull(5) as? String,
+                    reportHistoryId = saved.getOrNull(6) as? Long,
                 )
             },
         )

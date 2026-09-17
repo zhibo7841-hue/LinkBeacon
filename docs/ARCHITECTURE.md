@@ -321,3 +321,58 @@ wake, remote/cloud/DDNS delivery, SecureOn, cellular or IPv6-only broadcast,
 new permissions, or a separate device-action repository. `SavedDeviceProfile`
 remains the sole persistence owner; the additive Room migration preserves all
 existing favorite, custom-name, identity, scope, and observation data.
+
+## Activity recreation state ownership (Task 080)
+
+This is a recreation-safety foundation, **not** AppCompat or language switching.
+MainActivity remains a ComponentActivity. Network engines, Room schema, report
+semantics, and released artifacts are unchanged.
+
+- Existing Activity-scoped Hilt ViewModels retain live inputs, results, and jobs
+  through same-process configuration recreation. UI attachment never starts a
+  probe. Ping/TCP target initialization occurs only on explicit navigation actions,
+  not a composition-entry effect that overwrites retained edits/results.
+- `AppNavigationState.Saver` stores small caller/route values and optional
+  `reportHistoryId`. `SavedReportViewModel` observes the existing HistoryRepository
+  and deserializes that exact record through the existing schema-3/schema-2 reader.
+  It does not analyze, probe, or write. Saved context follows the ID even while
+  loading or unavailable, never falls through to live results. Deleted/malformed
+  records show an unavailable message with Back. The live ReportViewModel remains
+  independent, with the existing one-completed-run/one-history rule.
+- `RouteScrollStates` saves at most 32 identity-keyed integer offsets for device
+  details and reports, including a separate live-report key. No report, device,
+  engine, or job enters the Bundle. Compose bounds offsets to measured content;
+  this is approximate position restoration, not a claim of pixel-identical layout
+  after font/size changes. Existing parent LazyListState/ScrollState owners remain.
+  Drawer open state is deliberately transient (`remember`), so recreation starts
+  with a closed drawer without changing the saved destination or Back caller.
+- Device Center search active/query/filter use a small SavedStateHandle; the
+  current network-change reset still applies. Detail dialog drafts are not
+  overwritten by their first synchronization effect when a restored dialog is
+  open. Stable saved-profile routes still resolve via the existing repository and
+  identity matcher; unavailable transient observations safely show unavailable.
+- `PdfExportViewModel` owns one immutable byte snapshot and a UUID request ID.
+  Only the ID is saved in SavedStateHandle. The Activity registers CreateDocument
+  under `diagnostic-pdf:<requestId>`, re-registers a pending ID on recreation, and
+  unregisters its old callback on destruction. Registration is not a new launch.
+  Completion must match and consume the ID before writing; overlapping exports,
+  duplicates, and late results cannot replace the original bytes or consume a
+  newer request. Cancel clears the request without writing; write failure is not
+  success. The synchronous URI write never reads the currently displayed report.
+  Existing PDF rendering/layout and share cache/FileProvider behavior are unchanged.
+- Process death restores route IDs and small state, **not** jobs, live results,
+  temporary observations, or PDF bytes. A pending PDF ID without bytes reports
+  expiry and requests re-export; it never writes an empty or substitute report.
+  A new scan is always an explicit action. Force-stop is not configuration
+  recreation and has no promise of retaining transient state.
+- WoL/favorite/name operations stay behind explicit callbacks. Existing replay-0
+  SharedFlow feedback is not persisted or replayed. No global Activity holder,
+  orientation lock, configChanges workaround, service, or export queue is added.
+
+Recreation instrumentation uses the real MainActivity and ActivityScenario with
+test-only in-memory persistence and fake network boundaries. Task 080 recreation
+is verified on Sony Xperia 1 VII / Android 16: 17/17 recreation tests and a
+separate real DocumentsUI PDF roundtrip (1/1) passed. The maintainer closed this
+recreation blocker in Task 080-B. Process death and Android 12/13 remain unverified,
+not current recreation blockers. See I18N_SCOPE_AUDIT.md for historical failures,
+executed gates and remaining compatibility work; Locale is not implemented.
