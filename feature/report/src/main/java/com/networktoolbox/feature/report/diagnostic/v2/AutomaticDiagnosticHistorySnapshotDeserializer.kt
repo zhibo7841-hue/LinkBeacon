@@ -2,6 +2,8 @@ package com.networktoolbox.feature.report.diagnostic.v2
 
 import com.networktoolbox.core.common.diagnostic.DiagnosticAddressFamily
 import com.networktoolbox.core.common.diagnostic.DiagnosticCheck
+import com.networktoolbox.core.common.diagnostic.DiagnosticText
+import com.networktoolbox.core.common.diagnostic.DiagnosticTextArgument
 import com.networktoolbox.core.common.diagnostic.DiagnosticCheckCode
 import com.networktoolbox.core.common.diagnostic.DiagnosticCheckStatus
 import com.networktoolbox.core.common.diagnostic.DiagnosticConfidence
@@ -200,6 +202,7 @@ object AutomaticDiagnosticHistorySnapshotDeserializer {
     private fun JsonValue.toCheck(): DiagnosticCheck? {
         val objectValue = this as? JsonObject ?: return null
         return DiagnosticCheck(
+            summaryMessage = objectValue.messages()["summary"],
             code = objectValue.enumValue<DiagnosticCheckCode>("code") ?: return null,
             stage = objectValue.enumValue<DiagnosticStage>("stage") ?: return null,
             status = objectValue.enumValue<DiagnosticCheckStatus>("status") ?: return null,
@@ -224,6 +227,7 @@ object AutomaticDiagnosticHistorySnapshotDeserializer {
     private fun JsonValue.toFinding(): DiagnosticFinding? {
         val objectValue = this as? JsonObject ?: return null
         return DiagnosticFinding(
+            messages = objectValue.messages(),
             code = objectValue.enumValue<DiagnosticFindingCode>("code") ?: return null,
             title = objectValue.stringValue("title") ?: return null,
             description = objectValue.stringValue("description") ?: return null,
@@ -247,6 +251,7 @@ object AutomaticDiagnosticHistorySnapshotDeserializer {
         val confidence = enumValue<DiagnosticConfidence>("confidence") ?: return null
         val possibleCauses = stringArrayValue("possibleCauses") ?: return null
         return DiagnosticDiagnosis(
+            messages = messages(),
             status = status,
             title = title,
             explanation = explanation,
@@ -265,6 +270,7 @@ object AutomaticDiagnosticHistorySnapshotDeserializer {
     private fun JsonValue.toRecommendation(): DiagnosticRecommendation? {
         val objectValue = this as? JsonObject ?: return null
         return DiagnosticRecommendation(
+            messages = objectValue.messages(),
             code = objectValue.enumValue<DiagnosticRecommendationCode>("code") ?: return null,
             priority = objectValue.enumValue<DiagnosticRecommendationPriority>("priority")
                 ?: return null,
@@ -275,6 +281,37 @@ object AutomaticDiagnosticHistorySnapshotDeserializer {
             verificationHint = objectValue.nullableStringValue("verificationHint"),
         )
     }
+
+    /** Optional metadata must never make an otherwise readable old report fail. */
+    private fun JsonObject.messages(): Map<String, DiagnosticText> =
+        objValue("messages")?.values.orEmpty().entries.take(16).mapNotNull { (field, value) ->
+            if (field.length > 128) return@mapNotNull null
+            val text = value as? JsonObject ?: return@mapNotNull null
+            runCatching {
+                val arguments = text.arrayValue("arguments")?.values ?: emptyList()
+                require(arguments.size <= 16)
+                field to DiagnosticText(
+                    code = text.stringValue("code") ?: error("Missing message code"),
+                    fallbackText = text.stringValue("fallbackText") ?: error("Missing fallback"),
+                    arguments = arguments.map { argument ->
+                        val item = argument as? JsonObject ?: error("Invalid argument")
+                        when (item.stringValue("type")) {
+                            "TEXT" -> DiagnosticTextArgument.Text(
+                                item.stringValue("value") ?: error("Invalid text"),
+                            )
+                            "INTEGER" -> DiagnosticTextArgument.Integer(
+                                item.longValue("value") ?: error("Invalid integer"),
+                            )
+                            "DECIMAL" -> DiagnosticTextArgument.Decimal(
+                                item.values["value"]?.asNumber()?.toDoubleOrNull()
+                                    ?: error("Invalid decimal"),
+                            )
+                            else -> error("Unknown argument type")
+                        }
+                    },
+                )
+            }.getOrNull()
+        }.toMap()
 
     private fun JsonObject.stringValue(key: String): String? = values[key]?.asString()
 

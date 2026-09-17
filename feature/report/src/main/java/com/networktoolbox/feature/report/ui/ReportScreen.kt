@@ -21,6 +21,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
+import com.networktoolbox.feature.report.presentation.ReportLocalizationContext
 import com.networktoolbox.feature.report.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -280,7 +282,8 @@ private fun AutomaticReportContent(
     onSharePdf: (ByteArray, String) -> Unit,
 ) {
     UnifiedDiagnosticReportContent(
-        presentation = DiagnosticPresentationMapper.forLive(result),
+        presentation = DiagnosticPresentationMapper.forLive(result, ReportLocalizationContext.capture(LocalContext.current)),
+        exportPresentation = { localization -> DiagnosticPresentationMapper.forLive(result, localization) },
         stateKey = result.evidence.startedAt,
         comparison = comparison,
         onCopyReport = onCopyReport,
@@ -296,6 +299,7 @@ private fun AutomaticReportContent(
 @Composable
 private fun UnifiedDiagnosticReportContent(
     presentation: DiagnosticReportPresentation,
+    exportPresentation: (ReportLocalizationContext) -> DiagnosticReportPresentation,
     stateKey: Long,
     comparison: DiagnosticVerificationResult? = null,
     onCopyReport: (String) -> Unit,
@@ -304,6 +308,7 @@ private fun UnifiedDiagnosticReportContent(
 ) {
     val stageSummaries = DiagnosticPresentationMapper.stageSummariesForPresentation(
         presentation.checks,
+        ReportLocalizationContext.capture(LocalContext.current),
     )
     val visibleFindings = DiagnosticPresentationMapper.visibleFindingPresentations(
         presentation.findings,
@@ -339,7 +344,7 @@ private fun UnifiedDiagnosticReportContent(
                 }),
             ) {
                 if (visibleFindings.isEmpty()) {
-                    Text(DiagnosticPresentationMapper.noMaterialFindingMessage())
+                    Text(stringResource(R.string.report_dynamic_no_clear_fault))
                 } else {
                     visibleFindings
                         .take(MAX_VISIBLE_FINDINGS)
@@ -394,6 +399,7 @@ private fun UnifiedDiagnosticReportContent(
 
         ReportExportActions(
             presentation = presentation,
+            exportPresentation = exportPresentation,
             stateKey = stateKey,
             onCopyReport = onCopyReport,
             onSavePdf = onSavePdf,
@@ -410,7 +416,7 @@ private fun DiagnosticVerificationCard(
     OutlinedNetworkCard {
             Text(stringResource(R.string.report_comparison), style = MaterialTheme.typography.titleMedium)
             NetworkStatusChip(visual.state, label = stringResource(visual.label))
-            Text(comparison.summary, style = MaterialTheme.typography.bodyLarge)
+            Text(ReportLocalizationContext.capture(LocalContext.current).render(comparison.summaryMessage, comparison.summary), style = MaterialTheme.typography.bodyLarge)
 
             comparison.resolvedFindingCodes.forEach { code ->
                 Text("✓ ${code.resolvedVerificationMessage()}")
@@ -422,16 +428,16 @@ private fun DiagnosticVerificationCard(
                 Text("! ${code.newVerificationMessage()}")
             }
             comparison.inconclusiveFindingCodes.forEach { code ->
-                Text("? ${code.verificationLabel()}暂时无法确认。")
+                Text("? " + stringResource(R.string.verification_unknown_item, code.verificationLabel()))
             }
             comparison.resolvedContextFindingCodes.forEach { code ->
-                Text("ℹ 此前的${code.verificationLabel()}环境提示本次未再次出现。")
+                Text("ℹ " + stringResource(R.string.verification_context_resolved_item, code.verificationLabel()))
             }
             comparison.stillPresentContextFindingCodes.forEach { code ->
-                Text("ℹ 当前仍检测到${code.verificationLabel()}环境提示；这不等同于网络故障。")
+                Text("ℹ " + stringResource(R.string.verification_context_persistent_item, code.verificationLabel()))
             }
             comparison.newContextFindingCodes.forEach { code ->
-                Text("ℹ 本次出现${code.verificationLabel()}环境提示；这不等同于网络故障。")
+                Text("ℹ " + stringResource(R.string.verification_context_new_item, code.verificationLabel()))
             }
 
             Text(
@@ -458,55 +464,60 @@ private fun DiagnosticVerificationStatus.displayInfo(): Pair<String, Color> = wh
         stringResource(R.string.report_changed) to MaterialTheme.colorScheme.tertiary
 }
 
+@Composable
 private fun DiagnosticVerificationStatus.suggestion(): String = when (this) {
     DiagnosticVerificationStatus.RESOLVED_OR_NOT_REPRODUCED ->
-        "如果问题再次出现，可以重新运行诊断。"
+        stringResource(R.string.verification_retry_if_recurs)
     DiagnosticVerificationStatus.STILL_PRESENT ->
-        "请参考本次诊断中的建议，并在网络稳定时再次检测。"
+        stringResource(R.string.verification_follow_advice)
     DiagnosticVerificationStatus.NEW_FINDINGS ->
-        "请参考本次诊断中的最新建议；单次结果不能确定根因。"
+        stringResource(R.string.verification_latest_advice)
     DiagnosticVerificationStatus.UNCHANGED ->
-        "如果问题仍然存在，可以尝试运行目标检测。"
+        stringResource(R.string.verification_try_target)
     DiagnosticVerificationStatus.INCONCLUSIVE ->
-        "请在网络稳定后重新运行诊断。"
+        stringResource(R.string.verification_retry_stable)
     DiagnosticVerificationStatus.CONTEXT_CHANGED ->
-        "请在相同网络环境下重新运行诊断，以便进行比较。"
+        stringResource(R.string.verification_retry_same_network)
 }
 
+@Composable
 private fun DiagnosticFindingCode.verificationLabel(): String = when (this) {
-    DiagnosticFindingCode.NO_ACTIVE_NETWORK -> "活动网络不可用"
-    DiagnosticFindingCode.NETWORK_STATE_UNCONFIRMED -> "网络状态"
-    DiagnosticFindingCode.IP_CONFIGURATION_UNCONFIRMED -> "IP 配置"
-    DiagnosticFindingCode.GATEWAY_PROBE_NO_RESPONSE -> "网关探测未响应"
-    DiagnosticFindingCode.LOCAL_OR_UPSTREAM_PATH_UNCONFIRMED -> "本地或上游网络路径"
-    DiagnosticFindingCode.PUBLIC_CONNECTIVITY_UNCONFIRMED -> "公网连接"
-    DiagnosticFindingCode.DNS_RESOLUTION_FAILURE -> "DNS 查询异常"
-    DiagnosticFindingCode.DNS_NXDOMAIN -> "域名解析结果"
-    DiagnosticFindingCode.FAKE_IP_CONTEXT -> "特殊用途地址"
-    DiagnosticFindingCode.VPN_ACTIVE -> "VPN 环境"
-    DiagnosticFindingCode.CAPTIVE_PORTAL_CONTEXT -> "网络认证"
-    DiagnosticFindingCode.TARGET_TCP_REFUSED -> "目标端口连接"
-    DiagnosticFindingCode.TARGET_TCP_TIMEOUT -> "目标连接响应"
-    DiagnosticFindingCode.TARGET_TCP_PATH_UNCONFIRMED -> "目标地址路径"
-    DiagnosticFindingCode.NETWORK_APPEARS_NORMAL -> "基础网络连接"
+    DiagnosticFindingCode.NO_ACTIVE_NETWORK -> stringResource(R.string.verification_label_no_network)
+    DiagnosticFindingCode.NETWORK_STATE_UNCONFIRMED -> stringResource(R.string.verification_label_network)
+    DiagnosticFindingCode.IP_CONFIGURATION_UNCONFIRMED -> stringResource(R.string.verification_label_ip)
+    DiagnosticFindingCode.GATEWAY_PROBE_NO_RESPONSE -> stringResource(R.string.verification_label_gateway)
+    DiagnosticFindingCode.LOCAL_OR_UPSTREAM_PATH_UNCONFIRMED -> stringResource(R.string.verification_label_upstream)
+    DiagnosticFindingCode.PUBLIC_CONNECTIVITY_UNCONFIRMED -> stringResource(R.string.verification_label_public)
+    DiagnosticFindingCode.DNS_RESOLUTION_FAILURE -> stringResource(R.string.verification_label_dns_failure)
+    DiagnosticFindingCode.DNS_NXDOMAIN -> stringResource(R.string.verification_label_dns_result)
+    DiagnosticFindingCode.FAKE_IP_CONTEXT -> stringResource(R.string.verification_label_special_address)
+    DiagnosticFindingCode.VPN_ACTIVE -> stringResource(R.string.verification_label_vpn)
+    DiagnosticFindingCode.CAPTIVE_PORTAL_CONTEXT -> stringResource(R.string.verification_label_auth)
+    DiagnosticFindingCode.TARGET_TCP_REFUSED -> stringResource(R.string.verification_label_target_port)
+    DiagnosticFindingCode.TARGET_TCP_TIMEOUT -> stringResource(R.string.verification_label_target_response)
+    DiagnosticFindingCode.TARGET_TCP_PATH_UNCONFIRMED -> stringResource(R.string.verification_label_target_path)
+    DiagnosticFindingCode.NETWORK_APPEARS_NORMAL -> stringResource(R.string.verification_label_connectivity)
 }
 
+@Composable
 private fun DiagnosticFindingCode.resolvedVerificationMessage(): String = when (this) {
     DiagnosticFindingCode.NO_ACTIVE_NETWORK ->
-        "此前检测到的‘没有可用的活动网络’本次未再次出现。"
-    else -> "此前检测到的${verificationLabel()}本次未再次出现。"
+        stringResource(R.string.verification_no_network_resolved)
+    else -> stringResource(R.string.verification_resolved_item, verificationLabel())
 }
 
+@Composable
 private fun DiagnosticFindingCode.stillPresentVerificationMessage(): String = when (this) {
     DiagnosticFindingCode.NO_ACTIVE_NETWORK ->
-        "此前检测到的‘没有可用的活动网络’仍然存在。"
-    else -> "此前检测到的${verificationLabel()}仍然存在。"
+        stringResource(R.string.verification_no_network_persistent)
+    else -> stringResource(R.string.verification_persistent_item, verificationLabel())
 }
 
+@Composable
 private fun DiagnosticFindingCode.newVerificationMessage(): String = when (this) {
     DiagnosticFindingCode.NO_ACTIVE_NETWORK ->
-        "本次检测发现当前没有可用的活动网络连接。"
-    else -> "本次检测发现新的${verificationLabel()}。"
+        stringResource(R.string.verification_no_network_new)
+    else -> stringResource(R.string.verification_new_item, verificationLabel())
 }
 
 private enum class ReportExportOperation { COPY_TEXT, SAVE_PDF, SHARE_PDF }
@@ -514,6 +525,7 @@ private enum class ReportExportOperation { COPY_TEXT, SAVE_PDF, SHARE_PDF }
 @Composable
 private fun ReportExportActions(
     presentation: DiagnosticReportPresentation,
+    exportPresentation: (ReportLocalizationContext) -> DiagnosticReportPresentation,
     stateKey: Long,
     onCopyReport: (String) -> Unit,
     onSavePdf: (ByteArray, String) -> Unit,
@@ -522,19 +534,24 @@ private fun ReportExportActions(
     var optionsVisible by rememberSaveable(stateKey) { mutableStateOf(false) }
     var copyFeedbackVisible by rememberSaveable(stateKey) { mutableStateOf(false) }
     var pdfErrorVisible by rememberSaveable(stateKey) { mutableStateOf(false) }
+    val appContext = LocalContext.current
 
     fun dispatch(operation: ReportExportOperation) {
         optionsVisible = false
+        val localization = ReportLocalizationContext.capture(appContext)
+        // Render the same saved facts with the action's frozen locale. Even a
+        // resource change just before recomposition cannot mix old body/new labels.
+        val frozenPresentation = exportPresentation(localization)
         when (operation) {
             ReportExportOperation.COPY_TEXT -> {
-                onCopyReport(DiagnosticReportTextFormatter.formatReport(presentation))
+                onCopyReport(DiagnosticReportTextFormatter.formatReport(frozenPresentation, localization))
                 copyFeedbackVisible = true
             }
 
             ReportExportOperation.SAVE_PDF,
             ReportExportOperation.SHARE_PDF,
             -> runCatching {
-                val bytes = DiagnosticReportPdfRenderer.render(presentation)
+                val bytes = DiagnosticReportPdfRenderer.render(frozenPresentation, localization)
                 val fileName = DiagnosticReportPdfRenderer.fileName(presentation.timestamp)
                 if (operation == ReportExportOperation.SAVE_PDF) {
                     onSavePdf(bytes, fileName)
@@ -679,7 +696,7 @@ private fun UnifiedDiagnosticDetails(presentation: DiagnosticReportPresentation)
                         ResultRow(stringResource(R.string.report_method), method.methodDisplayName())
                     }
                     Text(
-                        check.summary,
+                        check.detailSummary,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -740,7 +757,7 @@ private fun DiagnosticRawDataDetails(
                 ?.takeIf { it == "cellular_gateway_not_applicable" }
                 ?.let {
                     Text(
-                        "当前网络不适用传统本地网关探测。",
+                        stringResource(R.string.check_legacy_mobile_gateway),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -779,7 +796,7 @@ private fun DiagnosticRawDataDetails(
                 ?.takeIf { it }
                 ?.let {
                     Text(
-                        DiagnosticPresentationMapper.fakeIpMessage(vpnActive),
+                        stringResource(when (vpnActive) { true -> R.string.finding_fake_ip_vpn_active; false -> R.string.finding_fake_ip_vpn_inactive; null -> R.string.finding_fake_ip_vpn_unknown }),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.tertiary,
                     )
@@ -788,7 +805,7 @@ private fun DiagnosticRawDataDetails(
                 ?.takeIf(String::isNotBlank)
                 ?.let {
                     Text(
-                        "查询未成功，请结合状态和建议判断。",
+                        stringResource(R.string.check_query_unsuccessful),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -1026,7 +1043,7 @@ private fun DiagnosticObservationDetails(
     }
     if (observations.any { it.code == DiagnosticObservationCode.FAKE_IP_RANGE_MATCH }) {
         Text(
-            DiagnosticPresentationMapper.fakeIpMessage(vpnActive),
+            stringResource(when (vpnActive) { true -> R.string.finding_fake_ip_vpn_active; false -> R.string.finding_fake_ip_vpn_inactive; null -> R.string.finding_fake_ip_vpn_unknown }),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.tertiary,
         )
@@ -1047,11 +1064,13 @@ private fun NetworkChangedContent(
             Text(stringResource(R.string.report_caution), style = MaterialTheme.typography.titleMedium)
         }
         Text(
-            result.analysis.diagnosis?.explanation
-                ?: "部分结果可能来自不同网络环境，暂时无法合并判断。",
+            ReportLocalizationContext.capture(LocalContext.current).render(
+                result.analysis.diagnosis?.messages?.get("explanation"),
+                result.analysis.diagnosis?.explanation ?: stringResource(R.string.diagnosis_network_changed_fallback),
+            ),
         )
         Text(
-            "建议在网络稳定后重新执行诊断。",
+            stringResource(R.string.recommendation_retry_changed),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         SecondaryActionButton(onClick = onRunCheck) { Text(stringResource(R.string.report_retry)) }
@@ -1072,7 +1091,9 @@ private fun FailedContent(
             Text(stringResource(R.string.report_failed), style = MaterialTheme.typography.titleMedium)
         }
         Text(stringResource(R.string.report_failure_help))
-        status.result?.analysis?.diagnosis?.explanation?.let { Text(it) }
+        status.result?.analysis?.diagnosis?.let {
+            Text(ReportLocalizationContext.capture(LocalContext.current).render(it.messages["explanation"], it.explanation))
+        }
         SecondaryActionButton(onClick = onRetry) { Text(stringResource(R.string.report_retry)) }
     }
 }
@@ -1104,7 +1125,8 @@ private fun ReportContent(
     onSharePdf: (ByteArray, String) -> Unit,
 ) {
     UnifiedDiagnosticReportContent(
-        presentation = DiagnosticPresentationMapper.forHistory(report),
+        presentation = DiagnosticPresentationMapper.forHistory(report, ReportLocalizationContext.capture(LocalContext.current)),
+        exportPresentation = { localization -> DiagnosticPresentationMapper.forHistory(report, localization) },
         stateKey = report.timestamp,
         onCopyReport = onCopyReport,
         onSavePdf = onSavePdf,
@@ -1243,7 +1265,7 @@ private fun DiagnosticDetails(report: DiagnosticReportV2) {
                 check.method?.let { ResultRow(stringResource(R.string.report_query_method), it.methodDisplayName()) }
                 check.rawData["fakeIpObserved"]?.toBooleanStrictOrNull()
                     ?.takeIf { it }
-                    ?.let { Text("提示：检测到特殊用途地址，可能存在 Fake-IP DNS 环境。") }
+                    ?.let { Text(stringResource(R.string.finding_legacy_fake_ip)) }
                 check.rawData["error"]
                     ?.takeIf { it.isNotBlank() }
                     ?.let { ResultRow(stringResource(R.string.report_error_label), it) }

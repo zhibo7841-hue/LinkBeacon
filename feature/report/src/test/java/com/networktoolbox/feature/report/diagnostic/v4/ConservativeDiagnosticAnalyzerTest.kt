@@ -24,12 +24,62 @@ import com.networktoolbox.feature.report.diagnostic.v2.orchestration.DiagnosticR
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ConservativeDiagnosticAnalyzerTest {
     private val analyzer = DefaultDiagnosticAnalyzerV4()
+
+    @Test
+    fun localizedSnapshotKeepsEvidenceIdentityAndDoesNotAnalyzeAgain() {
+        val scenarios = listOf(
+            evidence(),
+            evidence(gatewayStatus = DiagnosticCheckStatus.FAIL, gatewayOutcome = "NO_RESPONSE"),
+            evidence(dnsOutcome = DiagnosticDnsOutcome.TIMEOUT),
+            evidence(publicOutcomes = listOf(DiagnosticTcpOutcome.CONNECTION_REFUSED)),
+            evidence(vpn = true),
+            evidence(fakeIp = true),
+            evidence(mobile = true, gatewayStatus = DiagnosticCheckStatus.NOT_APPLICABLE),
+            evidence(activeNetwork = null),
+            evidence(activeNetwork = false),
+            evidence(validated = true, publicOutcomes = listOf(DiagnosticTcpOutcome.TIMEOUT)),
+            evidence(runStatus = DiagnosticRunStatus.NETWORK_CHANGED),
+            evidence(runStatus = DiagnosticRunStatus.FAILED),
+        )
+        scenarios.forEach { evidence ->
+            var analyzerCalls = 0
+            val counting = object : DiagnosticAnalyzerV4 {
+                override fun analyze(evidence: DiagnosticRunEvidence): DiagnosticAnalysisResult {
+                    analyzerCalls++
+                    return analyzer.analyze(evidence)
+                }
+            }
+            val result = com.networktoolbox.feature.report.domain.AutomaticDiagnosticResult(evidence, counting.analyze(evidence))
+            val serializer = com.networktoolbox.feature.report.diagnostic.v2.AutomaticDiagnosticHistorySnapshotSerializer
+            val reader = com.networktoolbox.feature.report.diagnostic.v2.AutomaticDiagnosticHistorySnapshotDeserializer
+            val saved = serializer.toHistoryRecord(result).copy(id = 42L)
+            val restored = requireNotNull(reader.fromHistoryRecord(saved))
+            assertEquals(result, restored)
+            val mapper = com.networktoolbox.feature.report.presentation.DiagnosticPresentationMapper
+            val resources = com.networktoolbox.feature.report.presentation.DiagnosticLocalizationTestResources
+            val chinese = mapper.forHistory(restored, resources.context(true))
+            val english = mapper.forHistory(restored, resources.context(false))
+            assertEquals(chinese, mapper.forHistory(restored, resources.context(true)))
+            assertEquals(chinese.overallStatus, english.overallStatus)
+            assertEquals(chinese.overallSeverity, english.overallSeverity)
+            assertEquals(chinese.timestamp, english.timestamp)
+            assertEquals(chinese.observations, english.observations)
+            assertEquals(chinese.networkSummary, english.networkSummary)
+            assertEquals(chinese.findings.map { it.id to it.severity }, english.findings.map { it.id to it.severity })
+            assertEquals(chinese.recommendations.map { it.priority }, english.recommendations.map { it.priority })
+            assertNotEquals(chinese.explanation, english.explanation)
+            assertEquals(1, analyzerCalls)
+            assertEquals(42L, saved.id)
+            assertEquals(saved.detailJson, serializer.toHistoryRecord(restored).detailJson)
+        }
+    }
 
     @Test
     fun normalWifiProducesScopedNormalDiagnosis() {

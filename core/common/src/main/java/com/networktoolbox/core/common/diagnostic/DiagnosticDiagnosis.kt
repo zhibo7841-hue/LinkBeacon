@@ -7,6 +7,7 @@ data class DiagnosticDiagnosis(
     val primaryFindingCode: DiagnosticFindingCode? = null,
     val confidence: DiagnosticConfidence,
     val possibleCauses: List<String> = emptyList(),
+    val messages: Map<String, DiagnosticText> = emptyMap(),
 ) {
     init {
         requireBoundedText(title, "diagnosis title", 256)

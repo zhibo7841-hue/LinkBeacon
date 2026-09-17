@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_dynamic_average">%1$s ms avg</string>
+    <string name="history_dynamic_loss">%1$s%% packet loss</string>
+    <string name="history_dynamic_records">%1$s: %2$d records</string>
+    <string name="history_dynamic_ping_excellent">The connection was stable, with no significant packet loss observed.</string>
+    <string name="history_dynamic_ping_variable">The target was reachable, with some latency or variation.</string>
+    <string name="history_dynamic_ping_poor">Significant latency or packet loss was observed.</string>
+    <string name="history_dynamic_dns_success">DNS resolution succeeded.</string>
+    <string name="history_dynamic_dns_no_records">The query completed, but no requested records were returned.</string>
+    <string name="history_dynamic_dns_nxdomain">DNS reports that the queried name does not exist (NXDOMAIN).</string>
+    <string name="history_dynamic_dns_partial">Some DNS queries succeeded; others encountered errors.</string>
+    <string name="history_dynamic_dns_timeout">The DNS query timed out.</string>
+    <string name="history_dynamic_dns_network_error">The DNS query encountered a network error.</string>
+    <string name="history_dynamic_dns_invalid_response">The DNS response could not be parsed reliably.</string>
+    <string name="history_dynamic_tcp_connected">TCP connection established.</string>
+    <string name="history_dynamic_tcp_refused">Connection refused (CONNECTION_REFUSED).</string>
+    <string name="history_dynamic_tcp_timeout">The TCP connection timed out.</string>
+    <string name="history_dynamic_tcp_unreachable">No route or network unreachable was reported for this target.</string>
+    <string name="history_dynamic_lan_duration">%1$d devices found · %2$s s</string>
+    <string name="history_dynamic_lan_count">%1$d devices found</string>
+    <string name="history_dynamic_dns_invalid_query">The DNS query input was invalid.</string>
+    <string name="history_dynamic_dns_failed">The DNS query did not complete successfully.</string>
+    <string name="history_dynamic_tcp_internal_error">The TCP check encountered an internal error.</string>
+</resources>

@@ -395,3 +395,27 @@ permission is added. Settings preserves the existing saveable caller and leaves
 ongoing jobs alone; selecting a language does not start/stop network work.
 Only Shell/Settings resources are bilingual in this phase; diagnostic/history/
 export prose and feature pages remain outside this extraction scope.
+
+### Task 083: snapshot message metadata and report localization
+
+New diagnosis/finding/recommendation snapshots optionally carry stable semantic
+`DiagnosticText` codes, typed arguments and saved fallback text. Checks carry an
+optional summary descriptor. The existing strings remain readable fallback fields.
+The schema-3 JSON envelope adds optional `messages`; Room/table/version and old
+snapshot facts are unchanged. Missing/malformed optional metadata falls back per
+field. Unknown message codes survive reading and use saved text. No resource ID or
+locale is stored as diagnostic identity, and no bulk history rewrite is performed.
+
+Descriptors are captured at the existing analyzer/orchestrator branch, without
+changing its conditions, evidence, severity or recommendation applicability.
+Domain models do not import Android Context or R. `ReportLocalizationContext`
+captures immutable translated templates at the presentation/export boundary.
+The mapper only projects the saved snapshot; it has no analyzer, probe or repository
+write dependency. History and Home recent-diagnosis summaries reuse that projection.
+
+Text and PDF use one frozen context and the same localized snapshot projection.
+Copy/Save/Share re-project the original snapshot with the action's captured context,
+not with a mixture of an earlier composition body and later resource labels.
+Existing PDF request IDs, byte ownership, SAF callbacks and recreation remain
+unchanged. Tool History uses reliable typed result fields where present; otherwise
+saved natural-language prose remains unchanged, even in another language.

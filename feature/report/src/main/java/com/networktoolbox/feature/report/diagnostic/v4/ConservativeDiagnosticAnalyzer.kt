@@ -1,6 +1,7 @@
 package com.networktoolbox.feature.report.diagnostic.v4
 
 import com.networktoolbox.core.common.diagnostic.DiagnosticCheck
+import com.networktoolbox.core.common.diagnostic.DiagnosticText
 import com.networktoolbox.core.common.diagnostic.DiagnosticCheckCode
 import com.networktoolbox.core.common.diagnostic.DiagnosticCheckStatus
 import com.networktoolbox.core.common.diagnostic.DiagnosticConfidence
@@ -77,16 +78,16 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         val recommendation = recommendation(
             code = DiagnosticRecommendationCode.RETRY_DIAGNOSTIC,
             priority = DiagnosticRecommendationPriority.PRIMARY,
-            title = "重新运行诊断",
-            action = "请在网络稳定后重新运行诊断。",
-            reason = "本次检测跨越了不同网络环境，不能合并为一个强结论。",
+            title = DiagnosticMessages.RECOMMENDATION_RETRY_TITLE,
+            action = DiagnosticMessages.RECOMMENDATION_RETRY_STABLE_ACTION,
+            reason = DiagnosticMessages.RECOMMENDATION_NETWORK_CHANGED_REASON,
         )
         return DiagnosticAnalysisResult(
             findings = emptyList(),
             diagnosis = diagnosis(
                 status = DiagnosticDiagnosisStatus.UNKNOWN,
-                title = "检测结果无法合并判断",
-                explanation = "检测过程中网络发生变化，当前结果可能来自不同网络环境。",
+                title = DiagnosticMessages.DIAGNOSIS_NETWORK_CHANGED_TITLE,
+                explanation = DiagnosticMessages.DIAGNOSIS_NETWORK_CHANGED_EXPLANATION,
                 confidence = DiagnosticConfidence.HIGH,
             ),
             recommendations = listOf(recommendation),
@@ -98,17 +99,17 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
             findings = emptyList(),
             diagnosis = diagnosis(
                 status = DiagnosticDiagnosisStatus.UNKNOWN,
-                title = "诊断未完整完成",
-                explanation = "诊断流程本身未能完成，因此无法形成可靠的网络结论。",
+                title = DiagnosticMessages.DIAGNOSIS_INCOMPLETE_TITLE,
+                explanation = DiagnosticMessages.DIAGNOSIS_INCOMPLETE_EXPLANATION,
                 confidence = DiagnosticConfidence.LOW,
             ),
             recommendations = listOf(
                 recommendation(
                     code = DiagnosticRecommendationCode.RETRY_DIAGNOSTIC,
                     priority = DiagnosticRecommendationPriority.PRIMARY,
-                    title = "重新运行诊断",
-                    action = "请稍后重新运行诊断。",
-                    reason = "本次诊断流程没有完整收集所需证据。",
+                    title = DiagnosticMessages.RECOMMENDATION_RETRY_TITLE,
+                    action = DiagnosticMessages.RECOMMENDATION_RETRY_LATER_ACTION,
+                    reason = DiagnosticMessages.RECOMMENDATION_INCOMPLETE_REASON,
                 ),
             ),
         )
@@ -123,14 +124,14 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         if (explicitNoNetwork) {
             findings += finding(
                 code = DiagnosticFindingCode.NO_ACTIVE_NETWORK,
-                title = "没有可用的活动网络",
-                description = "设备当前没有可用的活动网络连接。",
+                title = DiagnosticMessages.FINDING_NO_NETWORK_TITLE,
+                description = DiagnosticMessages.FINDING_NO_NETWORK_DESCRIPTION,
                 severity = DiagnosticSeverity.ERROR,
                 evidenceLevel = DiagnosticEvidenceLevel.CONFIRMED,
                 confidence = DiagnosticConfidence.HIGH,
                 observations = listOfNotNull(view.activeObservation),
                 checks = listOfNotNull(networkCheck),
-                possibleCauses = listOf("Wi-Fi 或移动数据未连接", "飞行模式或 SIM/APN 状态异常"),
+                possibleCauses = listOf(DiagnosticMessages.CAUSE_WIFI_MOBILE_DISCONNECTED, DiagnosticMessages.CAUSE_AIRPLANE_SIM_APN),
                 recommendedActionCodes = listOf(
                     DiagnosticRecommendationCode.CHECK_WIFI_OR_MOBILE_NETWORK,
                     DiagnosticRecommendationCode.RETRY_DIAGNOSTIC,
@@ -144,8 +145,8 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         if (networkStateUnconfirmed) {
             findings += finding(
                 code = DiagnosticFindingCode.NETWORK_STATE_UNCONFIRMED,
-                title = "网络状态未确认",
-                description = "当前无法可靠读取活动网络状态，因此不能判断设备是否已连接网络。",
+                title = DiagnosticMessages.FINDING_NETWORK_UNKNOWN_TITLE,
+                description = DiagnosticMessages.FINDING_NETWORK_UNKNOWN_DESCRIPTION,
                 severity = DiagnosticSeverity.NOTICE,
                 evidenceLevel = DiagnosticEvidenceLevel.INCONCLUSIVE,
                 confidence = DiagnosticConfidence.LOW,
@@ -164,8 +165,8 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         ) {
             findings += finding(
                 code = DiagnosticFindingCode.IP_CONFIGURATION_UNCONFIRMED,
-                title = "IP 配置未确认",
-                description = "设备已显示有活动网络，但当前没有可靠的 IPv4 或 IPv6 地址证据。",
+                title = DiagnosticMessages.FINDING_IP_UNKNOWN_TITLE,
+                description = DiagnosticMessages.FINDING_IP_UNKNOWN_DESCRIPTION,
                 severity = DiagnosticSeverity.NOTICE,
                 evidenceLevel = DiagnosticEvidenceLevel.INCONCLUSIVE,
                 confidence = DiagnosticConfidence.LOW,
@@ -185,11 +186,11 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
             }
             findings += finding(
                 code = DiagnosticFindingCode.PUBLIC_CONNECTIVITY_UNCONFIRMED,
-                title = if (validatedConflict) "公网连通性证据存在冲突" else "公网连接尚未确认",
+                title = if (validatedConflict) DiagnosticMessages.FINDING_PUBLIC_CONFLICT_TITLE else DiagnosticMessages.FINDING_PUBLIC_UNKNOWN_TITLE,
                 description = when {
-                    validatedConflict -> "系统联网验证已通过，但本次公网 TCP 探测没有成功证据，当前无法确认公网连接状态。"
-                    strongNegative -> "本次公网探测出现无路由或网络不可达结果，当前未能确认公网连接可用。"
-                    else -> "当前未能确认公网连接可用；超时或适配器限制不等同于互联网已断开。"
+                    validatedConflict -> DiagnosticMessages.FINDING_PUBLIC_VALIDATED_CONFLICT
+                    strongNegative -> DiagnosticMessages.FINDING_PUBLIC_ROUTE_UNAVAILABLE
+                    else -> DiagnosticMessages.FINDING_PUBLIC_INCONCLUSIVE
                 },
                 severity = if (strongNegative && !validatedConflict) {
                     DiagnosticSeverity.WARNING
@@ -208,7 +209,7 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
                 },
                 observations = public.observations,
                 checks = public.checks,
-                possibleCauses = listOf("公网路径或上游网络暂时不可用", "探测目标策略或网络策略限制"),
+                possibleCauses = listOf(DiagnosticMessages.CAUSE_PUBLIC_UPSTREAM_UNAVAILABLE, DiagnosticMessages.CAUSE_PROBE_POLICY),
                 recommendedActionCodes = listOf(
                     DiagnosticRecommendationCode.RETRY_DIAGNOSTIC,
                     DiagnosticRecommendationCode.COMPARE_ANOTHER_NETWORK,
@@ -221,8 +222,8 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
             if (public.positive) {
                 findings += finding(
                     code = DiagnosticFindingCode.GATEWAY_PROBE_NO_RESPONSE,
-                    title = "默认网关未响应当前探测",
-                    description = "默认网关没有响应当前探测，但公网连接正常。部分设备可能不响应此类探测，因此不能据此判断网关故障。",
+                    title = DiagnosticMessages.FINDING_GATEWAY_NO_RESPONSE_TITLE,
+                    description = DiagnosticMessages.FINDING_GATEWAY_PUBLIC_AVAILABLE,
                     severity = DiagnosticSeverity.NOTICE,
                     evidenceLevel = DiagnosticEvidenceLevel.CONTRADICTED,
                     confidence = DiagnosticConfidence.HIGH,
@@ -234,15 +235,15 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
             } else if (public.checks.isNotEmpty()) {
                 findings += finding(
                     code = DiagnosticFindingCode.LOCAL_OR_UPSTREAM_PATH_UNCONFIRMED,
-                    title = "本地或上游网络路径未确认",
-                    description = "网关与公网探测均未提供成功证据，问题可能位于本地链路、接入点、VLAN、网关、WAN 或上游网络。",
+                    title = DiagnosticMessages.FINDING_LOCAL_UPSTREAM_TITLE,
+                    description = DiagnosticMessages.FINDING_LOCAL_UPSTREAM_DESCRIPTION,
                     severity = DiagnosticSeverity.WARNING,
                     evidenceLevel = DiagnosticEvidenceLevel.SUPPORTED,
                     confidence = DiagnosticConfidence.MEDIUM,
                     observations = view.observationsFor(DiagnosticObservationCode.GATEWAY_PROBE_OUTCOME) +
                         public.observations,
                     checks = listOfNotNull(gateway) + public.checks,
-                    possibleCauses = listOf("本地链路或接入点", "网关或路由器 WAN", "上游网络路径"),
+                    possibleCauses = listOf(DiagnosticMessages.CAUSE_LOCAL_LINK, DiagnosticMessages.CAUSE_GATEWAY_WAN, DiagnosticMessages.CAUSE_UPSTREAM_PATH),
                     recommendedActionCodes = listOf(
                         DiagnosticRecommendationCode.CHECK_ROUTER_WAN,
                         DiagnosticRecommendationCode.COMPARE_ANOTHER_NETWORK,
@@ -261,8 +262,8 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         if (normalTransport && !materialFinding) {
             findings += finding(
                 code = DiagnosticFindingCode.NETWORK_APPEARS_NORMAL,
-                title = "基础网络连接正常",
-                description = "在本次检测范围内，基础网络连接表现正常。",
+                title = DiagnosticMessages.DIAGNOSIS_NORMAL_TITLE,
+                description = DiagnosticMessages.FINDING_NORMAL_DESCRIPTION,
                 severity = DiagnosticSeverity.HEALTHY,
                 evidenceLevel = DiagnosticEvidenceLevel.CONFIRMED,
                 confidence = DiagnosticConfidence.HIGH,
@@ -292,8 +293,8 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         if (baseline == DiagnosticDnsOutcome.NXDOMAIN) {
             findings += finding(
                 code = DiagnosticFindingCode.DNS_NXDOMAIN,
-                title = "域名被报告为不存在",
-                description = "DNS 响应明确表示查询名称不存在；这只说明当前查询名称未找到，不表示 DNS 服务整体故障。",
+                title = DiagnosticMessages.FINDING_NXDOMAIN_TITLE,
+                description = DiagnosticMessages.FINDING_NXDOMAIN_DESCRIPTION,
                 severity = DiagnosticSeverity.NOTICE,
                 evidenceLevel = DiagnosticEvidenceLevel.CONFIRMED,
                 confidence = DiagnosticConfidence.HIGH,
@@ -305,7 +306,7 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
             findings += dnsFailureFinding(
                 check = view.baselineDnsCheck,
                 observations = view.baselineDnsObservations,
-                description = "公网连接正常，但当前 DNS 查询未正常完成。问题可能与 DNS 服务、Private DNS、VPN 或网络配置有关。",
+                description = DiagnosticMessages.FINDING_DNS_PUBLIC_AVAILABLE,
             )
         }
 
@@ -317,8 +318,8 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         ) {
             findings += finding(
                 code = DiagnosticFindingCode.DNS_NXDOMAIN,
-                title = "目标域名不存在",
-                description = "DNS 响应明确表示目标查询名称不存在；这不是全局 DNS 故障结论。",
+                title = DiagnosticMessages.FINDING_TARGET_NXDOMAIN_TITLE,
+                description = DiagnosticMessages.FINDING_TARGET_NXDOMAIN_DESCRIPTION,
                 severity = DiagnosticSeverity.NOTICE,
                 evidenceLevel = DiagnosticEvidenceLevel.CONFIRMED,
                 confidence = DiagnosticConfidence.HIGH,
@@ -332,7 +333,7 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
             findings += dnsFailureFinding(
                 check = targetDnsCheck,
                 observations = view.observationsFor(targetDnsCheck),
-                description = "公网连接正常，但目标域名 DNS 查询未正常完成；问题可能与当前 DNS 路径或目标名称配置有关。",
+                description = DiagnosticMessages.FINDING_TARGET_DNS_FAILURE,
             )
         }
     }
@@ -340,17 +341,17 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
     private fun dnsFailureFinding(
         check: DiagnosticCheck?,
         observations: List<DiagnosticObservation>,
-        description: String,
+        description: DiagnosticText,
     ): DiagnosticFinding = finding(
         code = DiagnosticFindingCode.DNS_RESOLUTION_FAILURE,
-        title = "DNS 查询未正常完成",
+        title = DiagnosticMessages.FINDING_DNS_FAILURE_TITLE,
         description = description,
         severity = DiagnosticSeverity.WARNING,
         evidenceLevel = DiagnosticEvidenceLevel.SUPPORTED,
         confidence = DiagnosticConfidence.HIGH,
         observations = observations,
         checks = listOfNotNull(check),
-        possibleCauses = listOf("DNS 服务或当前 DNS 路径", "Private DNS、VPN 或代理配置"),
+        possibleCauses = listOf(DiagnosticMessages.CAUSE_DNS_PATH, DiagnosticMessages.CAUSE_PRIVATE_DNS_VPN_PROXY),
         recommendedActionCodes = listOf(
             DiagnosticRecommendationCode.RETRY_DIAGNOSTIC,
             DiagnosticRecommendationCode.CHECK_PRIVATE_DNS_VPN_PROXY,
@@ -376,8 +377,8 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         when {
             targetOutcomes.any { it == DiagnosticTcpOutcome.CONNECTION_REFUSED } -> findings += finding(
                 code = DiagnosticFindingCode.TARGET_TCP_REFUSED,
-                title = "目标端口未接受连接",
-                description = "目标端口未接受连接，但目标地址路径存在明确响应；这不等同于路由或互联网故障。",
+                title = DiagnosticMessages.FINDING_TARGET_REFUSED_TITLE,
+                description = DiagnosticMessages.FINDING_TARGET_REFUSED_DESCRIPTION,
                 severity = DiagnosticSeverity.WARNING,
                 evidenceLevel = DiagnosticEvidenceLevel.SUPPORTED,
                 confidence = DiagnosticConfidence.HIGH,
@@ -391,35 +392,35 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
                     it == DiagnosticTcpOutcome.NETWORK_UNREACHABLE
             } -> findings += finding(
                 code = DiagnosticFindingCode.TARGET_TCP_PATH_UNCONFIRMED,
-                title = "目标地址路径未确认",
+                title = DiagnosticMessages.FINDING_TARGET_PATH_TITLE,
                 description = if (public.positive) {
-                    "公网路径已有成功证据，但目标地址返回无路由或网络不可达；问题可能与目标地址族或目标路径有关。"
+                    DiagnosticMessages.FINDING_TARGET_ROUTE_PUBLIC_AVAILABLE
                 } else {
-                    "目标地址返回无路由或网络不可达，但公网证据不足，无法将问题归因于目标服务。"
+                    DiagnosticMessages.FINDING_TARGET_ROUTE_PUBLIC_UNKNOWN
                 },
                 severity = if (public.positive) DiagnosticSeverity.WARNING else DiagnosticSeverity.NOTICE,
                 evidenceLevel = DiagnosticEvidenceLevel.INCONCLUSIVE,
                 confidence = if (public.positive) DiagnosticConfidence.MEDIUM else DiagnosticConfidence.LOW,
                 observations = targetEvidence,
                 checks = targetChecks,
-                possibleCauses = listOf("目标地址族或访问路径", "目标网络策略"),
+                possibleCauses = listOf(DiagnosticMessages.CAUSE_TARGET_FAMILY_PATH, DiagnosticMessages.CAUSE_TARGET_POLICY),
                 recommendedActionCodes = listOf(DiagnosticRecommendationCode.RUN_TARGET_CHECK),
             )
 
             targetOutcomes.any { it == DiagnosticTcpOutcome.TIMEOUT } -> findings += finding(
                 code = DiagnosticFindingCode.TARGET_TCP_TIMEOUT,
-                title = "目标连接未及时响应",
+                title = DiagnosticMessages.FINDING_TARGET_TIMEOUT_TITLE,
                 description = if (public.positive) {
-                    "公网路径已有成功证据，但目标服务或访问路径未及时响应；不能据此判断网站或服务已停止。"
+                    DiagnosticMessages.FINDING_TARGET_TIMEOUT_PUBLIC_AVAILABLE
                 } else {
-                    "目标连接未及时响应，且当前公网证据不足；无法区分目标服务与网络路径问题。"
+                    DiagnosticMessages.FINDING_TARGET_TIMEOUT_PUBLIC_UNKNOWN
                 },
                 severity = if (public.positive) DiagnosticSeverity.WARNING else DiagnosticSeverity.NOTICE,
                 evidenceLevel = DiagnosticEvidenceLevel.INCONCLUSIVE,
                 confidence = if (public.positive) DiagnosticConfidence.MEDIUM else DiagnosticConfidence.LOW,
                 observations = targetEvidence,
                 checks = targetChecks,
-                possibleCauses = listOf("目标服务或目标访问路径", "防火墙或网络策略"),
+                possibleCauses = listOf(DiagnosticMessages.CAUSE_TARGET_SERVICE_PATH, DiagnosticMessages.CAUSE_FIREWALL_POLICY),
                 recommendedActionCodes = listOf(DiagnosticRecommendationCode.RUN_TARGET_CHECK),
             )
         }
@@ -431,8 +432,8 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         if (captive != null) {
             findings += finding(
                 code = DiagnosticFindingCode.CAPTIVE_PORTAL_CONTEXT,
-                title = "当前网络可能需要登录认证",
-                description = "当前网络可能需要完成系统登录认证；这不是路由器或 DNS 服务故障结论。",
+                title = DiagnosticMessages.FINDING_CAPTIVE_TITLE,
+                description = DiagnosticMessages.FINDING_CAPTIVE_DESCRIPTION,
                 severity = DiagnosticSeverity.NOTICE,
                 evidenceLevel = DiagnosticEvidenceLevel.CONFIRMED,
                 confidence = DiagnosticConfidence.HIGH,
@@ -457,8 +458,8 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         if (fakeIp.isNotEmpty()) {
             findings += finding(
                 code = DiagnosticFindingCode.FAKE_IP_CONTEXT,
-                title = "检测到特殊用途地址",
-                description = "检测到 198.18.0.0/15 特殊用途地址，可能存在 Fake-IP DNS 环境；这不等同于 DNS 错误。",
+                title = DiagnosticMessages.FINDING_FAKE_IP_TITLE,
+                description = DiagnosticMessages.FINDING_FAKE_IP_DESCRIPTION,
                 severity = DiagnosticSeverity.NOTICE,
                 evidenceLevel = DiagnosticEvidenceLevel.CONFIRMED,
                 confidence = DiagnosticConfidence.HIGH,
@@ -473,8 +474,8 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         if (vpn != null) {
             findings += finding(
                 code = DiagnosticFindingCode.VPN_ACTIVE,
-                title = "检测到 VPN 网络",
-                description = "当前通过 VPN 的联网路径在本次检测中表现正常或已被单独记录；以下结果可能反映 VPN 隧道后的网络环境。",
+                title = DiagnosticMessages.FINDING_VPN_TITLE,
+                description = DiagnosticMessages.FINDING_VPN_DESCRIPTION,
                 severity = DiagnosticSeverity.NOTICE,
                 evidenceLevel = DiagnosticEvidenceLevel.CONFIRMED,
                 confidence = DiagnosticConfidence.HIGH,
@@ -508,24 +509,24 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         val diagnosis = when {
             normalFinding != null && material == null -> diagnosis(
                 status = DiagnosticDiagnosisStatus.NORMAL,
-                title = "基础网络连接正常",
-                explanation = "在本次检测范围内，基础网络连接表现正常；这不代表所有应用或网站都一定正常。",
+                title = DiagnosticMessages.DIAGNOSIS_NORMAL_TITLE,
+                explanation = DiagnosticMessages.DIAGNOSIS_NORMAL_EXPLANATION,
                 primaryFindingCode = DiagnosticFindingCode.NETWORK_APPEARS_NORMAL,
                 confidence = DiagnosticConfidence.HIGH,
             )
 
             material?.code == DiagnosticFindingCode.NO_ACTIVE_NETWORK -> diagnosis(
                 status = DiagnosticDiagnosisStatus.ATTENTION,
-                title = "设备当前没有可用网络",
-                explanation = "设备当前没有可用的活动网络连接，请先检查 Wi-Fi 或移动数据。",
+                title = DiagnosticMessages.DIAGNOSIS_NO_NETWORK_TITLE,
+                explanation = DiagnosticMessages.DIAGNOSIS_NO_NETWORK_EXPLANATION,
                 primaryFindingCode = material.code,
                 confidence = material.confidence,
             )
 
             captiveOnlyRestriction && material == null -> diagnosis(
                 status = DiagnosticDiagnosisStatus.LIMITED,
-                title = "网络访问可能受限",
-                explanation = "当前网络可能需要完成登录认证，部分公网访问能力可能受到限制。",
+                title = DiagnosticMessages.DIAGNOSIS_LIMITED_TITLE,
+                explanation = DiagnosticMessages.DIAGNOSIS_CAPTIVE_EXPLANATION,
                 primaryFindingCode = DiagnosticFindingCode.CAPTIVE_PORTAL_CONTEXT,
                 confidence = DiagnosticConfidence.HIGH,
             )
@@ -533,32 +534,34 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
             material?.code == DiagnosticFindingCode.PUBLIC_CONNECTIVITY_UNCONFIRMED &&
                 material.severity == DiagnosticSeverity.WARNING -> diagnosis(
                 status = DiagnosticDiagnosisStatus.ATTENTION,
-                title = "公网连接尚未确认",
-                explanation = "当前未能确认公网连接可用，问题可能位于本地、WAN 或上游网络路径。",
+                title = DiagnosticMessages.FINDING_PUBLIC_UNKNOWN_TITLE,
+                explanation = DiagnosticMessages.DIAGNOSIS_PUBLIC_UNKNOWN_EXPLANATION,
                 primaryFindingCode = material.code,
                 confidence = material.confidence,
             )
 
             material != null -> diagnosis(
                 status = DiagnosticDiagnosisStatus.ATTENTION,
-                title = "发现需要关注的网络现象",
-                explanation = material.description,
+                title = DiagnosticMessages.DIAGNOSIS_ATTENTION_TITLE,
+                explanation = material.messages["description"] ?: DiagnosticText.legacy(material.description),
                 primaryFindingCode = material.code,
                 confidence = material.confidence,
-                possibleCauses = material.possibleCauses,
+                possibleCauses = material.possibleCauses.mapIndexed { index, text ->
+                    material.messages["cause.$index"] ?: DiagnosticText.legacy(text)
+                },
             )
 
             networkUnknown || publicUnconfirmed -> diagnosis(
                 status = DiagnosticDiagnosisStatus.UNKNOWN,
-                title = "当前无法确认整体网络状态",
-                explanation = "证据不足或存在冲突，当前结果不足以形成可靠的整体网络结论。",
+                title = DiagnosticMessages.DIAGNOSIS_UNKNOWN_TITLE,
+                explanation = DiagnosticMessages.DIAGNOSIS_CONFLICTING_EVIDENCE,
                 confidence = DiagnosticConfidence.LOW,
             )
 
             else -> diagnosis(
                 status = DiagnosticDiagnosisStatus.UNKNOWN,
-                title = "当前无法确认整体网络状态",
-                explanation = "本次检测没有收集到足够的证据来形成可靠结论。",
+                title = DiagnosticMessages.DIAGNOSIS_UNKNOWN_TITLE,
+                explanation = DiagnosticMessages.DIAGNOSIS_INSUFFICIENT_EVIDENCE,
                 confidence = DiagnosticConfidence.LOW,
             )
         }
@@ -580,9 +583,9 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
             fun addFor(
                 code: DiagnosticRecommendationCode,
                 priority: DiagnosticRecommendationPriority,
-                title: String,
-                action: String,
-                reason: String,
+                title: DiagnosticText,
+                action: DiagnosticText,
+                reason: DiagnosticText,
                 related: List<DiagnosticFindingCode>,
             ) = add(
                 recommendation(
@@ -599,36 +602,36 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
                 DiagnosticFindingCode.NO_ACTIVE_NETWORK in codes -> addFor(
                     DiagnosticRecommendationCode.CHECK_WIFI_OR_MOBILE_NETWORK,
                     DiagnosticRecommendationPriority.PRIMARY,
-                    "检查网络连接",
-                    "检查 Wi-Fi 或移动数据，并确认未开启飞行模式。",
-                    "当前没有可用的活动网络。",
+                    DiagnosticMessages.RECOMMENDATION_NETWORK_TITLE,
+                    DiagnosticMessages.RECOMMENDATION_NETWORK_ACTION,
+                    DiagnosticMessages.RECOMMENDATION_NETWORK_REASON,
                     listOf(DiagnosticFindingCode.NO_ACTIVE_NETWORK),
                 )
 
                 DiagnosticFindingCode.DNS_RESOLUTION_FAILURE in codes -> addFor(
                     DiagnosticRecommendationCode.RETRY_DIAGNOSTIC,
                     DiagnosticRecommendationPriority.PRIMARY,
-                    "重新进行 DNS 查询",
-                    "再次执行诊断以确认 DNS 是否恢复。",
-                    "公网路径已有成功证据，但 DNS 查询未正常完成。",
+                    DiagnosticMessages.RECOMMENDATION_DNS_RETRY_TITLE,
+                    DiagnosticMessages.RECOMMENDATION_DNS_RETRY_ACTION,
+                    DiagnosticMessages.RECOMMENDATION_DNS_RETRY_REASON,
                     listOf(DiagnosticFindingCode.DNS_RESOLUTION_FAILURE),
                 )
 
                 DiagnosticFindingCode.LOCAL_OR_UPSTREAM_PATH_UNCONFIRMED in codes -> addFor(
                     DiagnosticRecommendationCode.CHECK_ROUTER_WAN,
                     DiagnosticRecommendationPriority.PRIMARY,
-                    "检查本地与上游连接",
-                    "检查接入点、路由器 WAN 和上游连接状态。",
-                    "网关与公网探测均未提供成功证据。",
+                    DiagnosticMessages.RECOMMENDATION_UPSTREAM_TITLE,
+                    DiagnosticMessages.RECOMMENDATION_UPSTREAM_ACTION,
+                    DiagnosticMessages.RECOMMENDATION_UPSTREAM_REASON,
                     listOf(DiagnosticFindingCode.LOCAL_OR_UPSTREAM_PATH_UNCONFIRMED),
                 )
 
                 DiagnosticFindingCode.PUBLIC_CONNECTIVITY_UNCONFIRMED in codes -> addFor(
                     DiagnosticRecommendationCode.RETRY_DIAGNOSTIC,
                     DiagnosticRecommendationPriority.PRIMARY,
-                    "重新运行诊断",
-                    "在网络稳定后重新运行诊断，并尝试对比其他网络。",
-                    "当前公网探测证据不足或与系统联网验证冲突。",
+                    DiagnosticMessages.RECOMMENDATION_RETRY_TITLE,
+                    DiagnosticMessages.RECOMMENDATION_PUBLIC_RETRY_ACTION,
+                    DiagnosticMessages.RECOMMENDATION_PUBLIC_RETRY_REASON,
                     listOf(DiagnosticFindingCode.PUBLIC_CONNECTIVITY_UNCONFIRMED),
                 )
 
@@ -638,9 +641,9 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
                     DiagnosticFindingCode.DNS_NXDOMAIN in codes -> addFor(
                     DiagnosticRecommendationCode.RUN_TARGET_CHECK,
                     DiagnosticRecommendationPriority.PRIMARY,
-                    "核对目标",
-                    "确认目标名称、地址族、端口和服务配置。",
-                    "当前现象更接近目标特定问题，不能直接归因于整体网络。",
+                    DiagnosticMessages.RECOMMENDATION_TARGET_TITLE,
+                    DiagnosticMessages.RECOMMENDATION_TARGET_ACTION,
+                    DiagnosticMessages.RECOMMENDATION_TARGET_REASON,
                     listOfNotNull(
                         DiagnosticFindingCode.TARGET_TCP_REFUSED.takeIf { it in codes },
                         DiagnosticFindingCode.TARGET_TCP_TIMEOUT.takeIf { it in codes },
@@ -654,9 +657,9 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
                 addFor(
                     DiagnosticRecommendationCode.RETRY_DIAGNOSTIC,
                     DiagnosticRecommendationPriority.SECONDARY,
-                    "重新运行诊断",
-                    "连接网络后重新运行诊断。",
-                    "重新检测可以确认网络状态是否已经恢复。",
+                    DiagnosticMessages.RECOMMENDATION_RETRY_TITLE,
+                    DiagnosticMessages.RECOMMENDATION_AFTER_CONNECT_ACTION,
+                    DiagnosticMessages.RECOMMENDATION_AFTER_CONNECT_REASON,
                     listOf(DiagnosticFindingCode.NO_ACTIVE_NETWORK),
                 )
             }
@@ -665,9 +668,9 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
                 addFor(
                     DiagnosticRecommendationCode.CHECK_CAPTIVE_PORTAL,
                     DiagnosticRecommendationPriority.PRIMARY,
-                    "完成网络认证",
-                    "检查系统网络登录提示并完成认证。",
-                    "系统报告当前网络可能需要登录认证。",
+                    DiagnosticMessages.RECOMMENDATION_CAPTIVE_TITLE,
+                    DiagnosticMessages.RECOMMENDATION_CAPTIVE_ACTION,
+                    DiagnosticMessages.RECOMMENDATION_CAPTIVE_REASON,
                     listOf(DiagnosticFindingCode.CAPTIVE_PORTAL_CONTEXT),
                 )
             }
@@ -679,9 +682,9 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
                 addFor(
                     DiagnosticRecommendationCode.CHECK_PRIVATE_DNS_VPN_PROXY,
                     DiagnosticRecommendationPriority.SECONDARY,
-                    "检查 DNS 环境",
-                    "检查 Private DNS、VPN 或代理设置。",
-                    "这些上下文可能影响名称解析与访问路径。",
+                    DiagnosticMessages.RECOMMENDATION_DNS_ENVIRONMENT_TITLE,
+                    DiagnosticMessages.RECOMMENDATION_DNS_ENVIRONMENT_ACTION,
+                    DiagnosticMessages.RECOMMENDATION_DNS_ENVIRONMENT_REASON,
                     listOfNotNull(
                         DiagnosticFindingCode.DNS_RESOLUTION_FAILURE.takeIf {
                             it in codes
@@ -699,9 +702,9 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
                 addFor(
                     DiagnosticRecommendationCode.COMPARE_ANOTHER_NETWORK,
                     DiagnosticRecommendationPriority.SECONDARY,
-                    "对比其他网络",
-                    "尝试使用另一 Wi-Fi 或移动网络进行对比。",
-                    "不同网络的结果有助于区分本地环境与目标路径问题。",
+                    DiagnosticMessages.RECOMMENDATION_COMPARE_TITLE,
+                    DiagnosticMessages.RECOMMENDATION_COMPARE_ACTION,
+                    DiagnosticMessages.RECOMMENDATION_COMPARE_REASON,
                     listOfNotNull(
                         DiagnosticFindingCode.LOCAL_OR_UPSTREAM_PATH_UNCONFIRMED.takeIf {
                             it in codes
@@ -723,9 +726,9 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
                 addFor(
                     DiagnosticRecommendationCode.RUN_TARGET_CHECK,
                     DiagnosticRecommendationPriority.OPTIONAL,
-                    "运行目标检测",
-                    "如果仍然无法访问某个服务，可以运行目标检测。",
-                    "基础检测正常不代表所有应用或网站都一定正常。",
+                    DiagnosticMessages.RECOMMENDATION_TARGET_RUN_TITLE,
+                    DiagnosticMessages.RECOMMENDATION_TARGET_RUN_ACTION,
+                    DiagnosticMessages.RECOMMENDATION_TARGET_RUN_REASON,
                     listOf(DiagnosticFindingCode.NETWORK_APPEARS_NORMAL),
                 )
             }
@@ -736,14 +739,14 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
 
     private fun finding(
         code: DiagnosticFindingCode,
-        title: String,
-        description: String,
+        title: DiagnosticText,
+        description: DiagnosticText,
         severity: DiagnosticSeverity,
         evidenceLevel: DiagnosticEvidenceLevel,
         confidence: DiagnosticConfidence,
         observations: List<DiagnosticObservation> = emptyList(),
         checks: List<DiagnosticCheck> = emptyList(),
-        possibleCauses: List<String> = emptyList(),
+        possibleCauses: List<DiagnosticText> = emptyList(),
         recommendedActionCodes: List<DiagnosticRecommendationCode> = emptyList(),
     ): DiagnosticFinding {
         val observationIds = observations.map { it.id }.distinct()
@@ -753,48 +756,53 @@ class DefaultDiagnosticAnalyzerV4 : DiagnosticAnalyzerV4 {
         }
         return DiagnosticFinding(
             code = code,
-            title = title,
-            description = description,
+            title = title.fallbackText,
+            description = description.fallbackText,
             severity = severity,
             evidenceLevel = evidenceLevel,
             confidence = confidence,
             evidenceObservationIds = observationIds,
             evidenceCheckCodes = checkCodes,
-            possibleCauses = possibleCauses,
+            possibleCauses = possibleCauses.map { it.fallbackText },
             recommendedActionCodes = recommendedActionCodes,
+            messages = mapOf("title" to title, "description" to description) +
+                possibleCauses.mapIndexed { index, text -> "cause.$index" to text },
         )
     }
 
     private fun diagnosis(
         status: DiagnosticDiagnosisStatus,
-        title: String,
-        explanation: String,
+        title: DiagnosticText,
+        explanation: DiagnosticText,
         primaryFindingCode: DiagnosticFindingCode? = null,
         confidence: DiagnosticConfidence,
-        possibleCauses: List<String> = emptyList(),
+        possibleCauses: List<DiagnosticText> = emptyList(),
     ) = DiagnosticDiagnosis(
         status = status,
-        title = title,
-        explanation = explanation,
+        title = title.fallbackText,
+        explanation = explanation.fallbackText,
         primaryFindingCode = primaryFindingCode,
         confidence = confidence,
-        possibleCauses = possibleCauses,
+        possibleCauses = possibleCauses.map { it.fallbackText },
+        messages = mapOf("title" to title, "explanation" to explanation) +
+            possibleCauses.mapIndexed { index, text -> "cause.$index" to text },
     )
 
     private fun recommendation(
         code: DiagnosticRecommendationCode,
         priority: DiagnosticRecommendationPriority,
-        title: String,
-        action: String,
-        reason: String,
+        title: DiagnosticText,
+        action: DiagnosticText,
+        reason: DiagnosticText,
         relatedFindingCodes: List<DiagnosticFindingCode> = emptyList(),
     ) = DiagnosticRecommendation(
         code = code,
         priority = priority,
-        title = title,
-        action = action,
-        reason = reason,
+        title = title.fallbackText,
+        action = action.fallbackText,
+        reason = reason.fallbackText,
         relatedFindingCodes = relatedFindingCodes,
+        messages = mapOf("title" to title, "action" to action, "reason" to reason),
     )
 
     private class EvidenceView(val evidence: DiagnosticRunEvidence) {

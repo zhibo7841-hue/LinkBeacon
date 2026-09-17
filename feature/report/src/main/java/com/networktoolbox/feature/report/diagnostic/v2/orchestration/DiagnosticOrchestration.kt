@@ -2,6 +2,9 @@ package com.networktoolbox.feature.report.diagnostic.v2.orchestration
 
 import com.networktoolbox.core.common.diagnostic.DiagnosticAddressFamily
 import com.networktoolbox.core.common.diagnostic.DiagnosticCheck
+import com.networktoolbox.core.common.diagnostic.DiagnosticText
+import com.networktoolbox.core.common.diagnostic.DiagnosticTextArgument
+import com.networktoolbox.feature.report.diagnostic.v4.DiagnosticMessages
 import com.networktoolbox.core.common.diagnostic.DiagnosticCheckCode
 import com.networktoolbox.core.common.diagnostic.DiagnosticCheckStatus
 import com.networktoolbox.core.common.diagnostic.DiagnosticConnectionType
@@ -162,11 +165,11 @@ class DefaultDiagnosticOrchestrator(
             emitCompleted(onProgress, networkCheck)
 
             if (initialRead.context.activeNetworkAvailable == false) {
-                addSkippedStage(builder, onProgress, DiagnosticStage.IP_CONFIGURATION, "没有活动网络，未执行 IP 配置检查。")
-                addSkippedStage(builder, onProgress, DiagnosticStage.GATEWAY, "没有活动网络，未执行网关探测。")
-                addSkippedStage(builder, onProgress, DiagnosticStage.INTERNET, "没有活动网络，未执行公网探测。")
-                addSkippedStage(builder, onProgress, DiagnosticStage.DNS, "没有活动网络，未执行 DNS 查询。")
-                addSkippedStage(builder, onProgress, DiagnosticStage.TARGET, "没有活动网络，未执行目标检查。")
+                addSkippedStage(builder, onProgress, DiagnosticStage.IP_CONFIGURATION, DiagnosticMessages.CHECK_DETAIL_SKIP_IP_NO_NETWORK)
+                addSkippedStage(builder, onProgress, DiagnosticStage.GATEWAY, DiagnosticMessages.CHECK_DETAIL_SKIP_GATEWAY_NO_NETWORK)
+                addSkippedStage(builder, onProgress, DiagnosticStage.INTERNET, DiagnosticMessages.CHECK_DETAIL_SKIP_PUBLIC_NO_NETWORK)
+                addSkippedStage(builder, onProgress, DiagnosticStage.DNS, DiagnosticMessages.CHECK_DETAIL_SKIP_DNS_NO_NETWORK)
+                addSkippedStage(builder, onProgress, DiagnosticStage.TARGET, DiagnosticMessages.CHECK_DETAIL_SKIP_TARGET_NO_NETWORK)
                 return builder.finish(DiagnosticRunStatus.COMPLETED, now())
             }
 
@@ -328,8 +331,28 @@ class DefaultDiagnosticOrchestrator(
         )
     }
 
+
+    /** Captures presentation metadata only; probe decisions and facts are unchanged. */
+    private fun localizedCheck(
+        code: DiagnosticCheckCode,
+        stage: DiagnosticStage,
+        status: DiagnosticCheckStatus,
+        severity: DiagnosticSeverity,
+        summary: DiagnosticText,
+        target: DiagnosticTarget? = null,
+        method: String? = null,
+        observedAt: Long? = null,
+        networkFingerprint: com.networktoolbox.core.common.diagnostic.NetworkFingerprint? = null,
+        evidenceObservationIds: List<String> = emptyList(),
+    ) = DiagnosticCheck(
+        code = code, stage = stage, status = status, severity = severity,
+        summary = summary.fallbackText, target = target, method = method,
+        observedAt = observedAt, networkFingerprint = networkFingerprint,
+        evidenceObservationIds = evidenceObservationIds, summaryMessage = summary,
+    )
+
     private fun networkCheck(builder: EvidenceBuilder, read: ContextRead): DiagnosticCheck =
-        DiagnosticCheck(
+        localizedCheck(
             // Keep the nullable platform value in a local before branching: the
             // model is supplied by another module and cannot be smart-cast inline.
             code = DiagnosticCheckCode.NETWORK_STATE,
@@ -345,10 +368,10 @@ class DefaultDiagnosticOrchestrator(
                 else -> DiagnosticSeverity.ERROR
             },
             summary = when {
-                !read.available -> "无法从系统网络接口读取当前网络状态。"
-                read.context.activeNetworkAvailable == null -> "当前活动网络状态未能确认。"
-                read.context.activeNetworkAvailable == true -> "已发现活动网络。"
-                else -> "设备当前没有活动网络。"
+                !read.available -> DiagnosticMessages.CHECK_DETAIL_NETWORK_READ_FAILED
+                read.context.activeNetworkAvailable == null -> DiagnosticMessages.CHECK_DETAIL_NETWORK_UNCONFIRMED
+                read.context.activeNetworkAvailable == true -> DiagnosticMessages.CHECK_DETAIL_NETWORK_ACTIVE
+                else -> DiagnosticMessages.CHECK_DETAIL_NETWORK_ABSENT
             },
             networkFingerprint = builder.fingerprint,
             evidenceObservationIds = builder.observationIds(DiagnosticStage.NETWORK_STATE),
@@ -359,12 +382,12 @@ class DefaultDiagnosticOrchestrator(
         val addresses = builder.context?.let { context ->
             listOfNotNull(context.ipv4Address) + context.ipv6Addresses + listOfNotNull(context.ipv6Address)
         }.orEmpty().distinct().filter(String::isNotBlank).take(MAX_LOCAL_ADDRESSES)
-        val check = DiagnosticCheck(
+        val check = localizedCheck(
             code = DiagnosticCheckCode.IP_CONFIGURATION,
             stage = DiagnosticStage.IP_CONFIGURATION,
             status = if (addresses.isNotEmpty()) DiagnosticCheckStatus.PASS else DiagnosticCheckStatus.UNKNOWN,
             severity = if (addresses.isNotEmpty()) DiagnosticSeverity.HEALTHY else DiagnosticSeverity.NOTICE,
-            summary = if (addresses.isNotEmpty()) "已观察到本机 IP 地址。" else "本机 IP 配置未能确认。",
+            summary = if (addresses.isNotEmpty()) DiagnosticMessages.CHECK_DETAIL_IP_OBSERVED else DiagnosticMessages.CHECK_DETAIL_IP_UNCONFIRMED,
             networkFingerprint = builder.fingerprint,
             evidenceObservationIds = builder.observationIds(DiagnosticStage.IP_CONFIGURATION),
         )
@@ -377,33 +400,33 @@ class DefaultDiagnosticOrchestrator(
         val context = builder.context ?: NetworkContext.unknown()
         val gateway = context.gateway
         val check = when {
-            context.connectionType == ConnectionType.CELLULAR -> DiagnosticCheck(
+            context.connectionType == ConnectionType.CELLULAR -> localizedCheck(
                 code = DiagnosticCheckCode.GATEWAY,
                 stage = DiagnosticStage.GATEWAY,
                 status = DiagnosticCheckStatus.NOT_APPLICABLE,
                 severity = DiagnosticSeverity.NOTICE,
-                summary = "移动网络不执行传统局域网网关探测。",
+                summary = DiagnosticMessages.CHECK_DETAIL_GATEWAY_MOBILE,
                 target = gateway?.let { targetForHost(it) },
                 networkFingerprint = builder.fingerprint,
                 evidenceObservationIds = builder.observationIds(DiagnosticStage.GATEWAY),
             )
 
-            gateway.isNullOrBlank() -> DiagnosticCheck(
+            gateway.isNullOrBlank() -> localizedCheck(
                 code = DiagnosticCheckCode.GATEWAY,
                 stage = DiagnosticStage.GATEWAY,
                 status = DiagnosticCheckStatus.NOT_APPLICABLE,
                 severity = DiagnosticSeverity.NOTICE,
-                summary = "当前网络未提供可直接检测的默认网关。",
+                summary = DiagnosticMessages.CHECK_DETAIL_GATEWAY_MISSING,
                 networkFingerprint = builder.fingerprint,
                 evidenceObservationIds = builder.observationIds(DiagnosticStage.GATEWAY),
             )
 
-            gateway.isUnscopedIpv6LinkLocal() -> DiagnosticCheck(
+            gateway.isUnscopedIpv6LinkLocal() -> localizedCheck(
                 code = DiagnosticCheckCode.GATEWAY,
                 stage = DiagnosticStage.GATEWAY,
                 status = DiagnosticCheckStatus.UNKNOWN,
                 severity = DiagnosticSeverity.NOTICE,
-                summary = "IPv6 链路本地网关缺少可可靠使用的接口 scope，未执行探测。",
+                summary = DiagnosticMessages.CHECK_DETAIL_GATEWAY_SCOPE_MISSING,
                 target = targetForHost(gateway),
                 networkFingerprint = builder.fingerprint,
                 evidenceObservationIds = builder.observationIds(DiagnosticStage.GATEWAY),
@@ -450,7 +473,7 @@ class DefaultDiagnosticOrchestrator(
             value = DiagnosticObservationValue.TextValue(outcome),
             state = if (result == null) DiagnosticObservationState.UNKNOWN else DiagnosticObservationState.CONFIRMED,
         )
-        return DiagnosticCheck(
+        return localizedCheck(
             code = DiagnosticCheckCode.GATEWAY,
             stage = DiagnosticStage.GATEWAY,
             status = when {
@@ -460,9 +483,9 @@ class DefaultDiagnosticOrchestrator(
             },
             severity = if (responded) DiagnosticSeverity.HEALTHY else DiagnosticSeverity.NOTICE,
             summary = when {
-                result == null -> "网关探测未能完成。"
-                responded -> "网关可达性探测收到响应。"
-                else -> "网关未响应当前系统可达性探测。"
+                result == null -> DiagnosticMessages.CHECK_DETAIL_GATEWAY_INCOMPLETE
+                responded -> DiagnosticMessages.CHECK_DETAIL_GATEWAY_RESPONDED
+                else -> DiagnosticMessages.CHECK_DETAIL_GATEWAY_NO_RESPONSE
             },
             target = targetForHost(gateway, DIAGNOSTIC_TIMEOUT_MS),
             method = result?.method?.name,
@@ -478,12 +501,12 @@ class DefaultDiagnosticOrchestrator(
     ) {
         emit(onProgress, DiagnosticStage.INTERNET, DiagnosticStageState.RUNNING)
         if (probeTargets.publicTargets.isEmpty()) {
-            val check = DiagnosticCheck(
+            val check = localizedCheck(
                 code = DiagnosticCheckCode.PUBLIC_CONNECTIVITY,
                 stage = DiagnosticStage.INTERNET,
                 status = DiagnosticCheckStatus.UNKNOWN,
                 severity = DiagnosticSeverity.NOTICE,
-                summary = "没有配置公网 TCP 探测目标。",
+                summary = DiagnosticMessages.CHECK_DETAIL_PUBLIC_TARGETS_MISSING,
                 networkFingerprint = builder.fingerprint,
             )
             builder.addCheck(check)
@@ -509,7 +532,7 @@ class DefaultDiagnosticOrchestrator(
                 state = outcome.evidenceState(),
                 suffix = index.toString(),
             )
-            val check = DiagnosticCheck(
+            val check = localizedCheck(
                 code = DiagnosticCheckCode.PUBLIC_CONNECTIVITY,
                 stage = DiagnosticStage.INTERNET,
                 status = outcome.publicCheckStatus(),
@@ -518,7 +541,7 @@ class DefaultDiagnosticOrchestrator(
                 } else {
                     DiagnosticSeverity.NOTICE
                 },
-                summary = "${target.host}:${target.port} TCP 探测结果为 ${outcome.name}。",
+                summary = DiagnosticText("check_detail_public_tcp_outcome", "${target.host}:${target.port} TCP 探测结果为 ${outcome.name}。", listOf(DiagnosticTextArgument.Text(target.host), DiagnosticTextArgument.Integer(target.port.toLong()), DiagnosticTextArgument.Text(outcome.name))),
                 target = targetForHost(target.host, target.port),
                 method = "TCP_CONNECT",
                 observedAt = result?.let { now() },
@@ -560,12 +583,12 @@ class DefaultDiagnosticOrchestrator(
         emit(onProgress, DiagnosticStage.TARGET, DiagnosticStageState.RUNNING)
         val target = builder.intent.target
         if (target == null) {
-            val check = DiagnosticCheck(
+            val check = localizedCheck(
                 code = DiagnosticCheckCode.TARGET_CONNECTIVITY,
                 stage = DiagnosticStage.TARGET,
                 status = DiagnosticCheckStatus.SKIPPED,
                 severity = DiagnosticSeverity.NOTICE,
-                summary = "未选择目标，未执行目标访问检查。",
+                summary = DiagnosticMessages.CHECK_DETAIL_TARGET_UNSELECTED,
                 networkFingerprint = builder.fingerprint,
             )
             builder.addCheck(check)
@@ -595,12 +618,12 @@ class DefaultDiagnosticOrchestrator(
                 .distinct()
                 .take(MAX_TARGET_ADDRESSES)
             if (addresses.isEmpty()) {
-                val check = DiagnosticCheck(
+                val check = localizedCheck(
                     code = DiagnosticCheckCode.TARGET_CONNECTIVITY,
                     stage = DiagnosticStage.TARGET,
                     status = DiagnosticCheckStatus.SKIPPED,
                     severity = DiagnosticSeverity.NOTICE,
-                    summary = "目标域名没有可用于 TCP 检查的地址。",
+                    summary = DiagnosticMessages.CHECK_DETAIL_TARGET_NO_ADDRESS,
                     target = target,
                     networkFingerprint = builder.fingerprint,
                     evidenceObservationIds = dnsCheck.evidenceObservationIds,
@@ -640,7 +663,7 @@ class DefaultDiagnosticOrchestrator(
             state = outcome.evidenceState(),
             suffix = index.toString(),
         )
-        val check = DiagnosticCheck(
+        val check = localizedCheck(
             code = DiagnosticCheckCode.TARGET_CONNECTIVITY,
             stage = DiagnosticStage.TARGET,
             status = outcome.targetCheckStatus(),
@@ -649,7 +672,7 @@ class DefaultDiagnosticOrchestrator(
             } else {
                 DiagnosticSeverity.NOTICE
             },
-            summary = "${target.value}:${target.port} TCP 目标探测结果为 ${outcome.name}。",
+            summary = DiagnosticText("check_detail_target_tcp_outcome", "${target.value}:${target.port} TCP 目标探测结果为 ${outcome.name}。", listOf(DiagnosticTextArgument.Text(target.value), DiagnosticTextArgument.Integer(target.port.toLong()), DiagnosticTextArgument.Text(outcome.name))),
             target = target,
             method = "TCP_CONNECT",
             observedAt = result?.let { now() },
@@ -675,12 +698,12 @@ class DefaultDiagnosticOrchestrator(
                 state = DiagnosticObservationState.UNKNOWN,
                 suffix = label,
             )
-            return DiagnosticCheck(
+            return localizedCheck(
                 code = DiagnosticCheckCode.DNS_RESOLUTION,
                 stage = DiagnosticStage.DNS,
                 status = DiagnosticCheckStatus.UNKNOWN,
                 severity = DiagnosticSeverity.NOTICE,
-                summary = "DNS 查询结果未能确认。",
+                summary = DiagnosticMessages.CHECK_DETAIL_DNS_UNCONFIRMED,
                 target = DiagnosticTarget(queryName, DiagnosticTargetKind.DOMAIN),
                 method = "SYSTEM_DNS",
                 networkFingerprint = builder.fingerprint,
@@ -726,7 +749,7 @@ class DefaultDiagnosticOrchestrator(
                 )
             }
         }
-        return DiagnosticCheck(
+        return localizedCheck(
             code = DiagnosticCheckCode.DNS_RESOLUTION,
             stage = DiagnosticStage.DNS,
             status = result.diagnosticCheckStatus(),
@@ -738,7 +761,7 @@ class DefaultDiagnosticOrchestrator(
 
                 else -> DiagnosticSeverity.NOTICE
             },
-            summary = "${queryName} DNS 查询结果为 ${result.status.name}。",
+            summary = DiagnosticText("check_detail_dns_outcome", "${queryName} DNS 查询结果为 ${result.status.name}。", listOf(DiagnosticTextArgument.Text(queryName), DiagnosticTextArgument.Text(result.status.name))),
             target = DiagnosticTarget(queryName, DiagnosticTargetKind.DOMAIN),
             method = result.method.name,
             observedAt = result.endTime,
@@ -765,12 +788,12 @@ class DefaultDiagnosticOrchestrator(
                 state = DiagnosticObservationState.CONFIRMED,
                 networkFingerprint = current,
             )
-            val check = DiagnosticCheck(
+            val check = localizedCheck(
                 code = DiagnosticCheckCode.NETWORK_STABILITY,
                 stage = DiagnosticStage.NETWORK_STATE,
                 status = DiagnosticCheckStatus.UNKNOWN,
                 severity = DiagnosticSeverity.NOTICE,
-                summary = "检测期间网络指纹发生变化，已停止后续网络探测。",
+                summary = DiagnosticMessages.CHECK_DETAIL_NETWORK_CHANGED,
                 networkFingerprint = current,
                 evidenceObservationIds = listOf(observationId),
             )
@@ -785,7 +808,7 @@ class DefaultDiagnosticOrchestrator(
         builder: EvidenceBuilder,
         onProgress: (DiagnosticStageProgress) -> Unit,
         stage: DiagnosticStage,
-        reason: String,
+        reason: DiagnosticText,
     ) {
         val code = when (stage) {
             DiagnosticStage.IP_CONFIGURATION -> DiagnosticCheckCode.IP_CONFIGURATION
@@ -795,7 +818,7 @@ class DefaultDiagnosticOrchestrator(
             DiagnosticStage.TARGET -> DiagnosticCheckCode.TARGET_CONNECTIVITY
             else -> DiagnosticCheckCode.NETWORK_STABILITY
         }
-        val check = DiagnosticCheck(
+        val check = localizedCheck(
             code = code,
             stage = stage,
             status = DiagnosticCheckStatus.SKIPPED,

@@ -1250,3 +1250,84 @@ Lint passed with zero errors and 43 warning occurrences; existing advisories wer
 not suppressed. Automatic gates and Sony Core UI acceptance are complete.
 
 Core UI localization complete; dynamic diagnostic/report localization remains.
+
+## Task 083 — dynamic diagnostics, History and reports
+
+The preceding Task 082 completion/deferred list is historical. The actual dynamic
+source audit is in [I18N_DYNAMIC_AUDIT.md](I18N_DYNAMIC_AUDIT.md); shared terms are
+in [I18N_TERMINOLOGY.md](I18N_TERMINOLOGY.md).
+
+- Diagnosis, Finding, Explanation, Recommendation, check details and retry
+  narratives now carry optional stable semantic message metadata. Existing rule
+  identities, conditions, evidence strength, applicability and old fallback text
+  remain unchanged. Android resource IDs are not serialized.
+- New schema-3 snapshots add optional `messages` with typed arguments and fallback.
+  No schema version bump, Room migration, bulk update or locale-based identity.
+  A complete descriptor renders in the current language; partial structure renders
+  typed portions plus saved prose; prose-only history stays verbatim. Unknown
+  message codes or malformed optional metadata fall back without reanalysis.
+- History and Home recent-diagnosis use the same saved-result projection. Ping,
+  DNS, TCP and LAN summaries use reliable saved result fields; unavailable fields
+  retain original text. There is no Traceroute HistoryType in this baseline, so
+  no new persistence feature was added for translation.
+- Text/PDF/Copy/Share share one read-only projection and one immutable locale
+  captured at action start. User names and protocol values are preserved.
+  PDF request/SAF/recreation ownership remains unchanged.
+- Added 326 report and 22 History resource pairs (348 per language); default
+  English and `values-b+zh+Hans`. The existing all-module parity tests cover
+  keys, plurals, positional argument types and percent escaping.
+- Added snapshot equivalence, typed parameter/fallback/unknown-code, legacy
+  preservation, fixed-locale Text and five-layout pagination tests, plus real
+  Android locale/clipboard/native-PDF instrumentation with fake network/storage.
+- Device substitution explicitly authorized by the maintainer: **G8142, Android
+  13 / API 33**, replacing the originally requested Sony Xperia 1 VII / Android 16.
+  Do not attribute the replacement device's results to Android 16.
+
+### Verification record
+
+- Targeted report/history/common tests and full JVM gates pass: 787 Debug and 787
+  Release test executions, zero failures/skips in the successful full run.
+  An earlier full attempt hit an unchanged LAN custom-range test; its 15-test
+  class passed on isolated rerun, then full gates passed without LAN changes.
+- Resource parity covers 1,109 resource units per language (including plural
+  quantities), with 348 new dynamic report/History string pairs in this task.
+- Device regression: Task 080 recreation 17/17, Task 081 language 4/4, Task 082
+  Core UI 6/6. A combined run stalled in a pre-existing locale test and was
+  terminated; independent reruns passed. Interrupted runs are not acceptance.
+- Real production flow on the authorized G8142: a pre-upgrade 0.5.0 report was
+  created, then the APK was upgraded in place. A new Chinese diagnosis created
+  exactly one report record. Opening that same record in English and Chinese,
+  copying and exporting did not add records or change any saved row/JSON bytes.
+  The pre-upgrade report retained its saved Chinese prose in English UI.
+- Both English and Chinese PDFs were saved through real DocumentsUI, then
+  parsed/rendered locally. Five additional native-generated fixtures cover
+  Chinese, English, a Chinese custom name, long English, and legacy mixed text.
+  No OCR, new font assets, online translation or uploaded report was used.
+- PDF QA also exercises Android's native PdfRenderer, rather than claiming an
+  external viewer was opened. Local screenshots and PDFs remain ignored under
+  build/task083-device; they are not repository assets.
+- Final dynamic instrumentation: 3/3, including same-ID locale/clipboard checks,
+  five native PDF variants and opening the actual saved PDFs on the device.
+  A further native glyph regression assertion passed: a sparse bold Latin font
+  subset had lost the brand in the mixed Chinese title in this device's reader;
+  reusing the body typeface with synthetic heading weight keeps it visible.
+  No additional font file or PDF export lifecycle change was needed.
+- All seven PDFs are parseable: five fixture page counts 2/2/2/17/2 (the 17-page
+  case deliberately repeats long findings), plus two real exports of three pages
+  each. Rendered pages were reviewed for wrapping, pagination and mixed CJK text.
+- `test`, `lint`, `assembleDebug`, and AndroidTest compilation passed. Lint has
+  zero errors and 50 warning occurrences across modules, including plural-candidate
+  suggestions for new count labels; warnings were not suppressed. `git diff
+  --check` passes. No dependency, permission, Room, version or README change.
+- Device settings restored: follow system (`[]`), font scale 1.0, night mode no.
+  Final saved database rows are byte-for-byte equivalent to the rows immediately
+  after the single new diagnostic run; neither viewing nor exporting rewrote them.
+
+Debug APK SHA-256:
+`55d6ddd888b3cb534e084ba69b4bfc37532a76a3aa80b008799ac791aa9b02dc`.
+
+Dynamic diagnostic/report localization complete; legacy text remains preserved
+where structure is insufficient.
+
+**Android 12 runtime verification pending.** GitHub bilingual documentation,
+version changes and Release remain outside this task.

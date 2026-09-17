@@ -1,6 +1,8 @@
 package com.networktoolbox.feature.report.diagnostic.v2
 
 import com.networktoolbox.core.common.diagnostic.DiagnosticCheck
+import com.networktoolbox.core.common.diagnostic.DiagnosticText
+import com.networktoolbox.core.common.diagnostic.DiagnosticTextArgument
 import com.networktoolbox.core.common.diagnostic.DiagnosticDiagnosis
 import com.networktoolbox.core.common.diagnostic.DiagnosticFinding
 import com.networktoolbox.core.common.diagnostic.DiagnosticObservation
@@ -118,6 +120,7 @@ object AutomaticDiagnosticHistorySnapshotSerializer {
     )
 
     private fun check(check: DiagnosticCheck): String = jsonObject(
+        "messages" to messages(check.summaryMessage?.let { mapOf("summary" to it) }.orEmpty()),
         "code" to jsonString(check.code.name),
         "stage" to jsonString(check.stage.name),
         "status" to jsonString(check.status.name),
@@ -131,6 +134,7 @@ object AutomaticDiagnosticHistorySnapshotSerializer {
     )
 
     private fun finding(finding: DiagnosticFinding): String = jsonObject(
+        "messages" to messages(finding.messages),
         "code" to jsonString(finding.code.name),
         "title" to jsonString(finding.title),
         "description" to jsonString(finding.description),
@@ -153,6 +157,7 @@ object AutomaticDiagnosticHistorySnapshotSerializer {
 
     private fun diagnosis(diagnosis: DiagnosticDiagnosis?): String = diagnosis?.let {
         jsonObject(
+            "messages" to messages(it.messages),
             "status" to jsonString(it.status.name),
             "title" to jsonString(it.title),
             "explanation" to jsonString(it.explanation),
@@ -163,6 +168,7 @@ object AutomaticDiagnosticHistorySnapshotSerializer {
     } ?: "null"
 
     private fun recommendation(recommendation: DiagnosticRecommendation): String = jsonObject(
+        "messages" to messages(recommendation.messages),
         "code" to jsonString(recommendation.code.name),
         "priority" to jsonString(recommendation.priority.name),
         "title" to jsonString(recommendation.title),
@@ -174,6 +180,28 @@ object AutomaticDiagnosticHistorySnapshotSerializer {
             transform = { jsonString(it.name) },
         ),
         "verificationHint" to jsonNullableString(recommendation.verificationHint),
+    )
+
+    private fun messages(values: Map<String, DiagnosticText>): String = jsonObject(
+        *values.map { (field, text) ->
+            field to jsonObject(
+                "code" to jsonString(text.code),
+                "fallbackText" to jsonString(text.fallbackText),
+                "arguments" to text.arguments.joinToString(prefix = "[", postfix = "]") {
+                    when (it) {
+                        is DiagnosticTextArgument.Text -> jsonObject(
+                            "type" to jsonString("TEXT"), "value" to jsonString(it.value),
+                        )
+                        is DiagnosticTextArgument.Integer -> jsonObject(
+                            "type" to jsonString("INTEGER"), "value" to it.value.toString(),
+                        )
+                        is DiagnosticTextArgument.Decimal -> jsonObject(
+                            "type" to jsonString("DECIMAL"), "value" to it.value.toString(),
+                        )
+                    }
+                },
+            )
+        }.toTypedArray(),
     )
 
     private fun target(target: DiagnosticTarget?): String = target?.let {

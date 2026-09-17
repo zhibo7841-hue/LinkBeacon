@@ -43,6 +43,50 @@ import org.junit.Test
 
 class AutomaticDiagnosticHistorySnapshotTest {
     @Test
+    fun optionalMessagesRoundTripUnknownCodeAndTypedArgumentsWithoutMigration() {
+        val original = completeResult()
+        val diagnosis = requireNotNull(original.analysis.diagnosis)
+        val message = com.networktoolbox.core.common.diagnostic.DiagnosticText(
+            "future_reason_v9", "原文 主力机 CONNECTION_REFUSED", listOf(
+                com.networktoolbox.core.common.diagnostic.DiagnosticTextArgument.Text("主力机 2001:db8::1"),
+                com.networktoolbox.core.common.diagnostic.DiagnosticTextArgument.Integer(350),
+                com.networktoolbox.core.common.diagnostic.DiagnosticTextArgument.Decimal(2.5),
+            ),
+        )
+        val result = original.copy(analysis = original.analysis.copy(
+            diagnosis = diagnosis.copy(messages = mapOf("explanation" to message)),
+        ))
+        val json = AutomaticDiagnosticHistorySnapshotSerializer.toHistoryRecord(result).detailJson
+        assertEquals(3, AutomaticDiagnosticHistorySnapshotSerializer.SCHEMA_VERSION)
+        val restored = requireNotNull(AutomaticDiagnosticHistorySnapshotDeserializer.fromDetailJson(json))
+        assertEquals(result, restored)
+        val rendered = DiagnosticPresentationMapper.forHistory(restored,
+            com.networktoolbox.feature.report.presentation.DiagnosticLocalizationTestResources.context(false))
+        assertEquals(message.fallbackText, rendered.explanation)
+    }
+
+    @Test
+    fun legacyPayloadWithoutOptionalMessagesRemainsReadableAndUnmodified() {
+        val original = completeResult()
+        val json = AutomaticDiagnosticHistorySnapshotSerializer.toHistoryRecord(original).detailJson
+            .replace("\"messages\":{},", "")
+        val restored = requireNotNull(AutomaticDiagnosticHistorySnapshotDeserializer.fromDetailJson(json))
+        assertEquals(original, restored)
+        val en = DiagnosticPresentationMapper.forHistory(restored,
+            com.networktoolbox.feature.report.presentation.DiagnosticLocalizationTestResources.context(false))
+        assertEquals(original.analysis.diagnosis?.explanation, en.explanation)
+        assertEquals(original.analysis.findings.map { it.description }, en.findings.map { it.description })
+    }
+
+    @Test
+    fun invalidOptionalMessageIsIgnoredWithoutLosingTheSavedReport() {
+        val original = completeResult()
+        val json = AutomaticDiagnosticHistorySnapshotSerializer.toHistoryRecord(original).detailJson
+            .replace("\"messages\":{}", "\"messages\":{\"title\":{\"code\":\"future\",\"arguments\":[]}}")
+        assertEquals(original, AutomaticDiagnosticHistorySnapshotDeserializer.fromDetailJson(json))
+    }
+
+    @Test
     fun completeAutomaticDiagnosticRoundTripsAndKeepsLivePresentationEqual() {
         val original = completeResult()
 

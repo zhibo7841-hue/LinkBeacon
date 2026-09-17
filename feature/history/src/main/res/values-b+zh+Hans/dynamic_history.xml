@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_dynamic_average">平均 %1$s ms</string>
+    <string name="history_dynamic_loss">丢包 %1$s%%</string>
+    <string name="history_dynamic_records">%1$s %2$d 条</string>
+    <string name="history_dynamic_ping_excellent">网络连接稳定，未检测到明显丢包。</string>
+    <string name="history_dynamic_ping_variable">网络可达，但存在一定延迟或波动。</string>
+    <string name="history_dynamic_ping_poor">网络质量较差，检测到明显延迟或丢包。</string>
+    <string name="history_dynamic_dns_success">DNS 解析成功。</string>
+    <string name="history_dynamic_dns_no_records">查询正常完成，但未返回请求的记录。</string>
+    <string name="history_dynamic_dns_nxdomain">DNS 返回域名不存在（NXDOMAIN）。</string>
+    <string name="history_dynamic_dns_partial">部分 DNS 查询成功，其他查询出现异常。</string>
+    <string name="history_dynamic_dns_timeout">DNS 查询超时。</string>
+    <string name="history_dynamic_dns_network_error">DNS 查询出现网络错误。</string>
+    <string name="history_dynamic_dns_invalid_response">DNS 响应无法可靠解析。</string>
+    <string name="history_dynamic_tcp_connected">TCP 连接成功。</string>
+    <string name="history_dynamic_tcp_refused">连接被拒绝（CONNECTION_REFUSED）。</string>
+    <string name="history_dynamic_tcp_timeout">TCP 连接超时。</string>
+    <string name="history_dynamic_tcp_unreachable">目标返回无路由或网络不可达。</string>
+    <string name="history_dynamic_lan_duration">发现 %1$d 台设备 · %2$s 秒</string>
+    <string name="history_dynamic_lan_count">发现 %1$d 台设备</string>
+    <string name="history_dynamic_dns_invalid_query">DNS 查询输入无效。</string>
+    <string name="history_dynamic_dns_failed">DNS 查询未能成功完成。</string>
+    <string name="history_dynamic_tcp_internal_error">TCP 检测遇到内部错误。</string>
+</resources>

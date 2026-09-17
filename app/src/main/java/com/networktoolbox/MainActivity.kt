@@ -1,5 +1,8 @@
 package com.networktoolbox
 
+import com.networktoolbox.feature.report.presentation.DiagnosticHistoryLocalization
+import com.networktoolbox.feature.report.presentation.ReportLocalizationContext
+
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
@@ -242,7 +245,7 @@ class MainActivity : AppCompatActivity() {
                 RecentHistoryPreview(
                     type = record.type.displayName(),
                     title = record.title,
-                    summary = record.summary,
+                    summary = DiagnosticHistoryLocalization.text(record, ReportLocalizationContext.capture(this@MainActivity))?.first ?: record.summary,
                     timestamp = record.timestamp,
                     status = DiagnosticHistoryReportResolver.resolve(record)
                         ?.recentDiagnosticStatus()
@@ -545,6 +548,7 @@ class MainActivity : AppCompatActivity() {
                                 onBack = ::goBack,
                                 onOpenReport = ::openDiagnosticHistory,
                                 canOpenReport = DiagnosticHistoryReportResolver::canOpen,
+                                reportText = { record -> DiagnosticHistoryLocalization.text(record, ReportLocalizationContext.capture(this@MainActivity)) },
                             )
                             ToolScreen.LAN_SCAN -> LanScannerScreen(
                                 uiState = lanScannerUiState,

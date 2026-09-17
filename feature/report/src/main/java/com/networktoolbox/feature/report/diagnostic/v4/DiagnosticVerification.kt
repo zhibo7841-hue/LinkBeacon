@@ -9,6 +9,7 @@ import com.networktoolbox.core.common.diagnostic.DiagnosticSeverity
 import com.networktoolbox.core.common.diagnostic.DiagnosticStage
 import com.networktoolbox.core.common.diagnostic.DiagnosticTarget
 import com.networktoolbox.feature.report.domain.AutomaticDiagnosticResult
+import com.networktoolbox.core.common.diagnostic.DiagnosticText
 import java.util.Locale
 
 /** The user-visible outcome of comparing two completed diagnostic runs. */
@@ -40,6 +41,7 @@ data class DiagnosticVerificationResult(
     val sameNetworkContext: Boolean? = null,
     val sameTarget: Boolean? = null,
     val summary: String,
+    val summaryMessage: DiagnosticText? = null,
 )
 
 /**
@@ -80,7 +82,7 @@ object DiagnosticVerificationComparator {
             return inconclusive(
                 previousStatus = previousStatus,
                 currentStatus = currentStatus,
-                summary = "两次诊断都需要完整完成后才能进行比较。",
+                summary = DiagnosticMessages.VERIFICATION_RUNS_INCOMPLETE,
             )
         }
 
@@ -98,7 +100,7 @@ object DiagnosticVerificationComparator {
                 currentStatus = currentStatus,
                 sameTarget = false,
                 sameNetworkContext = fingerprintsEqualOrUnknown(previous, current),
-                summary = "本次检测目标与上次不同，无法直接比较两次诊断结果。",
+                summary = DiagnosticMessages.VERIFICATION_TARGET_CHANGED,
             )
         }
         if (!prioritizeNoActiveNetwork && sameTarget == null) {
@@ -107,7 +109,7 @@ object DiagnosticVerificationComparator {
                 currentStatus = currentStatus,
                 sameTarget = null,
                 sameNetworkContext = fingerprintsEqualOrUnknown(previous, current),
-                summary = "两次诊断的检测目标信息不完整，无法直接比较。",
+                summary = DiagnosticMessages.VERIFICATION_TARGET_MISSING,
             )
         }
 
@@ -122,7 +124,7 @@ object DiagnosticVerificationComparator {
                 currentStatus = currentStatus,
                 sameTarget = sameTarget,
                 sameNetworkContext = sameNetworkContext,
-                summary = "网络环境指纹不完整，无法确认两次诊断是否处于同一网络环境。",
+                summary = DiagnosticMessages.VERIFICATION_FINGERPRINT_MISSING,
             )
         }
         if (!prioritizeNoActiveNetwork && previousFingerprint != currentFingerprint) {
@@ -131,7 +133,7 @@ object DiagnosticVerificationComparator {
                 currentStatus = currentStatus,
                 sameTarget = sameTarget,
                 sameNetworkContext = false,
-                summary = "当前网络环境与上次不同，无法直接比较两次诊断结果。",
+                summary = DiagnosticMessages.VERIFICATION_NETWORK_CHANGED,
             )
         }
 
@@ -208,7 +210,7 @@ object DiagnosticVerificationComparator {
                 resolved == listOf(DiagnosticFindingCode.NO_ACTIVE_NETWORK) &&
                 stillPresent.isEmpty() &&
                 newFindings.isEmpty() ->
-                "此前检测到的‘没有可用的活动网络’本次未再次出现。"
+                DiagnosticMessages.VERIFICATION_NO_NETWORK_RESOLVED
 
             prioritizeNoActiveNetwork &&
                 previousNoActiveNetwork &&
@@ -216,7 +218,7 @@ object DiagnosticVerificationComparator {
                 stillPresent == listOf(DiagnosticFindingCode.NO_ACTIVE_NETWORK) &&
                 resolved.isEmpty() &&
                 newFindings.isEmpty() ->
-                "此前检测到的‘没有可用的活动网络’仍然存在。"
+                DiagnosticMessages.VERIFICATION_NO_NETWORK_PERSISTENT
 
             else -> status.summary()
         }
@@ -234,7 +236,8 @@ object DiagnosticVerificationComparator {
             currentRunStatus = currentStatus,
             sameNetworkContext = sameNetworkContext,
             sameTarget = sameTarget,
-            summary = comparisonSummary,
+            summary = comparisonSummary.fallbackText,
+            summaryMessage = comparisonSummary,
         )
     }
 
@@ -263,14 +266,15 @@ object DiagnosticVerificationComparator {
         currentStatus: DiagnosticRunStatus,
         sameTarget: Boolean?,
         sameNetworkContext: Boolean?,
-        summary: String,
+        summary: DiagnosticText,
     ) = DiagnosticVerificationResult(
         status = DiagnosticVerificationStatus.CONTEXT_CHANGED,
         previousRunStatus = previousStatus,
         currentRunStatus = currentStatus,
         sameNetworkContext = sameNetworkContext,
         sameTarget = sameTarget,
-        summary = summary,
+        summary = summary.fallbackText,
+        summaryMessage = summary,
     )
 
     private fun inconclusive(
@@ -278,29 +282,30 @@ object DiagnosticVerificationComparator {
         currentStatus: DiagnosticRunStatus,
         sameTarget: Boolean? = null,
         sameNetworkContext: Boolean? = null,
-        summary: String,
+        summary: DiagnosticText,
     ) = DiagnosticVerificationResult(
         status = DiagnosticVerificationStatus.INCONCLUSIVE,
         previousRunStatus = previousStatus,
         currentRunStatus = currentStatus,
         sameNetworkContext = sameNetworkContext,
         sameTarget = sameTarget,
-        summary = summary,
+        summary = summary.fallbackText,
+        summaryMessage = summary,
     )
 
-    private fun DiagnosticVerificationStatus.summary(): String = when (this) {
+    private fun DiagnosticVerificationStatus.summary(): DiagnosticText = when (this) {
         DiagnosticVerificationStatus.RESOLVED_OR_NOT_REPRODUCED ->
-            "此前检测到的问题本次未再次出现。"
+            DiagnosticMessages.VERIFICATION_RESOLVED
         DiagnosticVerificationStatus.STILL_PRESENT ->
-            "此前检测到的问题仍然存在或证据相似。"
+            DiagnosticMessages.VERIFICATION_PERSISTENT
         DiagnosticVerificationStatus.NEW_FINDINGS ->
-            "本次检测发现新的网络问题。"
+            DiagnosticMessages.VERIFICATION_NEW_FINDINGS
         DiagnosticVerificationStatus.UNCHANGED ->
-            "基础网络连接状态与上次基本一致。"
+            DiagnosticMessages.VERIFICATION_UNCHANGED
         DiagnosticVerificationStatus.INCONCLUSIVE ->
-            "本次未能完成比较所需的全部验证，无法确认此前问题是否仍存在。"
+            DiagnosticMessages.VERIFICATION_INCONCLUSIVE
         DiagnosticVerificationStatus.CONTEXT_CHANGED ->
-            "当前网络环境或检测目标与上次不同，无法直接比较两次诊断结果。"
+            DiagnosticMessages.VERIFICATION_CONTEXT_CHANGED
     }
 
     private fun targetsEqual(

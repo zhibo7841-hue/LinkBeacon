@@ -11,6 +11,7 @@ data class DiagnosticFinding(
     val evidenceCheckCodes: List<DiagnosticCheckCode> = emptyList(),
     val possibleCauses: List<String> = emptyList(),
     val recommendedActionCodes: List<DiagnosticRecommendationCode> = emptyList(),
+    val messages: Map<String, DiagnosticText> = emptyMap(),
 ) {
     init {
         requireBoundedText(title, "finding title", 256)

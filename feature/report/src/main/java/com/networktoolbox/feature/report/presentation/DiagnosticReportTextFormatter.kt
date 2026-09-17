@@ -25,6 +25,10 @@ import java.util.Locale
  * analysis, reads Android state, or parses UI strings.
  */
 internal object DiagnosticReportTextFormatter {
+    /** Explicit-locale entry point for UI, Copy, Share and PDF. */
+    fun formatReport(presentation: DiagnosticReportPresentation, localization: ReportLocalizationContext): String =
+        LocalizedDiagnosticReportWriter(localization).format(presentation)
+
     private const val MAX_CHECKS = 16
     private const val MAX_FINDINGS = 16
     private const val MAX_RECOMMENDATIONS = 3

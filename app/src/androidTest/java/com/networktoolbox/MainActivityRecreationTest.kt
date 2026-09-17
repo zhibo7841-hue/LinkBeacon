@@ -58,8 +58,8 @@ class MainActivityRecreationTest {
         openHistoryReport()
         recreateAndVerifyInstance()
         compose.onNodeWithText("网络诊断报告").assertExists()
-        // Healthy legacy reports render an explanatory sentence, not raw summary.
-        compose.onNodeWithText("在本次检测范围内，未发现明确的网络故障。").assertExists()
+        // Legacy prose stays unchanged; viewing history never invents a new conclusion.
+        compose.onNodeWithText("Task080 original snapshot").assertExists()
         compose.activityRule.scenario.onActivity {
             val state = ViewModelProvider(it)[SavedReportViewModel::class.java].uiState.value
             assertEquals(17L, state.id)

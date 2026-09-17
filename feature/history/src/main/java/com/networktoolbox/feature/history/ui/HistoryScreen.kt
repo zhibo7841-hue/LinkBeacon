@@ -32,7 +32,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.networktoolbox.core.common.history.HistoryRecord
-import com.networktoolbox.core.common.history.PingHistorySummary
 import com.networktoolbox.core.common.history.HistoryType
 import com.networktoolbox.core.designsystem.NetworkStatusChip
 import com.networktoolbox.core.designsystem.NetworkToolboxChevron
@@ -42,6 +41,7 @@ import com.networktoolbox.core.designsystem.OutlinedNetworkCard
 import com.networktoolbox.core.designsystem.SecondaryInformationHeader
 import com.networktoolbox.feature.history.presentation.HistoryUiState
 import com.networktoolbox.feature.history.presentation.HistoryRecordPresentation
+import com.networktoolbox.feature.history.presentation.structuredHistorySummary
 
 @Composable
 fun HistoryScreen(
@@ -52,6 +52,7 @@ fun HistoryScreen(
     onBack: () -> Unit,
     onOpenReport: (HistoryRecord) -> Unit = {},
     canOpenReport: (HistoryRecord) -> Boolean = { false },
+    reportText: (HistoryRecord) -> Pair<String, String?>? = { null },
     modifier: Modifier = Modifier,
     scrollState: ScrollState? = null,
 ) {
@@ -94,6 +95,7 @@ fun HistoryScreen(
                                 onDelete = onDelete,
                                 onOpenReport = onOpenReport,
                                 canOpenReport = canOpenReport,
+                                reportText = reportText,
                             )
                         }
                     }
@@ -135,6 +137,7 @@ private fun HistoryRecordCard(
     onDelete: (Long) -> Unit,
     onOpenReport: (HistoryRecord) -> Unit,
     canOpenReport: (HistoryRecord) -> Boolean,
+    reportText: (HistoryRecord) -> Pair<String, String?>?,
 ) {
     val pingDetails = if (record.type == HistoryType.PING) {
         record.pingDetails()
@@ -147,8 +150,9 @@ private fun HistoryRecordCard(
         null
     }
     val isReport = record.type == HistoryType.REPORT
+    val localizedReport = if (isReport) reportText(record) else null
     val diagnosticHistorySummary = if (isReport) {
-        record.detailJson.readJsonString("historySummary")
+        localizedReport?.second ?: record.detailJson.readJsonString("historySummary")
     } else {
         null
     }
@@ -159,14 +163,7 @@ private fun HistoryRecordCard(
     val cardInteraction = historyCardInteraction(record, canOpenReport)
     val statusVisual = HistoryRecordPresentation.status(record)
     val networkLabel = HistoryRecordPresentation.networkLabel(record)
-    val displaySummary = if (record.type == HistoryType.PING) {
-        PingHistorySummary.fromQualityLevel(
-            qualityLevel = pingDetails?.qualityLevel.orEmpty(),
-            fallback = record.summary,
-        )
-    } else {
-        dnsDetails?.summary ?: record.summary.localizedHistorySummary()
-    }
+    val displaySummary = localizedReport?.first ?: record.structuredHistorySummary().resolve()
     val cardContent = HistoryRecordPresentation.cardContent(
         typeTitle = record.type.displayName(),
         titleCandidate = displayTitle.takeUnless { isReport },
@@ -313,28 +310,23 @@ private fun HistoryRecord.dnsDetails(): DnsHistoryDetails? {
     }
 }
 
-private fun PingHistoryDetails.metricsText(): String? = buildList {
-    avgLatencyMs?.let { add("平均 ${it.toCompactNumber()} ms") }
-    packetLoss?.let { add("丢包 ${it.toCompactPercentage()}%") }
-}.joinToString(" · ").takeIf(String::isNotBlank)
+@Composable
+private fun PingHistoryDetails.metricsText(): String? {
+    val average = avgLatencyMs?.let { stringResource(R.string.history_dynamic_average, it.toCompactNumber()) }
+    val loss = packetLoss?.let { stringResource(R.string.history_dynamic_loss, it.toCompactPercentage()) }
+    return listOfNotNull(average, loss).joinToString(" · ").takeIf(String::isNotBlank)
+}
 
+@Composable
 private fun DnsHistoryDetails.metricsText(): String? = buildList {
     DNS_RECORD_TYPES.forEach { type ->
-        recordCounts[type]?.takeIf { it > 0 }?.let { count -> add("$type $count 条") }
+        recordCounts[type]?.takeIf { it > 0 }?.let { count -> add(stringResource(R.string.history_dynamic_records, type, count)) }
     }
     if (recordCounts.values.any { it > 0 }) {
         durationMs?.let { add("$it ms") }
     }
 }.joinToString(" · ").takeIf(String::isNotBlank)
 
-private fun String.localizedHistorySummary(): String = when (this) {
-    "DNS lookup completed" -> "DNS 查询完成"
-    "Ping completed" -> "Ping 检测完成"
-    "Ping failed" -> "Ping 检测失败"
-    "TCP port check completed" -> "TCP 端口检测完成"
-    "TCP port check failed" -> "TCP 端口检测失败"
-    else -> this
-}
 
 private fun String.readJsonString(key: String): String? {
     val marker = "\"$key\":\""

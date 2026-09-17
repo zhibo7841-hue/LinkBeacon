@@ -472,3 +472,11 @@ outlined Language setting. Dynamic diagnostic explanations, old History prose,
 PDF/Text report bodies, bilingual GitHub docs and Android 12 runtime acceptance
 remain pending. This does not change product scope, version or the released v0.5.0
 APK; detailed verification remains in I18N_SCOPE_AUDIT.md.
+
+Task 083 implementation progress: optional diagnostic message metadata and
+English/zh-Hans presentation, structured History summaries, and fixed-locale
+Text/PDF report formatting are implemented and passed automatic gates and the
+maintainer-authorized G8142 Android 13 acceptance; no complete bilingual Release
+claim is made. Legacy prose remains preserved where structure is insufficient. Scope,
+version and the released APK are unchanged; Android 12 runtime verification and
+GitHub bilingual documentation remain deferred.

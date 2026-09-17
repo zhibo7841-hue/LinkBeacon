@@ -17,10 +17,15 @@ import java.util.Locale
 internal object DiagnosticReportPdfRenderer {
     const val PDF_MIME_TYPE = "application/pdf"
 
-    fun render(presentation: DiagnosticReportPresentation): ByteArray {
+    fun render(presentation: DiagnosticReportPresentation, localization: ReportLocalizationContext? = null): ByteArray {
         val document = PdfDocument()
         return try {
-            DiagnosticReportPdfLayout.pages(presentation).forEachIndexed { index, lines ->
+            val pages = if (localization == null) DiagnosticReportPdfLayout.pages(presentation) else
+                DiagnosticReportPdfLayout.localizedPages(presentation, localization)
+            val sectionTitles = if (localization == null) DiagnosticReportPdfLayout.SECTION_TITLES else
+                listOf("metadata", "conclusion", "checks", "findings", "recommendations", "network", "details", "evidence", "privacy")
+                    .map { ReportVocabulary(localization).label("section_$it") }.toSet()
+            pages.forEachIndexed { index, lines ->
                 val page = document.startPage(
                     PdfDocument.PageInfo.Builder(
                         DiagnosticReportPdfLayout.PAGE_WIDTH_POINTS,
@@ -28,7 +33,7 @@ internal object DiagnosticReportPdfRenderer {
                         index + 1,
                     ).create(),
                 )
-                drawPage(page, lines)
+                drawPage(page, lines, sectionTitles, firstPage = index == 0)
                 document.finishPage(page)
             }
 
@@ -43,7 +48,7 @@ internal object DiagnosticReportPdfRenderer {
 
     fun fileName(timestamp: Long): String = DiagnosticReportPdfLayout.fileName(timestamp)
 
-    private fun drawPage(page: PdfDocument.Page, lines: List<String>) {
+    private fun drawPage(page: PdfDocument.Page, lines: List<String>, sectionTitles: Set<String>, firstPage: Boolean) {
         val bodyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.BLACK
             textSize = 11f
@@ -51,24 +56,24 @@ internal object DiagnosticReportPdfRenderer {
         }
         val titlePaint = Paint(bodyPaint).apply {
             textSize = 16f
-            typeface = Typeface.create("sans-serif", Typeface.BOLD)
+            isFakeBoldText = true
         }
         val sectionPaint = Paint(bodyPaint).apply {
-            typeface = Typeface.create("sans-serif", Typeface.BOLD)
+            isFakeBoldText = true
         }
 
         page.canvas.drawColor(Color.WHITE)
         var baseline = DiagnosticReportPdfLayout.TOP_MARGIN_POINTS + 16f
         lines.forEachIndexed { index, line ->
             val paint = when {
-                index == 0 -> titlePaint
-                line in DiagnosticReportPdfLayout.SECTION_TITLES -> sectionPaint
+                index == 0 && firstPage -> titlePaint
+                line in sectionTitles -> sectionPaint
                 else -> bodyPaint
             }
             if (line.isNotEmpty()) {
                 page.canvas.drawText(line, DiagnosticReportPdfLayout.LEFT_MARGIN_POINTS, baseline, paint)
             }
-            baseline += if (index == 0) 24f else DiagnosticReportPdfLayout.LINE_HEIGHT_POINTS
+            baseline += if (index == 0 && firstPage) 24f else DiagnosticReportPdfLayout.LINE_HEIGHT_POINTS
         }
     }
 }
@@ -125,6 +130,10 @@ internal object DiagnosticReportPdfLayout {
     )
 
     private const val LINES_PER_PAGE = 42
+
+    fun localizedPages(presentation: DiagnosticReportPresentation, localization: ReportLocalizationContext): List<List<String>> =
+        DiagnosticReportTextFormatter.formatReport(presentation, localization).lineSequence()
+            .flatMap { wrapLine(it) }.toList().chunked(LINES_PER_PAGE)
 
     fun reportLines(presentation: DiagnosticReportPresentation): List<String> =
         DiagnosticReportTextFormatter

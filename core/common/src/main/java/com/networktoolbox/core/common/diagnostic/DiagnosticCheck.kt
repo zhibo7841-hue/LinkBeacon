@@ -11,6 +11,7 @@ data class DiagnosticCheck(
     val observedAt: Long? = null,
     val networkFingerprint: NetworkFingerprint? = null,
     val evidenceObservationIds: List<String> = emptyList(),
+    val summaryMessage: DiagnosticText? = null,
 ) {
     init {
         requireBoundedText(summary, "check summary", 512)

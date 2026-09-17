@@ -8,6 +8,7 @@ data class DiagnosticRecommendation(
     val reason: String,
     val relatedFindingCodes: List<DiagnosticFindingCode> = emptyList(),
     val verificationHint: String? = null,
+    val messages: Map<String, DiagnosticText> = emptyMap(),
 ) {
     init {
         requireBoundedText(title, "recommendation title", 256)

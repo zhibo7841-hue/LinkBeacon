@@ -38,6 +38,7 @@ internal data class DiagnosticCheckPresentation(
     val observedAt: Long? = null,
     val rawData: Map<String, String> = emptyMap(),
     val observationIds: List<String> = emptyList(),
+    val detailSummary: String = summary,
 )
 
 internal data class DiagnosticFindingPresentation(
@@ -96,7 +97,10 @@ internal object DiagnosticPresentationMapper {
         DiagnosticStage.TARGET,
     )
 
-    fun forLive(result: AutomaticDiagnosticResult): DiagnosticReportPresentation {
+    fun forLive(
+        result: AutomaticDiagnosticResult,
+        localization: ReportLocalizationContext = ReportLocalizationContext.legacy(),
+    ): DiagnosticReportPresentation {
         val diagnosis = result.analysis.diagnosis
         return DiagnosticReportPresentation(
             timestamp = result.evidence.startedAt,
@@ -105,16 +109,16 @@ internal object DiagnosticPresentationMapper {
                 .maxByOrNull { it.severity.rank() }
                 ?.severity
                 ?: DiagnosticSeverity.HEALTHY,
-            summary = diagnosis?.title ?: "诊断结果未确定。",
-            explanation = diagnosis?.explanation ?: "本次检测没有形成可展示的整体结论。",
-            checks = result.evidence.checks.map { check -> check.toPresentation() },
-            findings = result.analysis.findings.map { finding -> finding.toPresentation() },
+            summary = localization.render(diagnosis?.messages?.get("title"), diagnosis?.title ?: "诊断结果未确定。"),
+            explanation = localization.render(diagnosis?.messages?.get("explanation"), diagnosis?.explanation ?: "本次检测没有形成可展示的整体结论。"),
+            checks = result.evidence.checks.map { check -> check.toPresentation(localization) },
+            findings = result.analysis.findings.map { finding -> finding.toPresentation(localization) },
             recommendations = result.analysis.recommendations.map { recommendation ->
                 DiagnosticRecommendationPresentation(
                     priority = recommendation.priority.ordinal + 1,
-                    title = recommendation.title,
-                    action = recommendation.action,
-                    reason = recommendation.reason,
+                    title = localization.render(recommendation.messages["title"], recommendation.title),
+                    action = localization.render(recommendation.messages["action"], recommendation.action),
+                    reason = localization.render(recommendation.messages["reason"], recommendation.reason),
                 )
             },
             networkSummary = result.evidence.networkContextSummary,
@@ -123,8 +127,10 @@ internal object DiagnosticPresentationMapper {
     }
 
     /** A restored v0.4 snapshot already contains the original live result. */
-    fun forHistory(result: AutomaticDiagnosticResult): DiagnosticReportPresentation =
-        forLive(result)
+    fun forHistory(
+        result: AutomaticDiagnosticResult,
+        localization: ReportLocalizationContext = ReportLocalizationContext.legacy(),
+    ): DiagnosticReportPresentation = forLive(result, localization)
 
     /**
      * Restores the same presentation contract for a schema-2 history report.
@@ -132,8 +138,11 @@ internal object DiagnosticPresentationMapper {
      * retained for bounded technical details while missing observations remain
      * absent rather than being guessed.
      */
-    fun forHistory(report: DiagnosticReportV2): DiagnosticReportPresentation {
-        val checks = report.checks.map { check -> check.toPresentation() }
+    fun forHistory(
+        report: DiagnosticReportV2,
+        localization: ReportLocalizationContext = ReportLocalizationContext.legacy(),
+    ): DiagnosticReportPresentation {
+        val checks = report.checks.map { check -> check.toPresentation(localization) }
         return DiagnosticReportPresentation(
             timestamp = report.timestamp,
             overallStatus = report.overallStatus.toCurrentStatus(),
@@ -159,11 +168,12 @@ internal object DiagnosticPresentationMapper {
 
     fun stageSummariesForPresentation(
         checks: List<DiagnosticCheckPresentation>,
+        localization: ReportLocalizationContext? = null,
     ): List<DiagnosticStageSummary> = summaryStageOrder.mapNotNull { stage ->
         checks
             .filter { it.stage == stage }
             .takeIf { it.isNotEmpty() }
-            ?.let { stageChecks -> summarize(stage, stageChecks) }
+            ?.let { stageChecks -> summarize(stage, stageChecks, localization) }
     }
 
     fun visibleFindings(findings: List<DiagnosticFinding>): List<DiagnosticFinding> =
@@ -345,11 +355,12 @@ internal object DiagnosticPresentationMapper {
     private fun summarize(
         stage: DiagnosticStage,
         checks: List<DiagnosticCheckPresentation>,
+        localization: ReportLocalizationContext? = null,
     ): DiagnosticStageSummary {
         val status = aggregateStatus(checks)
         val severity = aggregateSeverity(checks)
         val summary = if (stage == DiagnosticStage.INTERNET) {
-            publicSummary(checks)
+            publicSummary(checks, localization)
         } else {
             val summaries = checks.map { it.summary }.distinct()
             when {
@@ -359,17 +370,32 @@ internal object DiagnosticPresentationMapper {
                 else -> "${stage.displayName()}结果存在差异；详细结果请查看详细信息。"
             }
         }
+        val localizedSummary = if (localization != null && stage != DiagnosticStage.INTERNET &&
+            checks.map { it.summary }.distinct().size > 1
+        ) {
+            localization.text(
+                if (checks.any { it.status == DiagnosticCheckStatus.PASS }) "report_dynamic_stage_some_different" else "report_dynamic_stage_different",
+                "%1\$s结果存在差异；详细结果请查看详细信息。",
+                ReportVocabulary(localization).stage(stage),
+            )
+        } else summary
         return DiagnosticStageSummary(
             stage = stage,
             status = status,
             severity = severity,
             checks = checks,
-            summary = summary,
+            summary = localizedSummary,
         )
     }
 
-    private fun publicSummary(checks: List<DiagnosticCheckPresentation>): String {
+    private fun publicSummary(checks: List<DiagnosticCheckPresentation>, localization: ReportLocalizationContext? = null): String {
         val successful = checks.count { it.status == DiagnosticCheckStatus.PASS }
+        if (localization != null) return when {
+            successful == checks.size -> localization.text("report_dynamic_public_all", "%1\$d 个公网探测目标均获得有效响应。", successful)
+            successful > 0 -> localization.text("report_dynamic_public_some", "部分探测结果存在差异；%1\$d 个公网探测目标获得有效响应，其余结果请查看详细信息。", successful)
+            checks.all { it.status == DiagnosticCheckStatus.UNKNOWN } -> localization.text("report_dynamic_public_unknown", "公网探测结果未能确认。")
+            else -> localization.text("report_dynamic_public_no_success", "公网探测未获得成功响应证据；详细结果请查看详细信息。")
+        }
         return when {
             successful == checks.size -> "$successful 个公网探测目标均获得有效响应。"
             successful > 0 -> "部分探测结果存在差异；$successful 个公网探测目标获得有效响应，其余结果请查看详细信息。"
@@ -399,27 +425,36 @@ internal object DiagnosticPresentationMapper {
         return checks.maxByOrNull { it.severity.rank() }?.severity ?: DiagnosticSeverity.NOTICE
     }
 
-    private fun V4Check.toPresentation(): DiagnosticCheckPresentation = DiagnosticCheckPresentation(
+    private fun V4Check.toPresentation(localization: ReportLocalizationContext? = null): DiagnosticCheckPresentation = DiagnosticCheckPresentation(
         id = code.name,
         stage = stage,
         status = status,
         severity = severity,
-        summary = userFacingSummary(this),
+        summary = localization?.text(
+            if (stage == DiagnosticStage.ADVANCED_PATH) "check_advanced_path" else
+                "check_${stage.name.lowercase(Locale.ROOT)}_${status.name.lowercase(Locale.ROOT)}",
+            userFacingSummary(this),
+        ) ?: userFacingSummary(this),
         targetValue = target?.value,
         targetPort = target?.port,
         method = method,
         observedAt = observedAt,
         observationIds = evidenceObservationIds,
+        detailSummary = localization?.render(summaryMessage, summary) ?: summary,
     )
 
-    private fun LegacyCheck.toPresentation(): DiagnosticCheckPresentation {
+    private fun LegacyCheck.toPresentation(localization: ReportLocalizationContext): DiagnosticCheckPresentation {
         val mappedStage = legacyStage()
         return DiagnosticCheckPresentation(
             id = id,
             stage = mappedStage,
             status = status.toCurrentStatus(),
             severity = severity.toCurrentSeverity(),
-            summary = userFacingSummary(mappedStage, status.toCurrentStatus()),
+            summary = localization.text(
+                if (mappedStage == DiagnosticStage.ADVANCED_PATH) "check_advanced_path" else
+                    "check_${mappedStage.name.lowercase(Locale.ROOT)}_${status.name.lowercase(Locale.ROOT)}",
+                userFacingSummary(mappedStage, status.toCurrentStatus()),
+            ),
             targetValue = target,
             targetPort = if (mappedStage == DiagnosticStage.INTERNET ||
                 mappedStage == DiagnosticStage.TARGET
@@ -431,15 +466,18 @@ internal object DiagnosticPresentationMapper {
             method = method,
             observedAt = observedAt,
             rawData = rawData,
+            detailSummary = summary,
         )
     }
 
-    private fun DiagnosticFinding.toPresentation(): DiagnosticFindingPresentation =
+    private fun DiagnosticFinding.toPresentation(
+        localization: ReportLocalizationContext,
+    ): DiagnosticFindingPresentation =
         DiagnosticFindingPresentation(
             id = code.name,
             severity = severity,
-            title = title,
-            description = description,
+            title = localization.render(messages["title"], title),
+            description = localization.render(messages["description"], description),
             confidence = confidence,
             evidenceLevel = evidenceLevel,
         )
@@ -448,8 +486,8 @@ internal object DiagnosticPresentationMapper {
         DiagnosticFindingPresentation(
             id = id,
             severity = severity.toCurrentSeverity(),
-            title = title.safeHistoryText("网络环境提示"),
-            description = description.safeHistoryText("历史记录未保存可读的详细说明。"),
+            title = title.ifBlank { "网络环境提示" },
+            description = description.ifBlank { "历史记录未保存可读的详细说明。" },
         )
 
     /** Stable ID mapping takes precedence over the old display stage. */
@@ -500,25 +538,8 @@ internal object DiagnosticPresentationMapper {
         val materialFinding = findings.firstOrNull {
             it.severity == LegacySeverity.WARNING || it.severity == LegacySeverity.ERROR
         }
-        return materialFinding?.description ?: when (overallStatus) {
-            DiagnosticOverallStatus.HEALTHY -> "在本次检测范围内，未发现明确的网络故障。"
-            DiagnosticOverallStatus.ATTENTION,
-            DiagnosticOverallStatus.LIMITED,
-            DiagnosticOverallStatus.UNKNOWN,
-            -> summary.safeHistoryText("诊断结果未确定。")
-        }
-    }
-
-    private fun String.safeHistoryText(fallback: String): String {
-        val machineValues = listOf(
-            "CONNECT_SUCCESS",
-            "CONNECTION_REFUSED",
-            "TIMEOUT",
-            "NO_ROUTE",
-            "NETWORK_UNREACHABLE",
-            "SYSTEM_REACHABILITY",
-        )
-        return takeIf { value -> machineValues.none(value::contains) } ?: fallback
+        // Schema-2 has no explanation descriptor: retain saved prose verbatim.
+        return materialFinding?.description ?: summary.ifBlank { "诊断结果未确定。" }
     }
 
     private fun NetworkContext.toDiagnosticSummary(): DiagnosticNetworkSummary =

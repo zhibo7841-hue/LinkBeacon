@@ -199,6 +199,54 @@ private fun String.hasNoResponses(): Boolean {
         (packetLoss != null && packetLoss >= 100.0)
 }
 
+internal fun HistoryRecord.structuredHistorySummary(): UiText {
+    if (type == HistoryType.PING && detailJson.readJsonString("status") == "CANCELLED") {
+        return UiText(R.string.history_stopped)
+    }
+    val resource = when (type) {
+        HistoryType.PING -> when (detailJson.readJsonString("qualityLevel")) {
+            "EXCELLENT" -> R.string.history_dynamic_ping_excellent
+            "GOOD", "FAIR" -> R.string.history_dynamic_ping_variable
+            "POOR" -> R.string.history_dynamic_ping_poor
+            "UNKNOWN" -> R.string.history_unknown
+            else -> null
+        }
+        HistoryType.DNS -> when (detailJson.readJsonString("status")) {
+            "SUCCESS" -> R.string.history_dynamic_dns_success
+            "NO_RECORDS" -> R.string.history_dynamic_dns_no_records
+            "NXDOMAIN" -> R.string.history_dynamic_dns_nxdomain
+            "PARTIAL" -> R.string.history_dynamic_dns_partial
+            "TIMEOUT" -> R.string.history_dynamic_dns_timeout
+            "NETWORK_ERROR" -> R.string.history_dynamic_dns_network_error
+            "INVALID_RESPONSE" -> R.string.history_dynamic_dns_invalid_response
+            "INVALID_QUERY" -> R.string.history_dynamic_dns_invalid_query
+            "FAILED" -> R.string.history_dynamic_dns_failed
+            else -> null
+        }
+        HistoryType.TCP -> when (detailJson.readJsonString("outcome")) {
+            "CONNECT_SUCCESS" -> R.string.history_dynamic_tcp_connected
+            "CONNECTION_REFUSED" -> R.string.history_dynamic_tcp_refused
+            "TIMEOUT" -> R.string.history_dynamic_tcp_timeout
+            "NO_ROUTE", "NETWORK_UNREACHABLE" -> R.string.history_dynamic_tcp_unreachable
+            "UNKNOWN" -> R.string.history_unknown
+            "INTERNAL_ERROR" -> R.string.history_dynamic_tcp_internal_error
+            else -> null
+        }
+        else -> null
+    }
+    if (resource != null) return UiText(resource)
+    if (type == HistoryType.LAN_SCAN) {
+        val count = detailJson.readJsonNumber("discoveredCount")?.toIntOrNull()
+        val duration = detailJson.readJsonNumber("durationMs")?.toLongOrNull()
+        if (count != null && count >= 0) return if (duration != null && duration >= 0) {
+            UiText(R.string.history_dynamic_lan_duration, count, String.format(Locale.ROOT, "%.1f", duration / 1000.0))
+        } else UiText(R.string.history_dynamic_lan_count, count)
+    }
+    // Legacy prose is never a lookup key and is never rewritten.
+    return UiText(summary)
+}
+
+
 private fun String.readJsonNumber(key: String): String? {
     val marker = "\"$key\":"
     val valueStart = indexOf(marker).takeIf { it >= 0 }?.plus(marker.length) ?: return null
