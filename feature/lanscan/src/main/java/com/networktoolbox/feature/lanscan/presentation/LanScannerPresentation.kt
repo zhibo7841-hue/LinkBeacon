@@ -1,5 +1,7 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.designsystem.UiText
+import com.networktoolbox.feature.lanscan.R
 import com.networktoolbox.core.common.favorites.DeviceDisplayNameResolver
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.feature.lanscan.domain.model.LanDevice
@@ -19,15 +21,15 @@ object LanScannerPresentation {
      * Keep the IP address as a separate secondary value so an unknown device
      * is not presented as if its address were a device name.
      */
-    fun deviceDisplayName(device: LanDevice): String = devicePrimaryText(device)
-        .takeIf { it.isNotBlank() && it != device.ipAddress }
-        ?: "未知设备"
+    fun deviceDisplayName(device: LanDevice): UiText = deviceDisplayName(device, null)
 
-    fun deviceDisplayName(device: LanDevice, savedProfile: FavoriteDevice?): String =
-        DeviceDisplayNameResolver.resolve(
-            customName = savedProfile?.customName,
-            detectedName = devicePrimaryText(device).takeUnless { it == device.ipAddress },
-        )
+    fun deviceDisplayName(device: LanDevice, savedProfile: FavoriteDevice?): UiText =
+        displayName(savedProfile?.customName, devicePrimaryText(device).takeUnless { it == device.ipAddress })
+
+    fun displayName(customName: String?, detectedName: String?): UiText {
+        val actualName = DeviceDisplayNameResolver.resolve(customName, detectedName, unknownLabel = "")
+        return if (actualName.isBlank()) UiText(R.string.lan_unknown_device) else UiText(actualName)
+    }
 
     fun deviceAddressText(device: LanDevice): String? = device.ipAddress.takeIf {
         devicePrimaryText(device) != device.ipAddress
@@ -48,53 +50,55 @@ object LanScannerPresentation {
         }
     }
 
-    fun deviceRole(device: LanDevice): String = buildList {
-        if (device.isLocalDevice) add("本机")
-        if (device.isGateway) add("网关")
-    }.joinToString(" · ")
+    fun deviceRole(device: LanDevice): UiText? = role(device.isLocalDevice, device.isGateway)
 
-    fun discoveryEvidence(device: LanDevice): String? {
+    fun role(local: Boolean, gateway: Boolean): UiText? = when {
+        local && gateway -> UiText(R.string.lan_joined, UiText(R.string.lan_local), UiText(R.string.lan_gateway))
+        local -> UiText(R.string.lan_local)
+        gateway -> UiText(R.string.lan_gateway)
+        else -> null
+    }
+
+    private fun joined(values: List<UiText>): UiText? =
+        values.reduceOrNull { left, right -> UiText(R.string.lan_joined, left, right) }
+
+    fun discoveryEvidence(device: LanDevice): UiText? {
         val evidence = device.discoveryEvidence.ifEmpty {
             device.discoveryMethods.map(::LanDeviceEvidence)
         }
-        return evidence.mapNotNull(::evidenceLabel)
-            .distinct()
-            .joinToString(" · ")
-            .takeIf(String::isNotBlank)
+        return joined(evidence.mapNotNull(::evidenceLabel).distinct())
     }
 
-    fun deviceSecondaryText(device: LanDevice): String? {
-        if (device.isLocalDevice) return "当前设备"
-        if (device.isGateway) return "网关信息"
+    fun deviceSecondaryText(device: LanDevice): UiText? {
+        if (device.isLocalDevice) return UiText(R.string.lan_current_device)
+        if (device.isGateway) return UiText(R.string.lan_gateway_info)
 
-        return listOfNotNull(
+        return joined(listOfNotNull(
             discoveryEvidence(device),
-            device.latencyMs?.let { "$it ms" },
-        ).joinToString(" · ").takeIf(String::isNotBlank)
+            device.latencyMs?.let { UiText("$it ms") },
+        ))
     }
 
-    fun sessionSummary(session: LanScanSession): String = if (
+    fun sessionSummary(session: LanScanSession): UiText = if (
         session.status == LanScanStatus.COMPLETED
     ) {
-        "${session.totalHosts} 个地址 · ${session.discoveredDevices.size} 台设备 · " +
-            elapsedText(session.elapsedMs)
+        UiText(R.string.lan_completed_summary, session.totalHosts, session.discoveredDevices.size, elapsedText(session.elapsedMs))
     } else {
-        "已扫描 ${session.scannedHosts} / ${session.totalHosts} 个地址 · " +
-            "发现 ${session.discoveredDevices.size} 台设备 · ${elapsedText(session.elapsedMs)}"
+        UiText(R.string.lan_progress_summary, session.scannedHosts, session.totalHosts, session.discoveredDevices.size, elapsedText(session.elapsedMs))
     }
 
-    fun elapsedText(elapsedMs: Long): String = when {
-        elapsedMs < 1_000L -> "$elapsedMs 毫秒"
-        else -> String.format(Locale.US, "%.1f 秒", elapsedMs / 1_000.0)
+    fun elapsedText(elapsedMs: Long): UiText = when {
+        elapsedMs < 1_000L -> UiText(R.string.lan_elapsed_ms, elapsedMs)
+        else -> UiText(R.string.lan_elapsed_seconds, String.format(Locale.US, "%.1f", elapsedMs / 1_000.0))
     }
 
     fun progressFraction(scannedHosts: Int, totalHosts: Int): Float =
         if (totalHosts <= 0) 0f else (scannedHosts.toFloat() / totalHosts).coerceIn(0f, 1f)
 
-    private fun evidenceLabel(evidence: LanDeviceEvidence): String? = when (evidence.method) {
-        LanDiscoveryMethod.REACHABILITY -> "可达性检测"
-        LanDiscoveryMethod.TCP -> evidence.successfulPort?.let { "TCP $it 可连接" } ?: "TCP 可连接"
-        LanDiscoveryMethod.LOCAL_CONTEXT -> "本机"
-        LanDiscoveryMethod.GATEWAY_CONTEXT -> "网关"
+    private fun evidenceLabel(evidence: LanDeviceEvidence): UiText? = when (evidence.method) {
+        LanDiscoveryMethod.REACHABILITY -> UiText(R.string.lan_reachability)
+        LanDiscoveryMethod.TCP -> evidence.successfulPort?.let { UiText(R.string.lan_tcp_port, it) } ?: UiText(R.string.lan_tcp_connected)
+        LanDiscoveryMethod.LOCAL_CONTEXT -> UiText(R.string.lan_local)
+        LanDiscoveryMethod.GATEWAY_CONTEXT -> UiText(R.string.lan_gateway)
     }
 }

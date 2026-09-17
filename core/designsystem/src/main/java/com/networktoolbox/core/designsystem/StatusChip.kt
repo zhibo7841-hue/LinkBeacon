@@ -20,6 +20,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -51,7 +52,7 @@ fun NetworkStatusChip(
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
             )
-            Text(label ?: visual.label, style = MaterialTheme.typography.labelLarge)
+            Text(label ?: stringResource(visual.label), style = MaterialTheme.typography.labelLarge)
         }
     }
 }

@@ -95,7 +95,7 @@ private fun AppDrawerContent(
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Text(
-                    header.versionLabel,
+                    stringResource(R.string.app_ui_version, BuildConfig.VERSION_NAME),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -15,13 +15,13 @@ class DiagnosticStatusPresentationTest {
         assertEquals(StatusVisualState.NOTICE, DiagnosticStatusPresentation.diagnosis(DiagnosticDiagnosisStatus.ATTENTION).state)
         assertEquals(StatusVisualState.WARNING, DiagnosticStatusPresentation.diagnosis(DiagnosticDiagnosisStatus.LIMITED).state)
         assertEquals(StatusVisualState.UNKNOWN, DiagnosticStatusPresentation.diagnosis(DiagnosticDiagnosisStatus.UNKNOWN).state)
-        assertEquals("状态未确定", DiagnosticStatusPresentation.diagnosis(null).label)
+        assertEquals(com.networktoolbox.feature.report.R.string.report_unknown_status, DiagnosticStatusPresentation.diagnosis(null).label)
     }
 
     @Test
     fun checkAndFindingStatusesDoNotExposeMachineValues() {
         assertEquals(
-            "正常",
+            com.networktoolbox.feature.report.R.string.report_normal,
             DiagnosticStatusPresentation.check(
                 DiagnosticCheckStatus.PASS,
                 DiagnosticSeverity.HEALTHY,
@@ -35,13 +35,13 @@ class DiagnosticStatusPresentationTest {
             ).state,
         )
         assertEquals(
-            "不适用",
+            com.networktoolbox.feature.report.R.string.report_na,
             DiagnosticStatusPresentation.check(
                 DiagnosticCheckStatus.NOT_APPLICABLE,
                 DiagnosticSeverity.NOTICE,
             ).label,
         )
-        assertEquals("严重异常", DiagnosticStatusPresentation.severity(DiagnosticSeverity.ERROR).label)
+        assertEquals(com.networktoolbox.feature.report.R.string.report_severe, DiagnosticStatusPresentation.severity(DiagnosticSeverity.ERROR).label)
     }
 
     @Test

@@ -10,10 +10,16 @@ import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import com.networktoolbox.core.designsystem.UiText
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberUpdatedState
+import com.networktoolbox.feature.lanscan.presentation.LanErrorPresentation
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.networktoolbox.core.designsystem.NetworkToolAccent
 import com.networktoolbox.core.designsystem.NetworkToolboxSpacing
@@ -63,13 +69,13 @@ fun LanScannerScreen(
     ) {
         if (isTopLevelDestination) {
             NetworkToolboxTopLevelHeader(
-                title = "设备",
-                description = "发现并查看局域网设备。",
+                title = stringResource(R.string.lan_devices),
+                description = stringResource(R.string.lan_discover_help),
                 onOpenMenu = onOpenMenu,
             )
         } else {
             ToolScreenHeader(
-                title = "局域网扫描",
+                title = stringResource(R.string.lan_scanner),
                 description = null,
                 icon = Icons.Outlined.Lan,
                 accent = NetworkToolAccent.PRIMARY,
@@ -123,7 +129,7 @@ fun LanScannerScreen(
 
             is LanScannerUiState.VpnBlocked -> VpnBlockedContent()
             is LanScannerUiState.Error -> ErrorContent(
-                message = state.message,
+                message = state.message.resolve(),
                 onRetry = onRetry,
             )
         }
@@ -166,12 +172,12 @@ private fun ReadyContent(
         OutlinedNetworkCard(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
         ) {
-            Text("当前网络范围较大", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.lan_large_network), style = MaterialTheme.typography.titleMedium)
             Text(
-                "为避免大量网络探测，本次扫描范围已限制为当前 /24。",
+                stringResource(R.string.lan_limit_help),
                 style = MaterialTheme.typography.bodyMedium,
             )
-            Text("扫描范围：${range.displayLabel}", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.lan_scan_range, range.displayLabel), style = MaterialTheme.typography.bodyMedium)
         }
     }
 
@@ -202,7 +208,7 @@ private fun RangeModeSelector(
     onModeChanged: (LanScanRangeMode) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
-        Text("扫描范围", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.lan_range_title), style = MaterialTheme.typography.titleMedium)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
@@ -212,26 +218,26 @@ private fun RangeModeSelector(
                     onClick = { onModeChanged(LanScanRangeMode.CURRENT_NETWORK) },
                     modifier = Modifier.weight(1f),
                 ) {
-                    Text("当前网络")
+                    Text(stringResource(R.string.lan_current_network))
                 }
                 SecondaryActionButton(
                     onClick = { onModeChanged(LanScanRangeMode.CUSTOM) },
                     modifier = Modifier.weight(1f),
                 ) {
-                    Text("自定义范围")
+                    Text(stringResource(R.string.lan_custom))
                 }
             } else {
                 SecondaryActionButton(
                     onClick = { onModeChanged(LanScanRangeMode.CURRENT_NETWORK) },
                     modifier = Modifier.weight(1f),
                 ) {
-                    Text("当前网络")
+                    Text(stringResource(R.string.lan_current_network))
                 }
                 PrimaryActionButton(
                     onClick = { onModeChanged(LanScanRangeMode.CUSTOM) },
                     modifier = Modifier.weight(1f),
                 ) {
-                    Text("自定义范围")
+                    Text(stringResource(R.string.lan_custom))
                 }
             }
         }
@@ -247,12 +253,12 @@ private fun CustomRangeCard(
     onStartAddressChanged: (String) -> Unit,
     onEndAddressChanged: (String) -> Unit,
 ) {
-    ToolInputSection(title = "${context.connectionType.displayName()} · 自定义 IPv4") {
+    ToolInputSection(title = stringResource(R.string.lan_custom_ipv4, context.connectionType.displayName())) {
         androidx.compose.material3.OutlinedTextField(
             value = startAddress,
             onValueChange = onStartAddressChanged,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("起始 IP") },
+            label = { Text(stringResource(R.string.lan_start_ip)) },
             placeholder = { Text("10.0.1.1") },
             singleLine = true,
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
@@ -265,7 +271,7 @@ private fun CustomRangeCard(
             value = endAddress,
             onValueChange = onEndAddressChanged,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("结束 IP") },
+            label = { Text(stringResource(R.string.lan_end_ip)) },
             placeholder = { Text("10.0.1.254") },
             singleLine = true,
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
@@ -277,13 +283,13 @@ private fun CustomRangeCard(
         when (result) {
             LanCustomRangeResult.Incomplete -> Unit
             is LanCustomRangeResult.Invalid -> Text(
-                result.message,
+                LanErrorPresentation.custom(result.reason).resolve(),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
             )
 
             is LanCustomRangeResult.Valid -> Text(
-                "${result.range.hostCount} 个地址",
+                pluralStringResource(R.plurals.lan_address_count, result.range.hostCount.toInt(), result.range.hostCount),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
             )
@@ -296,20 +302,20 @@ private fun NetworkSummaryCard(
     context: NetworkContext,
     range: LanScanRange,
 ) {
-    ToolInputSection(title = "当前网络") {
+    ToolInputSection(title = stringResource(R.string.lan_current_network)) {
         Text(
             "${context.connectionType.displayName()} · ${range.displayLabel}",
             style = NetworkToolboxTextStyles.TechnicalData,
         )
         Text(
-            "${range.hostCount} 个可扫描地址",
+            pluralStringResource(R.plurals.lan_scannable_count, range.hostCount.toInt(), range.hostCount),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         context.ipv4Address?.takeIf(String::isNotBlank)?.let {
-            DetailRow("本机", it)
+            DetailRow(stringResource(R.string.lan_local), it)
         }
-        DetailRow("网关", context.gateway?.takeIf(String::isNotBlank) ?: "未确认")
+        DetailRow(stringResource(R.string.lan_gateway), context.gateway?.takeIf(String::isNotBlank) ?: stringResource(R.string.lan_unconfirmed))
     }
 }
 
@@ -342,7 +348,7 @@ private fun SessionContent(
     LanScanSessionSummaryCard(session = session)
     LanScanRescanButton(onRescan = onRescan)
     TextButton(onClick = onModifyRange) {
-        Text("修改扫描范围 >")
+        Text(stringResource(R.string.lan_change_range))
     }
     DeviceList(
         devices = session.discoveredDevices,
@@ -359,7 +365,7 @@ private fun NetworkChangedContent(
         ToolStatusSummary(
             title = stringResource(R.string.lan_scan_network_changed_title),
             status = StatusVisualState.NOTICE,
-            label = "网络变化",
+            label = stringResource(R.string.lan_network_change),
         )
         Text(
             stringResource(R.string.lan_scan_network_changed_message),
@@ -367,7 +373,7 @@ private fun NetworkChangedContent(
         )
     }
     TextButton(onClick = onModifyRange) {
-        Text("重新设置")
+        Text(stringResource(R.string.lan_reset))
     }
 }
 
@@ -378,14 +384,14 @@ private fun UnsupportedContent(
     OutlinedNetworkCard {
         ToolStatusSummary(
             title = if (context.connectionType == ConnectionType.CELLULAR) {
-                "当前为移动网络"
+                stringResource(R.string.lan_on_mobile)
             } else {
-                "当前网络不可用"
+                stringResource(R.string.lan_network_unavailable)
             },
             status = StatusVisualState.NOT_EXECUTED,
-            label = "未执行",
+            label = stringResource(R.string.lan_not_run),
         )
-        Text("局域网扫描用于扫描 Wi-Fi 或以太网局域网。")
+        Text(stringResource(R.string.lan_lan_only))
     }
 }
 
@@ -393,11 +399,11 @@ private fun UnsupportedContent(
 private fun VpnBlockedContent() {
     OutlinedNetworkCard {
         ToolStatusSummary(
-            title = "当前检测到 VPN 网络",
+            title = stringResource(R.string.lan_vpn_detected),
             status = StatusVisualState.NOT_EXECUTED,
-            label = "未执行",
+            label = stringResource(R.string.lan_not_run),
         )
-        Text("第一版局域网扫描暂不在 VPN 网络下自动扫描，以避免扫描错误的虚拟网段。")
+        Text(stringResource(R.string.lan_vpn_help))
     }
 }
 
@@ -416,11 +422,11 @@ private fun ErrorContent(
 private fun LoadingCard() {
     OutlinedNetworkCard {
         ToolStatusSummary(
-            title = "正在读取网络状态",
+            title = stringResource(R.string.lan_reading),
             status = StatusVisualState.RUNNING,
-            label = "读取中",
+            label = stringResource(R.string.lan_loading),
         )
-        Text("请稍候…")
+        Text(stringResource(R.string.lan_wait))
     }
 }
 
@@ -489,11 +495,12 @@ private fun DetailRow(
     }
 }
 
+@Composable
 private fun ConnectionType.displayName(): String = when (this) {
     ConnectionType.WIFI -> "Wi-Fi"
-    ConnectionType.ETHERNET -> "以太网"
-    ConnectionType.CELLULAR -> "移动网络"
+    ConnectionType.ETHERNET -> stringResource(R.string.lan_ethernet)
+    ConnectionType.CELLULAR -> stringResource(R.string.lan_mobile)
     ConnectionType.VPN -> "VPN"
-    ConnectionType.BLUETOOTH -> "蓝牙"
-    ConnectionType.UNKNOWN -> "未知网络"
+    ConnectionType.BLUETOOTH -> stringResource(R.string.lan_bluetooth)
+    ConnectionType.UNKNOWN -> stringResource(R.string.lan_unknown_network)
 }

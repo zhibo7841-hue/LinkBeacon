@@ -1,0 +1,14 @@
+<resources>
+    <string name="subnet_title">IPv4 子网计算</string>
+    <string name="subnet_input">输入</string>
+    <string name="subnet_address">IPv4 地址/CIDR</string>
+    <string name="subnet_calculate">计算</string>
+    <string name="subnet_result">计算结果</string>
+    <string name="subnet_completed">已完成</string>
+    <string name="subnet_mask">子网掩码</string>
+    <string name="subnet_network">网络地址</string>
+    <string name="subnet_broadcast">广播地址</string>
+    <string name="subnet_range">可用范围</string>
+    <string name="subnet_hosts">主机数量</string>
+    <string name="subnet_invalid">输入无效。</string>
+</resources>

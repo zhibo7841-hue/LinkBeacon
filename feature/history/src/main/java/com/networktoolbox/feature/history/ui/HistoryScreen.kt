@@ -18,6 +18,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.stringResource
+import com.networktoolbox.feature.history.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -64,7 +66,7 @@ fun HistoryScreen(
             verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.MD),
         ) {
             SecondaryInformationHeader(
-                title = "历史记录",
+                title = stringResource(R.string.history_title),
                 onBack = onBack,
                 trailingContent = {
                     if (uiState is HistoryUiState.Success) {
@@ -74,16 +76,16 @@ fun HistoryScreen(
                                 contentColor = MaterialTheme.colorScheme.error,
                             ),
                         ) {
-                            Text("清空")
+                            Text(stringResource(R.string.history_clear))
                         }
                     }
                 },
             )
 
             when (val state = uiState) {
-                HistoryUiState.Loading -> StatusCard("加载中...")
+                HistoryUiState.Loading -> StatusCard(stringResource(R.string.history_loading))
                 HistoryUiState.Empty -> EmptyHistoryCard()
-                is HistoryUiState.Error -> ErrorCard(state.message, onLoad)
+                is HistoryUiState.Error -> ErrorCard(state.message.resolve(), onLoad)
                 is HistoryUiState.Success -> {
                     state.records.forEach { record ->
                         key(record.id) {
@@ -103,8 +105,8 @@ fun HistoryScreen(
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
-            title = { Text("清空全部历史记录？") },
-            text = { Text("所有本地检测历史都会被删除，此操作无法撤销。") },
+            title = { Text(stringResource(R.string.history_clear_title)) },
+            text = { Text(stringResource(R.string.history_clear_help)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -115,12 +117,12 @@ fun HistoryScreen(
                         contentColor = MaterialTheme.colorScheme.error,
                     ),
                 ) {
-                    Text("清空")
+                    Text(stringResource(R.string.history_clear))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showClearDialog = false }) {
-                    Text("取消")
+                    Text(stringResource(R.string.history_cancel))
                 }
             },
         )
@@ -151,7 +153,7 @@ private fun HistoryRecordCard(
         null
     }
     val displayTitle = when {
-        isReport -> "网络诊断"
+        isReport -> stringResource(R.string.history_diagnosis)
         else -> pingDetails?.target ?: dnsDetails?.domain ?: record.title
     }
     val cardInteraction = historyCardInteraction(record, canOpenReport)
@@ -170,21 +172,22 @@ private fun HistoryRecordCard(
         titleCandidate = displayTitle.takeUnless { isReport },
         summary = displaySummary,
         metadata = buildList {
-            networkLabel?.let(::add)
+            networkLabel?.resolve()?.let(::add)
             diagnosticHistorySummary?.let(::add)
             pingDetails?.metricsText()?.let(::add)
             dnsDetails?.metricsText()?.let(::add)
         },
     )
+    val reportActionLabel = stringResource(R.string.history_open_report)
     val cardModifier = if (cardInteraction.isClickable) {
         Modifier
             .clickable(
                 role = Role.Button,
-                onClickLabel = "查看网络诊断报告",
+                onClickLabel = reportActionLabel,
                 onClick = { onOpenReport(record) },
             )
             .semantics {
-                contentDescription = "查看网络诊断报告"
+                contentDescription = reportActionLabel
             }
     } else {
         Modifier
@@ -196,14 +199,14 @@ private fun HistoryRecordCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
         ) {
-            NetworkStatusChip(statusVisual.state, label = statusVisual.label)
+            NetworkStatusChip(statusVisual.state, label = stringResource(statusVisual.label))
             Text(
                 cardContent.title,
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleMedium,
             )
             Text(
-                HistoryRecordPresentation.timeLabel(record.timestamp),
+                HistoryRecordPresentation.timeLabel(record.timestamp).resolve(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -215,7 +218,7 @@ private fun HistoryRecordCard(
                     onClick = { onDelete(record.id) },
                 ) {
                     NetworkToolboxDeleteIcon(
-                        contentDescription = "删除${record.type.displayName()}记录",
+                        contentDescription = stringResource(R.string.history_delete_type, record.type.displayName()),
                     )
                 }
             }
@@ -237,8 +240,8 @@ private fun HistoryRecordCard(
 @Composable
 private fun EmptyHistoryCard() {
     OutlinedNetworkCard {
-        Text("暂无历史记录", style = MaterialTheme.typography.titleMedium)
-        Text("执行一次网络检测即可创建记录。")
+        Text(stringResource(R.string.history_empty), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.history_empty_help))
     }
 }
 
@@ -255,10 +258,10 @@ private fun ErrorCard(
     onRetry: () -> Unit,
 ) {
     OutlinedNetworkCard {
-        Text("状态：失败", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.history_failed), style = MaterialTheme.typography.titleMedium)
         Text(message)
         TextButton(onClick = onRetry) {
-            Text("重试")
+            Text(stringResource(R.string.history_retry))
         }
     }
 }
@@ -404,11 +407,12 @@ private fun Double.toCompactPercentage(): String = toCompactNumber()
 
 private val DNS_RECORD_TYPES = listOf("A", "AAAA", "CNAME", "MX", "TXT")
 
+@Composable
 private fun HistoryType.displayName(): String = when (this) {
     HistoryType.PING -> "Ping"
-    HistoryType.DNS -> "DNS 查询"
-    HistoryType.TCP -> "TCP 端口检测"
-    HistoryType.REPORT -> "网络诊断"
-    HistoryType.LAN_SCAN -> "局域网扫描"
-    HistoryType.UNKNOWN -> "其他"
+    HistoryType.DNS -> stringResource(R.string.history_dns)
+    HistoryType.TCP -> stringResource(R.string.history_tcp)
+    HistoryType.REPORT -> stringResource(R.string.history_diagnosis)
+    HistoryType.LAN_SCAN -> stringResource(R.string.history_lan)
+    HistoryType.UNKNOWN -> stringResource(R.string.history_other)
 }

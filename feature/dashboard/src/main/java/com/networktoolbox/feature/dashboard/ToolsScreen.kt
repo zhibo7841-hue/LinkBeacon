@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -49,14 +51,14 @@ fun ToolsScreen(
             verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.LG),
         ) {
             NetworkToolboxTopLevelHeader(
-                title = "工具",
+                title = stringResource(R.string.home_tools),
                 description = null,
                 onOpenMenu = onOpenMenu,
             )
 
             dashboardToolSections(callbacks).forEach { section ->
                 Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
-                    SectionHeader(title = section.title)
+                    SectionHeader(title = stringResource(section.title))
                     DashboardToolGrid(section.tools)
                 }
             }
@@ -74,8 +76,8 @@ private fun DashboardToolGrid(items: List<DashboardToolDefinition>) {
             rowItems.forEach { item ->
                 ToolCard(
                     icon = item.icon,
-                    title = item.title,
-                    description = item.description,
+                    title = stringResource(item.title),
+                    description = stringResource(item.description),
                     accent = item.accent,
                     onClick = item.onClick,
                     modifier = Modifier.weight(1f),

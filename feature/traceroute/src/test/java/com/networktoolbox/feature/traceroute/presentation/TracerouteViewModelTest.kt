@@ -118,7 +118,7 @@ class TracerouteViewModelTest {
 
         val completed = viewModel.uiState.value.status as TracerouteUiStatus.Completed
         assertEquals(TracerouteStatus.NETWORK_CHANGED, completed.result.status)
-        assertEquals("结果未确认", completed.presentation.statusLabel)
+        assertEquals(com.networktoolbox.core.designsystem.UiText(com.networktoolbox.feature.traceroute.R.string.trace_unconfirmed), completed.presentation.statusLabel)
     }
 
     @Test
@@ -128,11 +128,11 @@ class TracerouteViewModelTest {
 
         viewModel.onTargetChanged("2001:db8::1")
         viewModel.start()
-        assertTrue((viewModel.uiState.value.status as TracerouteUiStatus.Error).message.contains("IPv6"))
+        assertTrue((viewModel.uiState.value.status as TracerouteUiStatus.Error).message.resource == com.networktoolbox.feature.traceroute.R.string.trace_no_ipv6)
 
         viewModel.onTargetChanged("not a target")
         viewModel.start()
-        assertTrue((viewModel.uiState.value.status as TracerouteUiStatus.Error).message.contains("有效"))
+        assertTrue((viewModel.uiState.value.status as TracerouteUiStatus.Error).message.resource == com.networktoolbox.feature.traceroute.R.string.trace_invalid_target)
         assertEquals(0, engine.runCount)
     }
 

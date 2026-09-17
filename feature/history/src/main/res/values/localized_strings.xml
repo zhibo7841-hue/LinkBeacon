@@ -1,0 +1,37 @@
+<resources>
+    <string name="history_title">History</string>
+    <string name="history_clear">Clear history</string>
+    <string name="history_loading">Loading…</string>
+    <string name="history_clear_title">Clear all history?</string>
+    <string name="history_clear_help">All local test history will be deleted. This cannot be undone.</string>
+    <string name="history_cancel">Cancel</string>
+    <string name="history_diagnosis">Network Diagnosis</string>
+    <string name="history_open_report">View diagnosis report</string>
+    <string name="history_delete_type">Delete %1$s record</string>
+    <string name="history_empty">No history yet</string>
+    <string name="history_empty_help">Run a network check to create records.</string>
+    <string name="history_failed">Status: Failed</string>
+    <string name="history_retry">Retry</string>
+    <string name="history_dns">DNS Lookup</string>
+    <string name="history_tcp">TCP Port Check</string>
+    <string name="history_lan">LAN Scanner</string>
+    <string name="history_other">Other</string>
+    <string name="history_access_error">Could not access local history. Try again later.</string>
+    <string name="history_today">Today %1$s</string>
+    <string name="history_yesterday">Yesterday %1$s</string>
+    <string name="history_mobile">Mobile network</string>
+    <string name="history_ethernet">Ethernet</string>
+    <string name="history_bluetooth">Bluetooth</string>
+    <string name="history_attention">Needs attention</string>
+    <string name="history_no_response">No response</string>
+    <string name="history_unreachable">Unreachable</string>
+    <string name="history_no_records">No records</string>
+    <string name="history_nxdomain">Domain not found</string>
+    <string name="history_partial">Partially completed</string>
+    <string name="history_error">Serious issue</string>
+    <string name="history_notice">Needs attention</string>
+    <string name="history_warning">Issue detected</string>
+    <string name="history_normal">Normal</string>
+    <string name="history_stopped">Stopped</string>
+    <string name="history_unknown">Unconfirmed</string>
+</resources>

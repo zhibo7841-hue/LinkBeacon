@@ -1,0 +1,27 @@
+<resources>
+    <string name="tcp_title">TCP 端口检测</string>
+    <string name="tcp_connection_target">连接目标</string>
+    <string name="tcp_host">主机</string>
+    <string name="tcp_port">端口</string>
+    <string name="tcp_invalid_help">输入无效。请输入 Host 和 1–65535 范围内的端口。</string>
+    <string name="tcp_checking_button">检测中...</string>
+    <string name="tcp_start">开始检测</string>
+    <string name="tcp_running">正在检测</string>
+    <string name="tcp_checking">检测中</string>
+    <string name="tcp_target">目标</string>
+    <string name="tcp_result">TCP 结果</string>
+    <string name="tcp_unknown">未知</string>
+    <string name="tcp_latency">延迟</string>
+    <string name="tcp_connected">已连接</string>
+    <string name="tcp_connected_help">目标端口接受了 TCP 连接。</string>
+    <string name="tcp_refused">连接被拒绝</string>
+    <string name="tcp_refused_help">目标设备可访问，但该端口没有服务响应。</string>
+    <string name="tcp_timeout">连接超时</string>
+    <string name="tcp_timeout_help">目标没有在规定时间内响应 TCP 连接。</string>
+    <string name="tcp_unreachable">无法到达目标</string>
+    <string name="tcp_unreachable_help">当前目标未能完成连接，可能与网络路径或路由有关。</string>
+    <string name="tcp_undetermined">结果未确定</string>
+    <string name="tcp_undetermined_help">无法确定本次 TCP 连接的具体结果。</string>
+    <string name="tcp_invalid">输入无效</string>
+    <string name="tcp_check_input">请检查主机地址和端口范围。</string>
+</resources>

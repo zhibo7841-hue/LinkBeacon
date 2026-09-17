@@ -1,6 +1,5 @@
 package com.networktoolbox.feature.dashboard
 
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -8,14 +7,14 @@ import org.junit.Test
 class HomePresentationTest {
     @Test
     fun quickTools_useTitleOnlyAndKeepCardDescriptions() {
-        assertEquals("快速工具", HomePresentation.quickToolsTitle)
-        assertFalse(HomePresentation.quickToolsTitle.contains("常用网络检测"))
-        assertEquals("最近诊断", HomePresentation.recentDiagnosisTitle)
+        assertPresentationEquals("快速工具", HomePresentation.quickToolsTitle)
+        assertFalse(HomePresentation.quickToolsTitle.testText().contains("常用网络检测"))
+        assertPresentationEquals("最近诊断", HomePresentation.recentDiagnosisTitle)
     }
 
     @Test
     fun homeUsesNetworkFirstOrderWithoutBrandHeader() {
-        assertEquals(
+        assertPresentationEquals(
             listOf("network", "diagnostic", "quick-tools", "recent-diagnosis"),
             HomePresentation.sectionOrder,
         )
@@ -24,9 +23,9 @@ class HomePresentationTest {
 
     @Test
     fun emptyRecentDiagnosis_usesExplicitEmptyState() {
-        assertEquals("暂无诊断记录", HomePresentation.recentDiagnosticBody(null))
+        assertPresentationEquals("暂无诊断记录", HomePresentation.recentDiagnosticBody(null))
         assertNull(HomePresentation.recentDiagnosticSummary(null))
-        assertEquals(
+        assertPresentationEquals(
             RecentDiagnosticStatus.UNKNOWN,
             HomePresentation.recentDiagnosticStatus(null),
         )
@@ -41,9 +40,9 @@ class HomePresentationTest {
             timestamp = 1_000L,
         )
 
-        assertEquals("网络状态正常", HomePresentation.recentDiagnosticBody(preview))
-        assertEquals("网关正常 · 公网正常 · DNS正常", HomePresentation.recentDiagnosticSummary(preview))
-        assertEquals(
+        assertPresentationEquals("网络状态正常", HomePresentation.recentDiagnosticBody(preview))
+        assertPresentationEquals("网关正常 · 公网正常 · DNS正常", HomePresentation.recentDiagnosticSummary(preview))
+        assertPresentationEquals(
             RecentDiagnosticStatus.UNKNOWN,
             HomePresentation.recentDiagnosticStatus(preview),
         )
@@ -51,7 +50,7 @@ class HomePresentationTest {
 
     @Test
     fun networkDetailsAction_usesAccessibleChevronLabels() {
-        assertEquals("查看网络详情", HomePresentation.networkDetailsContentDescription(false))
-        assertEquals("收起网络详情", HomePresentation.networkDetailsContentDescription(true))
+        assertPresentationEquals("查看网络详情", HomePresentation.networkDetailsContentDescription(false))
+        assertPresentationEquals("收起网络详情", HomePresentation.networkDetailsContentDescription(true))
     }
 }

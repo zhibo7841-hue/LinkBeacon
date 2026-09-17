@@ -20,6 +20,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
+import com.networktoolbox.feature.traceroute.R
+import com.networktoolbox.core.designsystem.UiText
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,6 +60,9 @@ fun TracerouteScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val live_pathTitle = stringResource(R.string.trace_live_path)
+    val pathTitle = stringResource(R.string.trace_path)
+    val obtained_pathTitle = stringResource(R.string.trace_obtained_path)
     val isRunning = uiState.status is TracerouteUiStatus.Running
 
     ToolScreenLazyLayout(modifier = modifier) {
@@ -82,7 +88,7 @@ fun TracerouteScreen(
             }
             item {
                 Text(
-                    "检测在本机完成，不会上传网络数据。当前阶段仅支持 IPv4。",
+                    stringResource(R.string.trace_privacy),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -94,32 +100,32 @@ fun TracerouteScreen(
             is TracerouteUiStatus.Running -> {
                 item { RunningCard(status, onStop) }
                 if (status.hops.isNotEmpty()) {
-                    tracerouteHopList("实时路径", status.hops)
+                    tracerouteHopList(live_pathTitle, status.hops)
                 }
             }
 
             is TracerouteUiStatus.Completed -> {
                 item { ResultCard(status.result, status.presentation) }
                 if (status.result.hops.isNotEmpty()) {
-                    tracerouteHopList("路由路径", status.result.hops)
+                    tracerouteHopList(pathTitle, status.result.hops)
                 }
             }
 
             is TracerouteUiStatus.Cancelled -> {
                 item {
                     MessageCard(
-                        title = "追踪已停止",
-                        message = TraceroutePresentationMapper.cancelledSummary(status.hops.size),
+                        title = stringResource(R.string.trace_stopped),
+                        message = TraceroutePresentationMapper.cancelledSummary(status.hops.size).resolve(),
                         status = StatusVisualState.CANCELLED,
                     )
                 }
-                tracerouteHopList("已获取路径", status.hops)
+                tracerouteHopList(obtained_pathTitle, status.hops)
             }
 
             is TracerouteUiStatus.Error -> item {
                 MessageCard(
-                    title = "无法开始追踪",
-                    message = status.message,
+                    title = stringResource(R.string.trace_cannot_start),
+                    message = status.message.resolve(),
                     status = StatusVisualState.ERROR,
                 )
             }
@@ -142,23 +148,23 @@ private fun LazyListScope.tracerouteHopList(
 @Composable
 private fun TargetInputSection(
     target: String,
-    errorMessage: String?,
+    errorMessage: UiText?,
     onTargetChanged: (String) -> Unit,
     onStart: () -> Unit,
 ) {
-    ToolInputSection(title = "目标") {
+    ToolInputSection(title = stringResource(R.string.trace_destination)) {
         OutlinedTextField(
             value = target,
             onValueChange = onTargetChanged,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("IPv4 地址或域名") },
-            placeholder = { Text("例如：1.1.1.1 或 example.com") },
+            label = { Text(stringResource(R.string.trace_target_label)) },
+            placeholder = { Text(stringResource(R.string.trace_example)) },
             singleLine = true,
             isError = errorMessage != null,
         )
         errorMessage?.let {
             Text(
-                it,
+                it.resolve(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
             )
@@ -167,7 +173,7 @@ private fun TargetInputSection(
             onClick = onStart,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("开始追踪")
+            Text(stringResource(R.string.trace_start))
         }
     }
 }
@@ -176,21 +182,21 @@ private fun TargetInputSection(
 private fun RunningCard(status: TracerouteUiStatus.Running, onStop: () -> Unit) {
     ToolRunningSection {
         ToolStatusSummary(
-            title = "正在追踪",
+            title = stringResource(R.string.trace_running),
             status = StatusVisualState.RUNNING,
-            label = "检测中",
+            label = stringResource(R.string.trace_testing),
         )
         Text(status.target, style = NetworkToolboxTextStyles.TechnicalData)
         status.resolvedAddress?.let {
             ToolResultRow(
-                "解析地址",
+                stringResource(R.string.trace_resolved),
                 it,
                 valueStyle = NetworkToolboxTextStyles.TechnicalData,
             )
         }
         TraceroutePresentationMapper.fakeIpNotice(status.resolvedAddress)?.let {
             Text(
-                "提示：$it",
+                stringResource(R.string.trace_notice, it.resolve()),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -199,9 +205,9 @@ private fun RunningCard(status: TracerouteUiStatus.Running, onStop: () -> Unit) 
             progress = { (status.hops.size / 30f).coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxWidth(),
         )
-        Text("已获取 ${status.hops.size} 跳", style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.trace_hops, status.hops.size), style = MaterialTheme.typography.bodyMedium)
         Text(
-            "正在等待后续路径结果。",
+            stringResource(R.string.trace_waiting),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -209,7 +215,7 @@ private fun RunningCard(status: TracerouteUiStatus.Running, onStop: () -> Unit) 
             onClick = onStop,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("停止追踪")
+            Text(stringResource(R.string.trace_stop))
         }
     }
 }
@@ -221,30 +227,30 @@ private fun ResultCard(
 ) {
     ToolResultSection {
         ToolStatusSummary(
-            title = presentation.heading,
+            title = presentation.heading.resolve(),
             status = result.status.statusVisualState(),
-            label = presentation.statusLabel,
+            label = presentation.statusLabel.resolve(),
         )
         ToolResultRow(
-            "目标",
+            stringResource(R.string.trace_destination),
             result.targetInput,
             valueStyle = NetworkToolboxTextStyles.TechnicalData,
         )
         result.resolvedAddress?.let {
             ToolResultRow(
-                "解析地址",
+                stringResource(R.string.trace_resolved),
                 it,
                 valueStyle = NetworkToolboxTextStyles.TechnicalData,
             )
         }
-        ToolResultRow("探测协议", result.addressFamily.displayName())
+        ToolResultRow(stringResource(R.string.trace_protocol), result.addressFamily.displayName())
         result.durationMs?.let {
-            ToolResultRow("耗时", formatDuration(it))
+            ToolResultRow(stringResource(R.string.trace_elapsed), formatDuration(it))
         }
-        Text(presentation.summary, style = MaterialTheme.typography.bodyLarge)
+        Text(presentation.summary.resolve(), style = MaterialTheme.typography.bodyLarge)
         presentation.explanation?.let {
             Text(
-                it,
+                it.resolve(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -252,7 +258,7 @@ private fun ResultCard(
         presentation.notice?.let {
             HorizontalDivider()
             Text(
-                "提示：$it",
+                stringResource(R.string.trace_notice, it.resolve()),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -319,7 +325,7 @@ private fun HopRow(hop: TracerouteHop) {
             }
             TraceroutePresentationMapper.hopStatusLabel(hop)?.let { label ->
                 Text(
-                    label,
+                    label.resolve(),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -347,9 +353,10 @@ private fun TracerouteAddressFamily.displayName(): String = when (this) {
     TracerouteAddressFamily.IPV6 -> "IPv6"
 }
 
+@Composable
 private fun formatDuration(durationMs: Long): String = when {
     durationMs < 1_000L -> "$durationMs ms"
-    else -> "${(durationMs / 1_000.0f).formatOneDecimal()} 秒"
+    else -> stringResource(R.string.trace_seconds, (durationMs / 1_000.0f).formatOneDecimal())
 }
 
 private fun Float.formatOneDecimal(): String = String.format(java.util.Locale.US, "%.1f", this)

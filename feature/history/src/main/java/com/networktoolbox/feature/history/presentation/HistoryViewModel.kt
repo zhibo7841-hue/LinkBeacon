@@ -1,5 +1,7 @@
 package com.networktoolbox.feature.history.presentation
 
+import com.networktoolbox.core.designsystem.UiText
+import com.networktoolbox.feature.history.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.networktoolbox.core.common.history.HistoryRecord
@@ -24,7 +26,7 @@ sealed interface HistoryUiState {
     ) : HistoryUiState
 
     data class Error(
-        val message: String,
+        val message: UiText,
     ) : HistoryUiState
 }
 
@@ -95,4 +97,4 @@ class HistoryViewModel @Inject constructor(
     }
 }
 
-private fun Exception.userMessage(): String = "无法访问本地历史记录，请稍后重试。"
+private fun Exception.userMessage(): UiText = UiText(R.string.history_access_error)

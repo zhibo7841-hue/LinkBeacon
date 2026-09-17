@@ -3,6 +3,8 @@ package com.networktoolbox.feature.lanscan.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.networktoolbox.core.designsystem.UiText
+import com.networktoolbox.feature.lanscan.R
 import com.networktoolbox.core.common.favorites.DeviceDisplayNameResolver
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteIdentityMatcher
@@ -87,10 +89,10 @@ class LanScannerViewModel @Inject constructor(
     )
     val deviceCenterSearchState: StateFlow<DeviceCenterSearchState> =
         _deviceCenterSearchState.asStateFlow()
-    private val _favoriteActionError = MutableStateFlow<String?>(null)
-    val favoriteActionError: StateFlow<String?> = _favoriteActionError.asStateFlow()
-    private val _customNameActionError = MutableStateFlow<String?>(null)
-    val customNameActionError: StateFlow<String?> = _customNameActionError.asStateFlow()
+    private val _favoriteActionError = MutableStateFlow<UiText?>(null)
+    val favoriteActionError: StateFlow<UiText?> = _favoriteActionError.asStateFlow()
+    private val _customNameActionError = MutableStateFlow<UiText?>(null)
+    val customNameActionError: StateFlow<UiText?> = _customNameActionError.asStateFlow()
     private val _deviceDetailEvents = MutableSharedFlow<DeviceDetailEvent>(
         extraBufferCapacity = 8,
     )
@@ -216,7 +218,7 @@ class LanScannerViewModel @Inject constructor(
         val readiness = latestReadiness
         if (readiness == null) {
             _uiState.value = LanScannerUiState.Error(
-                message = "暂时无法读取当前网络状态，请稍后重试。",
+                message = UiText(R.string.lan_error_read_error),
             )
             return
         }
@@ -232,7 +234,7 @@ class LanScannerViewModel @Inject constructor(
         val readiness = latestReadiness
         if (readiness == null) {
             _uiState.value = LanScannerUiState.Error(
-                message = "暂时无法读取当前网络状态，请稍后重试。",
+                message = UiText(R.string.lan_error_read_error),
             )
             return
         }
@@ -325,7 +327,7 @@ class LanScannerViewModel @Inject constructor(
             } catch (_: Exception) {
                 if (!stopRequested.get() && isCurrentScan(generation)) {
                     _uiState.value = LanScannerUiState.Error(
-                        message = "局域网扫描失败，请稍后重试。",
+                        message = UiText(R.string.lan_error_scan_error),
                         readiness = latestReadiness,
                     )
                 }
@@ -597,7 +599,7 @@ class LanScannerViewModel @Inject constructor(
             _customNameActionError.value = null
             val normalized = DeviceDisplayNameResolver.normalizeCustomName(rawName)
             if (normalized == null) {
-                _customNameActionError.value = "名称不能为空、不能包含控制字符，且最多 40 个字符。"
+                _customNameActionError.value = UiText(R.string.lan_error_invalid_name)
                 return@launch
             }
             runCustomNameOperation {
@@ -619,30 +621,30 @@ class LanScannerViewModel @Inject constructor(
     /** Saves only the local WoL configuration on the current device profile. */
     fun saveWakeOnLanByRouteKey(routeKey: String?, rawMacAddress: String, rawPort: String) {
         viewModelScope.launch {
-            val emitFailure: (String) -> Unit = { message ->
+            val emitFailure: (UiText) -> Unit = { message ->
                 emitDeviceDetailEvent(DeviceDetailEvent.WakeOnLanConfigurationSaveFailed(message))
             }
             val mac = MacAddress.parse(rawMacAddress)
             if (mac == null) {
-                emitFailure("请输入有效的单播 MAC 地址。")
+                emitFailure(UiText(R.string.lan_error_invalid_mac))
                 return@launch
             }
             val port = rawPort.trim().toIntOrNull()
             if (port == null || port !in WakeOnLanConfig.MIN_UDP_PORT..WakeOnLanConfig.MAX_UDP_PORT) {
-                emitFailure("UDP 端口必须在 1 到 65535 之间。")
+                emitFailure(UiText(R.string.lan_error_invalid_port))
                 return@launch
             }
             val config = WakeOnLanConfig(macAddress = mac, udpPort = port)
             runWakeOnLanOperation(onFailure = emitFailure) {
                 val parsed = LanDeviceDetailRouteKey.parse(routeKey) ?: return@runWakeOnLanOperation
                 val context = currentNetworkContext()
-                    ?: return@runWakeOnLanOperation emitFailure("当前网络状态不可用，无法保存配置。")
+                    ?: return@runWakeOnLanOperation emitFailure(UiText(R.string.lan_error_save_no_network))
                 val scope = LanNetworkScope.from(context)
-                    ?: return@runWakeOnLanOperation emitFailure("当前没有可保存的局域网范围。")
+                    ?: return@runWakeOnLanOperation emitFailure(UiText(R.string.lan_error_save_no_scope))
                 when (val target = resolveDeviceDetailActionTarget(parsed, context, scope)) {
                     is DeviceDetailActionTarget.Observed -> {
                         val candidate = LanFavoriteIdentity.candidate(target.device, target.context)
-                            ?: return@runWakeOnLanOperation emitFailure("当前设备没有可保存的局域网信息。")
+                            ?: return@runWakeOnLanOperation emitFailure(UiText(R.string.lan_error_save_no_device))
                         val existing = savedDeviceRepository.findMatching(candidate)
                         if (existing != null) {
                             savedDeviceRepository.setWakeOnLanConfig(existing.id, config)
@@ -655,7 +657,7 @@ class LanScannerViewModel @Inject constructor(
                                 isFavorite = false,
                                 customName = null,
                                 wolConfig = config,
-                            ) ?: return@runWakeOnLanOperation emitFailure("无法保存当前设备配置。")
+                            ) ?: return@runWakeOnLanOperation emitFailure(UiText(R.string.lan_error_save_failed))
                             savedDeviceRepository.save(profile)
                         }
                         emitDeviceDetailEvent(DeviceDetailEvent.WakeOnLanConfigurationSaved)
@@ -666,7 +668,7 @@ class LanScannerViewModel @Inject constructor(
                         emitDeviceDetailEvent(DeviceDetailEvent.WakeOnLanConfigurationSaved)
                     }
 
-                    null -> emitFailure("设备信息已不可用，请返回后重试。")
+                    null -> emitFailure(UiText(R.string.lan_error_device_gone_back))
                 }
             }
         }
@@ -675,27 +677,27 @@ class LanScannerViewModel @Inject constructor(
     /** Sends one magic packet directly; sending does not imply the device woke up. */
     fun sendWakeOnLanByRouteKey(routeKey: String?) {
         viewModelScope.launch {
-            val emitFailure: (String) -> Unit = { message ->
+            val emitFailure: (UiText) -> Unit = { message ->
                 emitDeviceDetailEvent(DeviceDetailEvent.WakePacketFailed(message))
             }
             runWakeOnLanOperation(onFailure = emitFailure) {
                 val parsed = LanDeviceDetailRouteKey.parse(routeKey) ?: return@runWakeOnLanOperation
                 val context = currentNetworkContext()
-                    ?: return@runWakeOnLanOperation emitFailure("当前网络状态不可用，无法发送唤醒包。")
+                    ?: return@runWakeOnLanOperation emitFailure(UiText(R.string.lan_error_send_no_network))
                 val scope = LanNetworkScope.from(context)
-                    ?: return@runWakeOnLanOperation emitFailure("当前没有可用的局域网。")
+                    ?: return@runWakeOnLanOperation emitFailure(UiText(R.string.lan_error_no_lan))
                 val profile = when (val target = resolveDeviceDetailActionTarget(parsed, context, scope)) {
                     is DeviceDetailActionTarget.SavedProfile -> target.profile
                     is DeviceDetailActionTarget.Observed -> {
                         val candidate = LanFavoriteIdentity.candidate(target.device, target.context)
-                            ?: return@runWakeOnLanOperation emitFailure("设备信息已不可用，请重试。")
+                            ?: return@runWakeOnLanOperation emitFailure(UiText(R.string.lan_error_device_gone))
                         savedDeviceRepository.findMatching(candidate)
                     }
 
                     null -> null
                 }
                 if (profile == null) {
-                    return@runWakeOnLanOperation emitFailure("请先配置 MAC 地址。")
+                    return@runWakeOnLanOperation emitFailure(UiText(R.string.lan_error_configure_mac))
                 }
                 when (val result = sendWakeOnLan(profile)) {
                     is WakeOnLanResult.Sent -> {
@@ -710,7 +712,7 @@ class LanScannerViewModel @Inject constructor(
     }
 
     private suspend fun runWakeOnLanOperation(
-        onFailure: (String) -> Unit,
+        onFailure: (UiText) -> Unit,
         operation: suspend () -> Unit,
     ) {
         wakeOnLanOperationMutex.withLock {
@@ -719,7 +721,7 @@ class LanScannerViewModel @Inject constructor(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Exception) {
-                onFailure("唤醒包发送失败，请检查当前局域网连接后重试。")
+                onFailure(UiText(R.string.lan_error_wake_failed))
             }
         }
     }
@@ -734,7 +736,7 @@ class LanScannerViewModel @Inject constructor(
         } catch (error: CancellationException) {
             throw error
         } catch (_: Exception) {
-            _customNameActionError.value = "设备名称保存失败，请重试。"
+            _customNameActionError.value = UiText(R.string.lan_error_name_save_failed)
         }
     }
 
@@ -777,7 +779,7 @@ class LanScannerViewModel @Inject constructor(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Exception) {
-                _favoriteActionError.value = "收藏失败，请重试。"
+                _favoriteActionError.value = UiText(R.string.lan_error_favorite_failed)
             }
         }
     }
@@ -803,10 +805,10 @@ class LanScannerViewModel @Inject constructor(
                 networkContext = initialNetworkContext,
                 rangeResult = LanScanRangeResult.Rejected(
                     reason = com.networktoolbox.feature.lanscan.domain.model.LanScanRejectionReason.VPN_BLOCKED,
-                    message = errorMessage ?: "当前网络包含 VPN。",
+                    message = errorMessage.orEmpty(),
                 ),
             ),
-            message = errorMessage ?: "当前网络包含 VPN。",
+            message = UiText(R.string.lan_error_vpn),
         )
 
         LanScanStatus.UNSUPPORTED_NETWORK -> LanScannerUiState.UnsupportedNetwork(
@@ -814,10 +816,10 @@ class LanScannerViewModel @Inject constructor(
                 networkContext = initialNetworkContext,
                 rangeResult = LanScanRangeResult.Rejected(
                     reason = com.networktoolbox.feature.lanscan.domain.model.LanScanRejectionReason.UNSUPPORTED_NETWORK,
-                    message = errorMessage ?: "当前网络不适合局域网扫描。",
+                    message = errorMessage.orEmpty(),
                 ),
             ),
-            message = errorMessage ?: "当前网络不适合局域网扫描。",
+            message = UiText(R.string.lan_error_unsupported),
         )
 
         LanScanStatus.ERROR,
@@ -826,7 +828,7 @@ class LanScannerViewModel @Inject constructor(
         LanScanStatus.IDLE,
         LanScanStatus.SCANNING,
         -> LanScannerUiState.Error(
-            message = "局域网扫描失败，请稍后重试。",
+            message = UiText(R.string.lan_error_scan_error),
             readiness = latestReadiness,
         )
     }
@@ -1081,7 +1083,7 @@ class LanScannerViewModel @Inject constructor(
 
         if (readiness == null) {
             _uiState.value = LanScannerUiState.Error(
-                message = "网络已发生变化，请稍后重试。",
+                message = UiText(R.string.lan_error_network_changed),
             )
         } else {
             _uiState.value = readiness.toUiState(notice = fallbackNotice)
@@ -1127,12 +1129,12 @@ class LanScannerViewModel @Inject constructor(
 
         is LanScanRangeResult.Rejected -> when (result.reason) {
             com.networktoolbox.feature.lanscan.domain.model.LanScanRejectionReason.VPN_BLOCKED ->
-                LanScannerUiState.VpnBlocked(this, result.message)
+                LanScannerUiState.VpnBlocked(this, LanErrorPresentation.rejection(result.reason))
 
             com.networktoolbox.feature.lanscan.domain.model.LanScanRejectionReason.UNSUPPORTED_NETWORK ->
-                LanScannerUiState.UnsupportedNetwork(this, result.message)
+                LanScannerUiState.UnsupportedNetwork(this, LanErrorPresentation.rejection(result.reason))
 
-            else -> LanScannerUiState.Error(result.message, this)
+            else -> LanScannerUiState.Error(LanErrorPresentation.rejection(result.reason), this)
         }
     }
 
@@ -1187,19 +1189,19 @@ private fun LanScannerUiState.canRefreshReadiness(): Boolean = when (this) {
 private const val MAX_MDNS_OBSERVATIONS_PER_DEVICE = 16
 private const val MAX_UPNP_OBSERVATIONS_PER_DEVICE = 8
 
-private fun WakeOnLanFailureReason.toUserMessage(): String = when (this) {
-    WakeOnLanFailureReason.NOT_CONFIGURED -> "请先配置 MAC 地址。"
-    WakeOnLanFailureReason.INVALID_CONFIG -> "唤醒配置无效，请重新检查 MAC 地址和 UDP 端口。"
+private fun WakeOnLanFailureReason.toUserMessage(): UiText = when (this) {
+    WakeOnLanFailureReason.NOT_CONFIGURED -> UiText(R.string.lan_error_configure_mac)
+    WakeOnLanFailureReason.INVALID_CONFIG -> UiText(R.string.lan_error_wol_invalid)
     WakeOnLanFailureReason.NO_ACTIVE_LAN,
     WakeOnLanFailureReason.UNSUPPORTED_NETWORK,
-    -> "当前没有可用的 Wi-Fi 或以太网网络。"
+    -> UiText(R.string.lan_error_no_wifi)
 
-    WakeOnLanFailureReason.NO_IPV4 -> "当前局域网没有可用的 IPv4 地址。"
-    WakeOnLanFailureReason.BROADCAST_UNAVAILABLE -> "当前局域网没有可用的 IPv4 广播地址。"
+    WakeOnLanFailureReason.NO_IPV4 -> UiText(R.string.lan_error_no_ipv4)
+    WakeOnLanFailureReason.BROADCAST_UNAVAILABLE -> UiText(R.string.lan_error_no_broadcast)
     WakeOnLanFailureReason.NETWORK_SCOPE_MISMATCH ->
-        "当前网络与保存配置不匹配，无法发送唤醒包。"
+        UiText(R.string.lan_error_scope_mismatch)
 
     WakeOnLanFailureReason.PERMISSION_DENIED,
     WakeOnLanFailureReason.SEND_FAILED,
-    -> "无法发送唤醒包，请检查当前局域网连接后重试。"
+    -> UiText(R.string.lan_error_send_failed)
 }

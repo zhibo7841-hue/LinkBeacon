@@ -95,7 +95,7 @@ class TracerouteViewModel @Inject constructor(
                 if (generation == runGeneration) {
                     _uiState.value = TracerouteUiState(
                         targetInput = target,
-                        status = TracerouteUiStatus.Error("无法完成路由追踪，请稍后重试。"),
+                        status = TracerouteUiStatus.Error(com.networktoolbox.core.designsystem.UiText(com.networktoolbox.feature.traceroute.R.string.trace_error)),
                     )
                 }
             } finally {

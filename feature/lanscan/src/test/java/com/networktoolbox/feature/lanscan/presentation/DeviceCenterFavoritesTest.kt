@@ -1,5 +1,6 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteIdentityType
 import com.networktoolbox.core.common.wol.MacAddress
@@ -10,7 +11,6 @@ import com.networktoolbox.feature.lanscan.domain.LanNetworkScope
 import com.networktoolbox.feature.lanscan.domain.model.LanDevice
 import com.networktoolbox.feature.lanscan.domain.model.LanDeviceEvidence
 import com.networktoolbox.feature.lanscan.domain.model.LanDiscoveryMethod
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -36,14 +36,14 @@ class DeviceCenterFavoritesTest {
             context = context,
         )
 
-        assertEquals(
+        assertPresentationEquals(
             listOf("10.0.1.40", "10.0.1.1", "10.0.1.2", "10.0.1.10", "10.0.1.50"),
             items.map { it.card.ipAddress },
         )
         assertTrue(items[0].isFavorite)
         assertTrue(items[0].observedThisScan)
         assertFalse(items.last().observedThisScan)
-        assertEquals("本次未发现", items.last().card.evidence)
+        assertPresentationEquals("本次未发现", items.last().card.evidence)
     }
 
     @Test
@@ -55,7 +55,7 @@ class DeviceCenterFavoritesTest {
             context = context,
         )
 
-        assertEquals(1, items.size)
+        assertPresentationEquals(1, items.size)
         assertFalse(items.single().isFavorite)
     }
 
@@ -69,7 +69,7 @@ class DeviceCenterFavoritesTest {
         ).single()
 
         assertFalse(item.observedThisScan)
-        assertEquals("本次未发现", item.card.evidence)
+        assertPresentationEquals("本次未发现", item.card.evidence)
         assertFalse(item.card.evidence.orEmpty().contains("离线"))
         assertNull(item.card.quickWake)
     }
@@ -92,7 +92,7 @@ class DeviceCenterFavoritesTest {
         ).single()
 
         assertFalse(item.observedThisScan)
-        assertEquals("唤醒 VAIO", item.card.quickWake?.contentDescription)
+        assertPresentationEquals("唤醒 VAIO", item.card.quickWake?.contentDescription)
     }
 
     @Test
@@ -132,10 +132,10 @@ class DeviceCenterFavoritesTest {
             context = context,
         )
 
-        assertEquals(listOf("10.0.1.10", "10.0.1.50"), items.map { it.card.ipAddress })
+        assertPresentationEquals(listOf("10.0.1.10", "10.0.1.50"), items.map { it.card.ipAddress })
         assertTrue(items.last().card.quickWake != null)
-        assertEquals(configured, profiles.first())
-        assertEquals(ordinary, profiles.last())
+        assertPresentationEquals(configured, profiles.first())
+        assertPresentationEquals(ordinary, profiles.last())
     }
 
     @Test
@@ -150,9 +150,9 @@ class DeviceCenterFavoritesTest {
             context = context,
         )
 
-        assertEquals(listOf("10.0.1.50"), items.map { it.card.ipAddress })
+        assertPresentationEquals(listOf("10.0.1.50"), items.map { it.card.ipAddress })
         assertFalse(items.single().observedThisScan)
-        assertEquals("尚未进行本次扫描", items.single().card.evidence)
+        assertPresentationEquals("尚未进行本次扫描", items.single().card.evidence)
         assertFalse(items.single().card.evidence.orEmpty().contains("在线"))
         assertFalse(items.single().card.evidence.orEmpty().contains("离线"))
     }
@@ -171,10 +171,10 @@ class DeviceCenterFavoritesTest {
             context = context,
         ).single()
 
-        assertEquals("HomeLab NAS", item.card.displayName)
+        assertPresentationEquals("HomeLab NAS", item.card.displayName)
         assertFalse(item.isFavorite)
         assertFalse(item.observedThisScan)
-        assertEquals("本次未发现", item.card.evidence)
+        assertPresentationEquals("本次未发现", item.card.evidence)
     }
 
     @Test
@@ -197,8 +197,8 @@ class DeviceCenterFavoritesTest {
             includeUnseenFavorites = false,
         )
 
-        assertEquals(listOf("10.0.1.10"), items.map { it.card.ipAddress })
-        assertEquals("ImmortalWrt", items.single().card.displayName)
+        assertPresentationEquals(listOf("10.0.1.10"), items.map { it.card.ipAddress })
+        assertPresentationEquals("ImmortalWrt", items.single().card.displayName)
         assertTrue(items.single().observedThisScan)
     }
 
@@ -216,12 +216,12 @@ class DeviceCenterFavoritesTest {
             devices = listOf(device("10.0.1.10")),
             favorites = profiles,
             context = context,
-            unseenEvidence = "等待本次扫描结果",
+            unseenEvidence = UiText("等待本次扫描结果"),
         )
 
-        assertEquals(listOf("10.0.1.20", "10.0.1.30"), items.map { it.card.ipAddress })
+        assertPresentationEquals(listOf("10.0.1.20", "10.0.1.30"), items.map { it.card.ipAddress })
         assertTrue(items.all { !it.observedThisScan })
-        assertTrue(items.all { it.card.evidence == "等待本次扫描结果" })
+        assertTrue(items.all { it.card.evidence.testText() == "等待本次扫描结果" })
     }
 
     @Test
@@ -235,10 +235,10 @@ class DeviceCenterFavoritesTest {
                 favorite(ip = "10.0.1.20", scope = scope),
             ),
             context = context,
-            unseenEvidence = "扫描未完成，尚未发现",
+            unseenEvidence = UiText("扫描未完成，尚未发现"),
         )
 
-        assertEquals("扫描未完成，尚未发现", items.single().card.evidence)
+        assertPresentationEquals("扫描未完成，尚未发现", items.single().card.evidence)
         assertFalse(items.single().card.evidence.orEmpty().contains("本次未发现"))
         assertFalse(items.single().card.evidence.orEmpty().contains("离线"))
     }
@@ -257,7 +257,7 @@ class DeviceCenterFavoritesTest {
             context = context,
         ).single()
 
-        assertEquals("书房设备", item.card.displayName)
+        assertPresentationEquals("书房设备", item.card.displayName)
         assertFalse(item.isFavorite)
     }
 

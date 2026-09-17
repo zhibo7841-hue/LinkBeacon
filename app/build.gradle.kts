@@ -91,6 +91,16 @@ tasks.matching {
     dependsOn("hiltJavaCompileDebugAndroidTest")
 }
 
+// The parity test reads source XML across feature modules. Track those files so
+// value-only translation edits cannot leave the resource check UP-TO-DATE.
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    inputs.files(rootProject.fileTree(rootProject.projectDir) {
+        include("app/src/main/res/values*/*.xml")
+        include("core/designsystem/src/main/res/values*/*.xml")
+        include("feature/*/src/main/res/values*/*.xml")
+    }).withPropertyName("coreUiLocalizationResources")
+}
+
 dependencies {
     implementation(project(":feature:dashboard"))
     implementation(project(":feature:dns"))

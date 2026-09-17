@@ -1,12 +1,12 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.feature.lanscan.domain.model.LanDevice
 import com.networktoolbox.feature.lanscan.domain.model.LanDeviceEvidence
 import com.networktoolbox.feature.lanscan.domain.model.LanDeviceNameSource
 import com.networktoolbox.feature.lanscan.domain.model.LanDiscoveryMethod
 import com.networktoolbox.feature.lanscan.domain.model.LanMdnsObservation
 import com.networktoolbox.feature.lanscan.domain.model.LanUpnpObservation
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -24,22 +24,22 @@ class LanScannerPresentationIdentityTest {
             ),
         )
 
-        assertEquals("Smart Home Hub", LanScannerPresentation.devicePrimaryText(device))
-        assertEquals("Smart Home Hub", LanScannerPresentation.deviceDisplayName(device))
-        assertEquals("10.0.1.122", LanScannerPresentation.deviceAddressText(device))
-        assertEquals("Xiaomi · Hub 3", LanScannerPresentation.deviceIdentitySummary(device))
-        assertEquals("可达性检测 · 16 ms", LanScannerPresentation.deviceSecondaryText(device))
+        assertPresentationEquals("Smart Home Hub", LanScannerPresentation.devicePrimaryText(device))
+        assertPresentationEquals("Smart Home Hub", LanScannerPresentation.deviceDisplayName(device))
+        assertPresentationEquals("10.0.1.122", LanScannerPresentation.deviceAddressText(device))
+        assertPresentationEquals("Xiaomi · Hub 3", LanScannerPresentation.deviceIdentitySummary(device))
+        assertPresentationEquals("可达性检测 · 16 ms", LanScannerPresentation.deviceSecondaryText(device))
     }
 
     @Test
     fun `sparse device shows ip and evidence without placeholder identity`() {
         val device = device("10.0.1.10")
 
-        assertEquals("10.0.1.10", LanScannerPresentation.devicePrimaryText(device))
-        assertEquals("未知设备", LanScannerPresentation.deviceDisplayName(device))
+        assertPresentationEquals("10.0.1.10", LanScannerPresentation.devicePrimaryText(device))
+        assertPresentationEquals("未知设备", LanScannerPresentation.deviceDisplayName(device))
         assertNull(LanScannerPresentation.deviceAddressText(device))
         assertNull(LanScannerPresentation.deviceIdentitySummary(device))
-        assertEquals("可达性检测 · 16 ms", LanScannerPresentation.deviceSecondaryText(device))
+        assertPresentationEquals("可达性检测 · 16 ms", LanScannerPresentation.deviceSecondaryText(device))
     }
 
     @Test
@@ -56,8 +56,8 @@ class LanScannerPresentationIdentityTest {
             ),
         )
 
-        assertEquals("Living Room Printer", LanScannerPresentation.devicePrimaryText(mdnsDevice))
-        assertEquals("10.0.1.11", LanScannerPresentation.deviceAddressText(mdnsDevice))
+        assertPresentationEquals("Living Room Printer", LanScannerPresentation.devicePrimaryText(mdnsDevice))
+        assertPresentationEquals("10.0.1.11", LanScannerPresentation.deviceAddressText(mdnsDevice))
     }
 
     @Test
@@ -66,12 +66,12 @@ class LanScannerPresentationIdentityTest {
         val local = device("10.0.1.206", isLocal = true)
         val ordinary = device("10.0.1.12")
 
-        assertEquals("网关", LanScannerPresentation.deviceRole(gateway))
-        assertEquals("网关信息", LanScannerPresentation.deviceSecondaryText(gateway))
-        assertEquals("本机", LanScannerPresentation.deviceRole(local))
-        assertEquals("当前设备", LanScannerPresentation.deviceSecondaryText(local))
-        assertEquals("", LanScannerPresentation.deviceRole(ordinary))
-        assertEquals("可达性检测 · 16 ms", LanScannerPresentation.deviceSecondaryText(ordinary))
+        assertPresentationEquals("网关", LanScannerPresentation.deviceRole(gateway))
+        assertPresentationEquals("网关信息", LanScannerPresentation.deviceSecondaryText(gateway))
+        assertPresentationEquals("本机", LanScannerPresentation.deviceRole(local))
+        assertPresentationEquals("当前设备", LanScannerPresentation.deviceSecondaryText(local))
+        assertPresentationEquals(null, LanScannerPresentation.deviceRole(ordinary))
+        assertPresentationEquals("可达性检测 · 16 ms", LanScannerPresentation.deviceSecondaryText(ordinary))
     }
 
     @Test
@@ -86,7 +86,7 @@ class LanScannerPresentationIdentityTest {
             ),
         )
 
-        assertEquals("TCP 445 可连接 · 16 ms", LanScannerPresentation.deviceSecondaryText(device))
+        assertPresentationEquals("TCP 445 可连接 · 16 ms", LanScannerPresentation.deviceSecondaryText(device))
     }
 
     private fun device(

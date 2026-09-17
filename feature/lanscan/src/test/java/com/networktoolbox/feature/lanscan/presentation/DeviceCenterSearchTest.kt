@@ -1,5 +1,6 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteIdentityType
 import com.networktoolbox.core.network.model.ConnectionType
@@ -8,7 +9,6 @@ import com.networktoolbox.feature.lanscan.domain.model.LanDevice
 import com.networktoolbox.feature.lanscan.domain.model.LanDeviceEvidence
 import com.networktoolbox.feature.lanscan.domain.model.LanDiscoveryMethod
 import com.networktoolbox.feature.lanscan.domain.model.LanScanRange
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -101,7 +101,7 @@ class DeviceCenterSearchTest {
             filter = DeviceCenterFilter.ALL,
         )
 
-        assertEquals(allItems, result)
+        assertPresentationEquals(allItems, result)
     }
 
     @Test
@@ -117,14 +117,14 @@ class DeviceCenterSearchTest {
 
     @Test
     fun `all filter includes observed and saved items`() {
-        assertEquals(3, filter(filter = DeviceCenterFilter.ALL).size)
+        assertPresentationEquals(3, filter(filter = DeviceCenterFilter.ALL).size)
     }
 
     @Test
     fun `discovered filter includes only current observations`() {
         val result = filter(filter = DeviceCenterFilter.DISCOVERED)
 
-        assertEquals(listOf(observed, secondObserved), result)
+        assertPresentationEquals(listOf(observed, secondObserved), result)
         assertTrue(result.all(DeviceCenterDeviceItem::observedThisScan))
     }
 
@@ -132,7 +132,7 @@ class DeviceCenterSearchTest {
     fun `not discovered filter includes only retained saved items`() {
         val result = filter(filter = DeviceCenterFilter.NOT_DISCOVERED)
 
-        assertEquals(listOf(saved), result)
+        assertPresentationEquals(listOf(saved), result)
         assertTrue(result.none(DeviceCenterDeviceItem::observedThisScan))
     }
 
@@ -140,7 +140,7 @@ class DeviceCenterSearchTest {
     fun `favorites filter is independent from discovery state`() {
         val result = filter(filter = DeviceCenterFilter.FAVORITES)
 
-        assertEquals(listOf(saved), result)
+        assertPresentationEquals(listOf(saved), result)
         assertTrue(result.all(DeviceCenterDeviceItem::isFavorite))
     }
 
@@ -152,7 +152,7 @@ class DeviceCenterSearchTest {
             filter = DeviceCenterFilter.NOT_DISCOVERED,
         )
 
-        assertEquals(listOf(saved), result)
+        assertPresentationEquals(listOf(saved), result)
     }
 
     @Test
@@ -165,7 +165,7 @@ class DeviceCenterSearchTest {
             filter = DeviceCenterFilter.ALL,
         )
 
-        assertEquals(reversed, result)
+        assertPresentationEquals(reversed, result)
     }
 
     @Test
@@ -211,7 +211,7 @@ class DeviceCenterSearchTest {
             filter = DeviceCenterFilter.FAVORITES,
         )
 
-        assertEquals(listOf(favoriteObserved, saved), result)
+        assertPresentationEquals(listOf(favoriteObserved, saved), result)
     }
 
     @Test
@@ -222,7 +222,7 @@ class DeviceCenterSearchTest {
             filter = DeviceCenterFilter.FAVORITES,
         )
 
-        assertEquals(listOf(saved), result)
+        assertPresentationEquals(listOf(saved), result)
     }
 
     @Test
@@ -233,7 +233,7 @@ class DeviceCenterSearchTest {
             filter = DeviceCenterFilter.NOT_DISCOVERED,
         )
 
-        assertEquals(listOf(saved), result)
+        assertPresentationEquals(listOf(saved), result)
         assertFalse(result.any(DeviceCenterDeviceItem::observedThisScan))
     }
 
@@ -252,7 +252,7 @@ class DeviceCenterSearchTest {
     fun `card presentation including quick wake is preserved`() {
         val withQuickWake = saved.copy(
             card = saved.card.copy(
-                quickWake = QuickWakePresentation("唤醒 客厅路由器"),
+                quickWake = QuickWakePresentation(UiText("唤醒 客厅路由器")),
             ),
         )
         val result = DeviceCenterPresentation.filterDeviceItems(
@@ -261,8 +261,8 @@ class DeviceCenterSearchTest {
             filter = DeviceCenterFilter.FAVORITES,
         )
 
-        assertEquals(withQuickWake, result.single())
-        assertEquals("唤醒 客厅路由器", result.single().card.quickWake?.contentDescription)
+        assertPresentationEquals(withQuickWake, result.single())
+        assertPresentationEquals("唤醒 客厅路由器", result.single().card.quickWake?.contentDescription)
     }
 
     @Test
@@ -273,7 +273,7 @@ class DeviceCenterSearchTest {
             filter = DeviceCenterFilter.ALL,
         )
 
-        assertEquals(listOf(saved), result)
+        assertPresentationEquals(listOf(saved), result)
     }
 
     private fun filter(filter: DeviceCenterFilter): List<DeviceCenterDeviceItem> =
@@ -294,7 +294,7 @@ class DeviceCenterSearchTest {
             filter = DeviceCenterFilter.ALL,
         )
 
-        assertEquals(listOf(expected), result)
+        assertPresentationEquals(listOf(expected), result)
     }
 
     private fun item(
@@ -355,10 +355,10 @@ class DeviceCenterSearchTest {
             isFavorite = isFavorite,
             detailKey = ipAddress,
             card = LanDeviceCardPresentation(
-                displayName = customName ?: displayName,
+                displayName = UiText(customName ?: displayName),
                 ipAddress = ipAddress,
                 identitySummary = "$vendor · $model",
-                evidence = "可达性检测",
+                evidence = UiText("可达性检测"),
                 isFavorite = isFavorite,
             ),
         )

@@ -8,6 +8,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.networktoolbox.feature.port.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.networktoolbox.core.common.diagnostic.DiagnosticTcpOutcome
@@ -41,7 +43,7 @@ fun TcpScreen(
 
     ToolScreenLayout(modifier = modifier) {
         ToolScreenHeader(
-            title = "TCP 端口检测",
+            title = stringResource(R.string.tcp_title),
             description = null,
             icon = Icons.Outlined.Lan,
             accent = NetworkToolAccent.AMBER,
@@ -49,12 +51,12 @@ fun TcpScreen(
             backEnabled = !isLoading,
         )
 
-        ToolInputSection(title = "连接目标") {
+        ToolInputSection(title = stringResource(R.string.tcp_connection_target)) {
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = uiState.hostInput,
                 onValueChange = onHostChanged,
-                label = { Text("主机") },
+                label = { Text(stringResource(R.string.tcp_host)) },
                 singleLine = true,
                 enabled = !isLoading,
                 isError = uiState.status.isInvalidHost(),
@@ -63,7 +65,7 @@ fun TcpScreen(
                 modifier = Modifier.fillMaxWidth(),
                 value = uiState.portInput,
                 onValueChange = onPortChanged,
-                label = { Text("端口") },
+                label = { Text(stringResource(R.string.tcp_port)) },
                 singleLine = true,
                 enabled = !isLoading,
                 isError = uiState.status.isInvalidPort(),
@@ -71,7 +73,7 @@ fun TcpScreen(
             )
             if (uiState.status.isInvalidHost() || uiState.status.isInvalidPort()) {
                 Text(
-                    "输入无效。请输入 Host 和 1–65535 范围内的端口。",
+                    stringResource(R.string.tcp_invalid_help),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -81,7 +83,7 @@ fun TcpScreen(
                 onClick = onCheck,
                 enabled = !isLoading,
             ) {
-                Text(if (isLoading) "检测中..." else "开始检测")
+                Text(if (isLoading) stringResource(R.string.tcp_checking_button) else stringResource(R.string.tcp_start))
             }
         }
 
@@ -98,11 +100,11 @@ fun TcpScreen(
 private fun LoadingMessage(host: String, port: String) {
     ToolRunningSection {
         ToolStatusSummary(
-            title = "正在检测",
+            title = stringResource(R.string.tcp_running),
             status = StatusVisualState.RUNNING,
-            label = "检测中",
+            label = stringResource(R.string.tcp_checking),
         )
-        ToolResultRow("目标", "$host:$port", valueStyle = NetworkToolboxTextStyles.TechnicalData)
+        ToolResultRow(stringResource(R.string.tcp_target), "$host:$port", valueStyle = NetworkToolboxTextStyles.TechnicalData)
     }
 }
 
@@ -112,18 +114,18 @@ private fun TcpResultCard(result: TcpProbeResult) {
 
     OutlinedNetworkCard {
         ToolStatusSummary(
-            title = "TCP 结果",
+            title = stringResource(R.string.tcp_result),
             status = presentation.status,
             label = presentation.headline,
         )
         ToolMetricGrid(
             metrics = listOf(
-                ToolMetric("主机", result.host.ifBlank { "未知" }),
+                ToolMetric(stringResource(R.string.tcp_host), result.host.ifBlank { stringResource(R.string.tcp_unknown) }),
                 ToolMetric(
-                    "端口",
-                    result.port.takeIf { it in 1..65_535 }?.toString() ?: "未知",
+                    stringResource(R.string.tcp_port),
+                    result.port.takeIf { it in 1..65_535 }?.toString() ?: stringResource(R.string.tcp_unknown),
                 ),
-                ToolMetric("延迟", result.latencyMs?.let { "$it ms" } ?: "未知"),
+                ToolMetric(stringResource(R.string.tcp_latency), result.latencyMs?.let { "$it ms" } ?: stringResource(R.string.tcp_unknown)),
             ),
         )
         presentation.explanation?.let { explanation ->
@@ -142,41 +144,42 @@ private data class TcpResultPresentation(
     val explanation: String?,
 )
 
+@Composable
 private fun TcpProbeResult.presentation(): TcpResultPresentation {
     outcome?.let { typedOutcome ->
         return when (typedOutcome) {
             DiagnosticTcpOutcome.CONNECT_SUCCESS -> TcpResultPresentation(
                 status = StatusVisualState.NORMAL,
-                headline = "已连接",
-                explanation = "目标端口接受了 TCP 连接。",
+                headline = stringResource(R.string.tcp_connected),
+                explanation = stringResource(R.string.tcp_connected_help),
             )
 
             DiagnosticTcpOutcome.CONNECTION_REFUSED -> TcpResultPresentation(
                 status = StatusVisualState.NOTICE,
-                headline = "连接被拒绝",
-                explanation = "目标设备可访问，但该端口没有服务响应。",
+                headline = stringResource(R.string.tcp_refused),
+                explanation = stringResource(R.string.tcp_refused_help),
             )
 
             DiagnosticTcpOutcome.TIMEOUT -> TcpResultPresentation(
                 status = StatusVisualState.NOTICE,
-                headline = "连接超时",
-                explanation = "目标没有在规定时间内响应 TCP 连接。",
+                headline = stringResource(R.string.tcp_timeout),
+                explanation = stringResource(R.string.tcp_timeout_help),
             )
 
             DiagnosticTcpOutcome.NETWORK_UNREACHABLE,
             DiagnosticTcpOutcome.NO_ROUTE,
             -> TcpResultPresentation(
                 status = StatusVisualState.ERROR,
-                headline = "无法到达目标",
-                explanation = "当前目标未能完成连接，可能与网络路径或路由有关。",
+                headline = stringResource(R.string.tcp_unreachable),
+                explanation = stringResource(R.string.tcp_unreachable_help),
             )
 
             DiagnosticTcpOutcome.UNKNOWN,
             DiagnosticTcpOutcome.INTERNAL_ERROR,
             -> TcpResultPresentation(
                 status = StatusVisualState.UNKNOWN,
-                headline = "结果未确定",
-                explanation = "无法确定本次 TCP 连接的具体结果。",
+                headline = stringResource(R.string.tcp_undetermined),
+                explanation = stringResource(R.string.tcp_undetermined_help),
             )
         }
     }
@@ -184,34 +187,34 @@ private fun TcpProbeResult.presentation(): TcpResultPresentation {
     if (success) {
         return TcpResultPresentation(
             status = StatusVisualState.NORMAL,
-            headline = "已连接",
-            explanation = "目标端口接受了 TCP 连接。",
+            headline = stringResource(R.string.tcp_connected),
+            explanation = stringResource(R.string.tcp_connected_help),
         )
     }
 
     return when (errorMessage) {
         "Connection refused" -> TcpResultPresentation(
             status = StatusVisualState.NOTICE,
-            headline = "连接被拒绝",
-            explanation = "目标设备可访问，但该端口没有服务响应。",
+            headline = stringResource(R.string.tcp_refused),
+            explanation = stringResource(R.string.tcp_refused_help),
         )
 
         "Timeout" -> TcpResultPresentation(
             status = StatusVisualState.NOTICE,
-            headline = "连接超时",
-            explanation = "目标没有在规定时间内响应 TCP 连接。",
+            headline = stringResource(R.string.tcp_timeout),
+            explanation = stringResource(R.string.tcp_timeout_help),
         )
 
         "Invalid host.", "Invalid port." -> TcpResultPresentation(
             status = StatusVisualState.UNKNOWN,
-            headline = "输入无效",
-            explanation = "请检查主机地址和端口范围。",
+            headline = stringResource(R.string.tcp_invalid),
+            explanation = stringResource(R.string.tcp_check_input),
         )
 
         else -> TcpResultPresentation(
             status = StatusVisualState.UNKNOWN,
-            headline = "结果未确定",
-            explanation = "无法确定本次 TCP 连接的具体结果。",
+            headline = stringResource(R.string.tcp_undetermined),
+            explanation = stringResource(R.string.tcp_undetermined_help),
         )
     }
 }

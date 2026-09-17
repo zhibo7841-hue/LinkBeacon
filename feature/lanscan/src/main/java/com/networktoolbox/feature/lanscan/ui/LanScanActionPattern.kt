@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import com.networktoolbox.core.designsystem.UiText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.networktoolbox.core.designsystem.DestructiveActionButton
 import com.networktoolbox.core.designsystem.NetworkToolboxTextStyles
@@ -81,7 +83,7 @@ internal fun LanScanRunningCard(
             ),
             style = MaterialTheme.typography.headlineSmall,
         )
-        Text(stringResource(R.string.lan_scan_discovered_count, update.discoveredDevices.size))
+        Text(pluralStringResource(R.plurals.lan_discovered_count, update.discoveredDevices.size, update.discoveredDevices.size))
         LinearProgressIndicator(
             progress = {
                 LanScannerPresentation.progressFraction(
@@ -95,7 +97,7 @@ internal fun LanScanRunningCard(
             Text(
                 stringResource(
                     R.string.lan_scan_elapsed,
-                    LanScannerPresentation.elapsedText(elapsed),
+                    LanScannerPresentation.elapsedText(elapsed).resolve(),
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -144,7 +146,7 @@ internal fun LanScanSessionSummaryCard(
                 )
             }
         }
-        Text(LanScannerPresentation.sessionSummary(session))
+        Text(LanScannerPresentation.sessionSummary(session).resolve())
     }
 }
 

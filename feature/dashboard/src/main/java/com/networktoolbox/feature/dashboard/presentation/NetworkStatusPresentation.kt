@@ -1,5 +1,7 @@
 package com.networktoolbox.feature.dashboard.presentation
 
+import com.networktoolbox.core.designsystem.UiText
+import com.networktoolbox.feature.dashboard.R
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.core.designsystem.StatusVisualState
@@ -33,14 +35,14 @@ enum class WifiSignalStrength {
 }
 
 data class NetworkSummaryMetric(
-    val label: String,
-    val value: String,
+    val label: UiText,
+    val value: UiText,
     val technical: Boolean,
 )
 
 data class PrimaryAddressSummary(
-    val label: String,
-    val value: String,
+    val label: UiText,
+    val value: UiText,
 )
 
 object NetworkStatusPresentation {
@@ -67,11 +69,11 @@ object NetworkStatusPresentation {
         }
     }
 
-    fun ipv6Label(status: Ipv6DisplayStatus): String = when (status) {
-        Ipv6DisplayStatus.NOT_CONFIGURED -> "未配置"
-        Ipv6DisplayStatus.LINK_LOCAL_ONLY -> "仅链路本地"
-        Ipv6DisplayStatus.CONFIGURED -> "已配置"
-        Ipv6DisplayStatus.UNKNOWN -> "未知"
+    fun ipv6Label(status: Ipv6DisplayStatus): UiText = when (status) {
+        Ipv6DisplayStatus.NOT_CONFIGURED -> UiText(R.string.home_not_configured)
+        Ipv6DisplayStatus.LINK_LOCAL_ONLY -> UiText(R.string.home_link_local)
+        Ipv6DisplayStatus.CONFIGURED -> UiText(R.string.home_configured)
+        Ipv6DisplayStatus.UNKNOWN -> UiText(R.string.home_unknown)
     }
 
     fun connectionStatusVisualState(context: NetworkContext): StatusVisualState = when {
@@ -85,46 +87,46 @@ object NetworkStatusPresentation {
         else -> StatusVisualState.NOTICE
     }
 
-    fun connectionStatusLabel(context: NetworkContext): String = when {
-        context.activeNetworkAvailable == false -> "未连接"
+    fun connectionStatusLabel(context: NetworkContext): UiText = when {
+        context.activeNetworkAvailable == false -> UiText(R.string.home_disconnected)
         context.activeNetworkAvailable == null &&
-            context.connectionType == ConnectionType.UNKNOWN -> "状态未知"
-        else -> "已连接"
+            context.connectionType == ConnectionType.UNKNOWN -> UiText(R.string.home_status_unknown)
+        else -> UiText(R.string.home_connected)
     }
 
-    fun networkIdentity(context: NetworkContext): String = when {
-        context.activeNetworkAvailable == false -> "当前没有活动网络"
+    fun networkIdentity(context: NetworkContext): UiText = when {
+        context.activeNetworkAvailable == false -> UiText(R.string.home_no_active)
         context.connectionType == ConnectionType.WIFI ->
-            displayableWifiName(context.wifiName) ?: "Wi-Fi"
-        context.connectionType == ConnectionType.CELLULAR -> "移动网络"
-        context.connectionType == ConnectionType.ETHERNET -> "以太网"
-        context.connectionType == ConnectionType.BLUETOOTH -> "蓝牙"
-        context.connectionType == ConnectionType.VPN -> "VPN"
-        else -> "当前网络"
+            displayableWifiName(context.wifiName)?.let(::UiText) ?: UiText("Wi-Fi")
+        context.connectionType == ConnectionType.CELLULAR -> UiText(R.string.home_mobile)
+        context.connectionType == ConnectionType.ETHERNET -> UiText(R.string.home_ethernet)
+        context.connectionType == ConnectionType.BLUETOOTH -> UiText(R.string.home_bluetooth)
+        context.connectionType == ConnectionType.VPN -> UiText("VPN")
+        else -> UiText(R.string.home_current)
     }
 
-    fun networkIdentitySupportText(context: NetworkContext): String? {
+    fun networkIdentitySupportText(context: NetworkContext): UiText? {
         if (context.activeNetworkAvailable == false) return null
 
         val networkType = connectionTypeLabel(context.connectionType)
         return if (context.vpnActive == true) {
             if (context.connectionType == ConnectionType.VPN) {
-                "VPN 已启用"
+                UiText(R.string.home_vpn_enabled)
             } else {
-                "$networkType · VPN 已启用"
+                UiText(R.string.home_type_vpn, networkType)
             }
         } else {
             networkType
         }
     }
 
-    fun connectionTypeLabel(connectionType: ConnectionType): String = when (connectionType) {
-        ConnectionType.WIFI -> "Wi-Fi"
-        ConnectionType.CELLULAR -> "移动网络"
-        ConnectionType.ETHERNET -> "以太网"
-        ConnectionType.BLUETOOTH -> "蓝牙"
-        ConnectionType.VPN -> "VPN"
-        ConnectionType.UNKNOWN -> "未知网络"
+    fun connectionTypeLabel(connectionType: ConnectionType): UiText = when (connectionType) {
+        ConnectionType.WIFI -> UiText("Wi-Fi")
+        ConnectionType.CELLULAR -> UiText(R.string.home_mobile)
+        ConnectionType.ETHERNET -> UiText(R.string.home_ethernet)
+        ConnectionType.BLUETOOTH -> UiText(R.string.home_bluetooth)
+        ConnectionType.VPN -> UiText("VPN")
+        ConnectionType.UNKNOWN -> UiText(R.string.home_unknown_network)
     }
 
     fun wifiSignalStrength(signalLevel: Int?): WifiSignalStrength = when {
@@ -134,13 +136,13 @@ object NetworkStatusPresentation {
         else -> WifiSignalStrength.STRONG
     }
 
-    fun wifiSignalContentDescription(signalLevel: Int?): String = when (
+    fun wifiSignalContentDescription(signalLevel: Int?): UiText = when (
         wifiSignalStrength(signalLevel)
     ) {
-        WifiSignalStrength.UNKNOWN -> "Wi-Fi 信号未知"
-        WifiSignalStrength.WEAK -> "Wi-Fi 信号弱"
-        WifiSignalStrength.MEDIUM -> "Wi-Fi 信号中等"
-        WifiSignalStrength.STRONG -> "Wi-Fi 信号强"
+        WifiSignalStrength.UNKNOWN -> UiText(R.string.home_wifi_unknown)
+        WifiSignalStrength.WEAK -> UiText(R.string.home_wifi_weak)
+        WifiSignalStrength.MEDIUM -> UiText(R.string.home_wifi_medium)
+        WifiSignalStrength.STRONG -> UiText(R.string.home_wifi_strong)
     }
 
     fun networkHeroIconKind(context: NetworkContext): NetworkHeroIconKind {
@@ -163,7 +165,7 @@ object NetworkStatusPresentation {
         }
     }
 
-    fun networkHeroIconContentDescription(context: NetworkContext): String = when (
+    fun networkHeroIconContentDescription(context: NetworkContext): UiText = when (
         networkHeroIconKind(context)
     ) {
         NetworkHeroIconKind.WIFI_UNKNOWN,
@@ -172,47 +174,47 @@ object NetworkStatusPresentation {
         NetworkHeroIconKind.WIFI_STRONG,
         -> wifiSignalContentDescription(context.wifiSignalLevel)
 
-        NetworkHeroIconKind.CELLULAR -> "移动网络"
-        NetworkHeroIconKind.ETHERNET -> "以太网"
-        NetworkHeroIconKind.VPN -> "VPN 网络"
-        NetworkHeroIconKind.DISCONNECTED -> "无活动网络"
-        NetworkHeroIconKind.OTHER -> "当前网络"
+        NetworkHeroIconKind.CELLULAR -> UiText(R.string.home_mobile)
+        NetworkHeroIconKind.ETHERNET -> UiText(R.string.home_ethernet)
+        NetworkHeroIconKind.VPN -> UiText(R.string.home_vpn_network)
+        NetworkHeroIconKind.DISCONNECTED -> UiText(R.string.home_no_network)
+        NetworkHeroIconKind.OTHER -> UiText(R.string.home_current)
     }
 
     fun displayableWifiName(wifiName: String?): String? = wifiName
         ?.trim()
         ?.takeIf { it.isNotEmpty() && !it.equals("<unknown ssid>", ignoreCase = true) }
 
-    fun dnsSummary(dnsServers: List<String>): String {
+    fun dnsSummary(dnsServers: List<String>): UiText {
         val count = dnsServers
             .filter(String::isNotBlank)
             .distinct()
             .size
-        return if (count == 0) "未配置" else "$count 个服务器"
+        return if (count == 0) UiText(R.string.home_not_configured) else UiText(R.string.home_server_count, count)
     }
 
-    fun dnsSummaryValue(dnsServers: List<String>): String {
+    fun dnsSummaryValue(dnsServers: List<String>): UiText {
         val configuredServers = dnsServers
             .filter(String::isNotBlank)
             .distinct()
         val preferredServer = preferredDnsForSummary(configuredServers)
         return when {
-            preferredServer == null && configuredServers.isEmpty() -> "未配置"
-            preferredServer == null -> UNAVAILABLE_VALUE
-            else -> preferredServer
+            preferredServer == null && configuredServers.isEmpty() -> UiText(R.string.home_not_configured)
+            preferredServer == null -> UiText(UNAVAILABLE_VALUE)
+            else -> UiText(preferredServer)
         }
     }
 
-    fun gatewaySummaryValue(context: NetworkContext): String {
-        if (context.activeNetworkAvailable == false) return UNAVAILABLE_VALUE
+    fun gatewaySummaryValue(context: NetworkContext): UiText {
+        if (context.activeNetworkAvailable == false) return UiText(UNAVAILABLE_VALUE)
 
         return when (context.connectionType) {
-            ConnectionType.CELLULAR -> "不适用"
+            ConnectionType.CELLULAR -> UiText(R.string.home_not_applicable)
             ConnectionType.WIFI,
             ConnectionType.ETHERNET,
-            -> context.gateway?.takeIf(String::isNotBlank) ?: UNAVAILABLE_VALUE
+            -> context.gateway?.takeIf(String::isNotBlank)?.let(::UiText) ?: UiText(UNAVAILABLE_VALUE)
 
-            else -> context.gateway?.takeIf(String::isNotBlank) ?: UNAVAILABLE_VALUE
+            else -> context.gateway?.takeIf(String::isNotBlank)?.let(::UiText) ?: UiText(UNAVAILABLE_VALUE)
         }
     }
 
@@ -226,24 +228,24 @@ object NetworkStatusPresentation {
 
         return listOf(
             NetworkSummaryMetric(
-                label = "IPv4 地址",
-                value = ipv4 ?: "未配置",
+                label = UiText(R.string.home_ipv4),
+                value = ipv4?.let(::UiText) ?: UiText(R.string.home_not_configured),
                 technical = ipv4 != null,
             ),
             NetworkSummaryMetric(
-                label = "子网掩码",
-                value = subnetMask ?: UNAVAILABLE_VALUE,
+                label = UiText(R.string.home_netmask),
+                value = UiText(subnetMask ?: UNAVAILABLE_VALUE),
                 technical = subnetMask != null,
             ),
             NetworkSummaryMetric(
-                label = "默认网关",
+                label = UiText(R.string.home_gateway),
                 value = gatewaySummaryValue(context),
                 technical = context.connectionType != ConnectionType.CELLULAR &&
                     context.gateway?.isNotBlank() == true &&
                     context.activeNetworkAvailable != false,
             ),
             NetworkSummaryMetric(
-                label = "DNS",
+                label = UiText("DNS"),
                 value = dnsValue,
                 technical = dnsServers.isNotEmpty(),
             ),
@@ -275,21 +277,21 @@ object NetworkStatusPresentation {
     fun primaryAddressForSummary(context: NetworkContext): PrimaryAddressSummary {
         context.ipv4Address
             ?.takeIf(String::isNotBlank)
-            ?.let { return PrimaryAddressSummary("IPv4 地址", it) }
+            ?.let { return PrimaryAddressSummary(UiText(R.string.home_ipv4), UiText(it)) }
 
         val ipv6Addresses = ipv6Addresses(context)
         ipv6Addresses.firstOrNull { address ->
             parseIpv6Literal(address)?.isLinkLocalAddress == false
-        }?.let { return PrimaryAddressSummary("IPv6 地址", it) }
+        }?.let { return PrimaryAddressSummary(UiText(R.string.home_ipv6), UiText(it)) }
 
         return when (ipv6Status(ipv6Addresses)) {
             Ipv6DisplayStatus.LINK_LOCAL_ONLY ->
-                PrimaryAddressSummary("IPv6", "仅链路本地")
+                PrimaryAddressSummary(UiText("IPv6"), UiText(R.string.home_link_local))
 
-            Ipv6DisplayStatus.UNKNOWN -> PrimaryAddressSummary("IPv6", "未知")
+            Ipv6DisplayStatus.UNKNOWN -> PrimaryAddressSummary(UiText("IPv6"), UiText(R.string.home_unknown))
             Ipv6DisplayStatus.NOT_CONFIGURED,
             Ipv6DisplayStatus.CONFIGURED,
-            -> PrimaryAddressSummary("IPv4 地址", "未配置")
+            -> PrimaryAddressSummary(UiText(R.string.home_ipv4), UiText(R.string.home_not_configured))
         }
     }
 
@@ -300,7 +302,7 @@ object NetworkStatusPresentation {
     fun shouldShowWifiSignal(context: NetworkContext): Boolean =
         context.connectionType == ConnectionType.WIFI
 
-    fun connectionStatus(context: NetworkContext): String = connectionStatusLabel(context)
+    fun connectionStatus(context: NetworkContext): UiText = connectionStatusLabel(context)
 
     private fun isIpv4Literal(value: String): Boolean {
         val parts = value.substringBefore('%').split('.')

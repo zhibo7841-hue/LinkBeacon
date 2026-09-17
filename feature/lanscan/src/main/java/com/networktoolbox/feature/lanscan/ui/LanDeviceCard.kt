@@ -15,6 +15,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
+import com.networktoolbox.feature.lanscan.R
+import com.networktoolbox.core.designsystem.UiText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +54,7 @@ fun LanDeviceCard(
             ipAddress = device.ipAddress,
             identitySummary = DeviceCenterPresentation.deviceIdentitySummary(device),
             evidence = DeviceCenterPresentation.deviceEvidence(device),
-            role = DeviceCenterPresentation.deviceRole(device).takeIf(String::isNotBlank),
+            role = DeviceCenterPresentation.deviceRole(device),
             macAddress = device.macAddress,
             isFavorite = isFavorite,
         ),
@@ -69,10 +72,12 @@ fun LanDeviceCard(
     onClick: (() -> Unit)? = null,
     onQuickWake: (() -> Unit)? = null,
 ) {
+    val clickLabel = stringResource(R.string.lan_view_detail)
+    val quickWakeDescription = presentation.quickWake?.contentDescription?.resolve().orEmpty()
     val clickModifier = onClick?.let {
         Modifier.clickable(
             role = Role.Button,
-            onClickLabel = "查看设备详情",
+            onClickLabel = clickLabel,
             onClick = it,
         )
     } ?: Modifier
@@ -102,7 +107,7 @@ fun LanDeviceCard(
                 verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS),
             ) {
                 Text(
-                    presentation.displayName,
+                    presentation.displayName.resolve(),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 presentation.ipAddress.takeIf(String::isNotBlank)?.let { ip ->
@@ -117,7 +122,7 @@ fun LanDeviceCard(
                 }
                 presentation.evidence?.let { evidence ->
                     Text(
-                        evidence,
+                        evidence.resolve(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -139,7 +144,7 @@ fun LanDeviceCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     presentation.role?.let { role ->
                         Text(
-                            role,
+                            role.resolve(),
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.labelLarge,
                         )
@@ -147,7 +152,7 @@ fun LanDeviceCard(
                     if (presentation.isFavorite) {
                         Icon(
                             imageVector = Icons.Filled.Star,
-                            contentDescription = "已收藏",
+                            contentDescription = stringResource(R.string.lan_favorite),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .padding(start = NetworkToolboxSpacing.XS)
@@ -158,11 +163,11 @@ fun LanDeviceCard(
                 if (presentation.quickWake != null && onQuickWake != null) {
                     SecondaryActionButton(
                         modifier = Modifier.semantics {
-                            contentDescription = presentation.quickWake.contentDescription
+                            contentDescription = quickWakeDescription
                         },
                         onClick = onQuickWake,
                     ) {
-                        Text("唤醒")
+                        Text(stringResource(R.string.lan_wake))
                     }
                 }
             }

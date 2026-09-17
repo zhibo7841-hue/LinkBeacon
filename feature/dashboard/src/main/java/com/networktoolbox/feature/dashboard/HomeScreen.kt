@@ -36,6 +36,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -114,11 +116,11 @@ fun HomeScreen(
             )
 
             SectionHeader(
-                title = HomePresentation.quickToolsTitle,
+                title = stringResource(HomePresentation.quickToolsTitle),
             )
             DashboardToolGrid(quickToolDefinitions(callbacks))
 
-            SectionHeader(title = HomePresentation.recentDiagnosisTitle)
+            SectionHeader(title = stringResource(HomePresentation.recentDiagnosisTitle))
             RecentDiagnosticCard(
                 recentHistory = recentHistory,
                 onOpenHistory = onOpenHistory,
@@ -138,8 +140,8 @@ private fun DashboardToolGrid(items: List<DashboardToolDefinition>) {
                 rowItems.forEach { item ->
                     QuickToolCard(
                         icon = item.icon,
-                        title = item.title,
-                        description = item.description,
+                        title = stringResource(item.title),
+                        description = stringResource(item.description),
                         accent = item.accent,
                         onClick = item.onClick,
                         modifier = Modifier.weight(1f),
@@ -166,8 +168,8 @@ internal fun NetworkSummaryCard(
     val dnsServers = context.dnsServers
         .filter(String::isNotBlank)
         .distinct()
-    val ipv6Label = NetworkStatusPresentation.ipv6Label(ipv6Status)
-    val connectionStatus = NetworkStatusPresentation.connectionStatusLabel(context)
+    val ipv6Label = NetworkStatusPresentation.ipv6Label(ipv6Status).resolve()
+    val connectionStatus = NetworkStatusPresentation.connectionStatusLabel(context).resolve()
     val statusState = NetworkStatusPresentation.connectionStatusVisualState(context)
     val summaryMetrics = NetworkStatusPresentation.summaryMetrics(context)
 
@@ -186,14 +188,14 @@ internal fun NetworkSummaryCard(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    NetworkStatusPresentation.networkIdentity(context),
+                    NetworkStatusPresentation.networkIdentity(context).resolve(),
                     style = MaterialTheme.typography.titleLarge,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 NetworkStatusPresentation.networkIdentitySupportText(context)?.let { supportText ->
                     Text(
-                        supportText,
+                        supportText.resolve(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -212,7 +214,7 @@ internal fun NetworkSummaryCard(
                     } else {
                         Icons.Outlined.ChevronRight
                     },
-                    contentDescription = HomePresentation.networkDetailsContentDescription(showDetails),
+                    contentDescription = stringResource(HomePresentation.networkDetailsContentDescription(showDetails)),
                 )
             }
         }
@@ -222,32 +224,32 @@ internal fun NetworkSummaryCard(
         if (showDetails) {
             HorizontalDivider()
 
-            DetailSection("网络信息") {
+            DetailSection(stringResource(R.string.home_network_info)) {
                 context.wifiName
                     ?.let(NetworkStatusPresentation::displayableWifiName)
-                    ?.let { DetailRow("网络名称", it) }
+                    ?.let { DetailRow(stringResource(R.string.home_network_name), it) }
                 DetailRow(
-                    "网络类型",
-                    NetworkStatusPresentation.connectionTypeLabel(context.connectionType),
+                    stringResource(R.string.home_network_type),
+                    NetworkStatusPresentation.connectionTypeLabel(context.connectionType).resolve(),
                 )
-                context.interfaceName?.let { DetailRow("接口", it) }
+                context.interfaceName?.let { DetailRow(stringResource(R.string.home_interface), it) }
                 DetailRow(
-                    "IPv4 地址",
-                    context.ipv4Address?.takeIf(String::isNotBlank) ?: "未配置",
+                    stringResource(R.string.home_ipv4),
+                    context.ipv4Address?.takeIf(String::isNotBlank) ?: stringResource(R.string.home_not_configured),
                     technical = context.ipv4Address?.isNotBlank() == true,
                 )
                 context.ipv4PrefixLength?.let { prefix ->
                     if (context.ipv4Address?.isNotBlank() == true) {
-                        DetailRow("IPv4 前缀", "/$prefix", technical = true)
+                        DetailRow(stringResource(R.string.home_prefix), "/$prefix", technical = true)
                         NetworkStatusPresentation.ipv4PrefixToNetmask(prefix)?.let { mask ->
-                            DetailRow("子网掩码", mask, technical = true)
+                            DetailRow(stringResource(R.string.home_netmask), mask, technical = true)
                         }
                     }
                 }
-                DetailRow("IPv6 状态", ipv6Label)
+                DetailRow(stringResource(R.string.home_ipv6_status), ipv6Label)
                 if (ipv6Addresses.isNotEmpty()) {
                     Text(
-                        "IPv6 地址",
+                        stringResource(R.string.home_ipv6),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -259,26 +261,26 @@ internal fun NetworkSummaryCard(
                 }
                 if (NetworkStatusPresentation.shouldShowWifiSignal(context)) {
                     DetailRow(
-                        "Wi-Fi 信号",
-                        context.wifiSignalLevel?.let { "$it / 4" } ?: "未获得",
+                        stringResource(R.string.home_wifi_signal),
+                        context.wifiSignalLevel?.let { "$it / 4" } ?: stringResource(R.string.home_unavailable),
                     )
                 }
             }
 
             if (showGateway) {
-                DetailSection("路由") {
-                    DetailRow("IPv4 网关", gateway ?: "未获得", technical = gateway != null)
+                DetailSection(stringResource(R.string.home_routes)) {
+                    DetailRow(stringResource(R.string.home_ipv4_gateway), gateway ?: stringResource(R.string.home_unavailable), technical = gateway != null)
                 }
             }
 
             DetailSection("DNS") {
                 Text(
-                    "网络配置 DNS",
+                    stringResource(R.string.home_configured_dns),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (dnsServers.isEmpty()) {
-                    Text("未配置", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.home_not_configured), style = MaterialTheme.typography.bodyMedium)
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS)) {
                         dnsServers.forEach { address ->
@@ -287,16 +289,16 @@ internal fun NetworkSummaryCard(
                     }
                 }
                 context.privateDnsActive?.let { active ->
-                    DetailRow("私人 DNS", if (active) "已启用" else "未启用")
+                    DetailRow(stringResource(R.string.home_private_dns), if (active) stringResource(R.string.home_enabled) else stringResource(R.string.home_disabled))
                 }
                 context.privateDnsServerName?.let { name ->
-                    DetailRow("私人 DNS 名称", name)
+                    DetailRow(stringResource(R.string.home_private_dns_name), name)
                 }
             }
 
-            DetailSection("连接状态") {
+            DetailSection(stringResource(R.string.home_connection_status)) {
                 DetailRow("VPN", context.vpnActive.vpnDisplayName())
-                DetailRow("系统联网验证", context.validated.validationDisplayName())
+                DetailRow(stringResource(R.string.home_validated), context.validated.validationDisplayName())
             }
         }
 
@@ -306,7 +308,7 @@ internal fun NetworkSummaryCard(
             onClick = onOpenReport,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("开始网络诊断")
+            Text(stringResource(R.string.home_start_diagnosis))
         }
     }
 }
@@ -328,8 +330,8 @@ private fun NetworkHeroMetrics(metrics: List<NetworkSummaryMetric>) {
                 ) {
                     rowMetrics.forEach { metric ->
                         SummaryMetric(
-                            label = metric.label,
-                            value = metric.value,
+                            label = metric.label.resolve(),
+                            value = metric.value.resolve(),
                             modifier = Modifier.weight(1f),
                             technical = metric.technical,
                         )
@@ -343,8 +345,8 @@ private fun NetworkHeroMetrics(metrics: List<NetworkSummaryMetric>) {
             ) {
                 metrics.forEach { metric ->
                     SummaryMetric(
-                        label = metric.label,
-                        value = metric.value,
+                        label = metric.label.resolve(),
+                        value = metric.value.resolve(),
                         modifier = Modifier.weight(1f),
                         technical = metric.technical,
                     )
@@ -384,7 +386,7 @@ private fun NetworkHeroIcon(context: NetworkContext) {
     ToolIconContainer(
         icon = icon,
         accent = NetworkToolAccent.PRIMARY,
-        contentDescription = NetworkStatusPresentation.networkHeroIconContentDescription(context),
+        contentDescription = NetworkStatusPresentation.networkHeroIconContentDescription(context).resolve(),
     )
 }
 
@@ -456,7 +458,7 @@ private fun RecentDiagnosticCard(
             } else {
                 Icon(
                     imageVector = status.icon(),
-                    contentDescription = "诊断状态：${statusVisual.label}",
+                    contentDescription = stringResource(R.string.home_diagnostic_status, stringResource(statusVisual.label)),
                     modifier = Modifier.size(24.dp),
                     tint = statusVisual.foregroundColor,
                 )
@@ -465,16 +467,16 @@ private fun RecentDiagnosticCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                Text("最近诊断", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.home_recent), style = MaterialTheme.typography.titleMedium)
                 if (recentHistory == null) {
                     Text(
-                        HomePresentation.recentDiagnosticBody(null),
+                        HomePresentation.recentDiagnosticBody(null).resolve(),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 } else {
                     Text(
-                        HomePresentation.recentDiagnosticBody(recentHistory),
+                        HomePresentation.recentDiagnosticBody(recentHistory).resolve(),
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -527,24 +529,27 @@ private fun RecentDiagnosticStatus.icon() = when (this) {
     RecentDiagnosticStatus.UNKNOWN -> Icons.AutoMirrored.Outlined.HelpOutline
 }
 
+@Composable
 private fun Boolean?.vpnDisplayName(): String = when (this) {
-    true -> "已启用"
-    false -> "未启用"
-    null -> "未知"
+    true -> stringResource(R.string.home_enabled)
+    false -> stringResource(R.string.home_disabled)
+    null -> stringResource(R.string.home_unknown)
 }
 
+@Composable
 private fun Boolean?.validationDisplayName(): String = when (this) {
-    true -> "已通过"
-    false -> "未通过"
-    null -> "未知"
+    true -> stringResource(R.string.home_passed)
+    false -> stringResource(R.string.home_not_passed)
+    null -> stringResource(R.string.home_unknown)
 }
 
+@Composable
 private fun Long.toRecentTime(): String {
     val elapsedMinutes = ((System.currentTimeMillis() - this).coerceAtLeast(0L)) / 60_000L
     return when {
-        elapsedMinutes < 1 -> "刚刚"
-        elapsedMinutes < 60 -> "$elapsedMinutes 分钟前"
-        elapsedMinutes < 1_440 -> "${elapsedMinutes / 60} 小时前"
+        elapsedMinutes < 1 -> stringResource(R.string.home_just_now)
+        elapsedMinutes < 60 -> pluralStringResource(R.plurals.home_minutes_ago, elapsedMinutes.toInt(), elapsedMinutes)
+        elapsedMinutes < 1_440 -> pluralStringResource(R.plurals.home_hours_ago, (elapsedMinutes / 60).toInt(), elapsedMinutes / 60)
         else -> DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
             .format(Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault()))
     }

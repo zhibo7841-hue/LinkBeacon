@@ -1,5 +1,7 @@
 package com.networktoolbox.feature.traceroute.presentation
 
+import com.networktoolbox.core.designsystem.UiText
+import com.networktoolbox.feature.traceroute.R
 import com.networktoolbox.core.network.traceroute.TracerouteAddressFamily
 import com.networktoolbox.core.network.traceroute.TracerouteHop
 import com.networktoolbox.core.network.traceroute.TracerouteHopStatus
@@ -18,9 +20,9 @@ class TraceroutePresentationTest {
     fun reachedResultUsesConservativeCompletedExplanation() {
         val presentation = TraceroutePresentationMapper.from(result(TracerouteStatus.REACHED))
 
-        assertEquals("已到达目标", presentation.statusLabel)
-        assertTrue(presentation.summary.contains("成功追踪"))
-        assertFalse(presentation.summary.contains("故障"))
+        assertEquals(UiText(R.string.trace_reached), presentation.statusLabel)
+        assertEquals(UiText(R.string.trace_reached_summary, 1), presentation.summary)
+        assertEquals(R.string.trace_path_observed, presentation.explanation?.resource)
     }
 
     @Test
@@ -32,8 +34,8 @@ class TraceroutePresentationTest {
             ),
         )
 
-        assertEquals("未确认到达", presentation.statusLabel)
-        assertTrue(presentation.explanation.orEmpty().contains("中间节点没有响应"))
+        assertEquals(UiText(R.string.trace_partial), presentation.statusLabel)
+        assertEquals(R.string.trace_intermediate_timeout, presentation.explanation?.resource)
     }
 
     @Test
@@ -53,17 +55,15 @@ class TraceroutePresentationTest {
         assertEquals(30, statistics.totalProbedHops)
         assertEquals(4, statistics.respondedHopCount)
         assertEquals(26, statistics.timeoutOnlyHopCount)
-        assertTrue(presentation.summary.contains("完成 30 跳探测"))
-        assertTrue(presentation.summary.contains("4 跳有响应"))
-        assertFalse(presentation.summary.contains("30 跳响应"))
+        assertEquals(UiText(R.string.trace_partial_summary, 30, 4), presentation.summary)
     }
 
     @Test
     fun hopLabelsOnlyDescribeSpecialProbeOutcomes() {
         assertNull(TraceroutePresentationMapper.hopStatusLabel(responseHop(1)))
-        assertEquals("部分响应", TraceroutePresentationMapper.hopStatusLabel(partialHop(2)))
-        assertEquals("无响应", TraceroutePresentationMapper.hopStatusLabel(timeoutHop(3)))
-        assertEquals("目标", TraceroutePresentationMapper.hopStatusLabel(destinationHop(4)))
+        assertEquals(UiText(R.string.trace_partial_response), TraceroutePresentationMapper.hopStatusLabel(partialHop(2)))
+        assertEquals(UiText(R.string.trace_no_response), TraceroutePresentationMapper.hopStatusLabel(timeoutHop(3)))
+        assertEquals(UiText(R.string.trace_destination), TraceroutePresentationMapper.hopStatusLabel(destinationHop(4)))
         assertEquals("—", TraceroutePresentationMapper.hopAddress(timeoutHop(3)))
     }
 
@@ -73,7 +73,7 @@ class TraceroutePresentationTest {
             result(TracerouteStatus.PARTIAL, hops = listOf(responseHop(1), timeoutHop(2))),
         )
 
-        assertTrue(presentation.explanation.orEmpty().contains("不一定表示路由器或网络发生故障"))
+        assertEquals(R.string.trace_end_timeout, presentation.explanation?.resource)
     }
 
     @Test
@@ -82,16 +82,14 @@ class TraceroutePresentationTest {
             result(TracerouteStatus.REACHED, fakeIpDetected = true),
         )
 
-        assertTrue(presentation.notice.orEmpty().contains("可能"))
-        assertFalse(presentation.notice.orEmpty().contains("OpenClash"))
+        assertEquals(R.string.trace_fake_ip, presentation.notice?.resource)
     }
 
     @Test
     fun fakeIpNoticeIsAvailableAsSoonAsResolvedAddressIsKnown() {
         val notice = TraceroutePresentationMapper.fakeIpNotice("198.18.0.9")
 
-        assertTrue(notice.orEmpty().contains("可能使用 Fake-IP"))
-        assertFalse(notice.orEmpty().contains("OpenClash"))
+        assertEquals(UiText(R.string.trace_fake_ip, " 198.18.0.9"), notice)
     }
 
     @Test
@@ -99,9 +97,9 @@ class TraceroutePresentationTest {
         val changed = TraceroutePresentationMapper.from(result(TracerouteStatus.NETWORK_CHANGED))
         val cancelled = TraceroutePresentationMapper.from(result(TracerouteStatus.CANCELLED))
 
-        assertEquals("结果未确认", changed.statusLabel)
-        assertTrue(changed.summary.contains("网络环境发生变化"))
-        assertEquals("已取消", cancelled.statusLabel)
+        assertEquals(UiText(R.string.trace_unconfirmed), changed.statusLabel)
+        assertEquals(R.string.trace_network_summary, changed.summary.resource)
+        assertEquals(UiText(R.string.trace_cancelled), cancelled.statusLabel)
     }
 
     @Test
@@ -110,8 +108,8 @@ class TraceroutePresentationTest {
             result(TracerouteStatus.FAILED, errorMessage = "Traceroute operation failed at SENDTO (errno 113)."),
         )
 
-        assertTrue(presentation.summary.contains("无法完成"))
-        assertFalse(presentation.summary.contains("errno"))
+        assertEquals(UiText(R.string.trace_error), presentation.summary)
+        assertTrue(presentation.summary.arguments.isEmpty())
     }
 
     @Test
@@ -120,20 +118,20 @@ class TraceroutePresentationTest {
             result(TracerouteStatus.FAILED, errorMessage = "Traceroute operation failed at SENDTO (errno 113)."),
         )
 
-        assertEquals("路由追踪未完成", presentation.heading)
-        assertTrue(presentation.explanation.orEmpty().contains("本次追踪未能完成"))
-        assertFalse(presentation.summary.contains("errno"))
+        assertEquals(UiText(R.string.trace_incomplete_title), presentation.heading)
+        assertEquals(R.string.trace_retry_help, presentation.explanation?.resource)
+        assertTrue(presentation.summary.arguments.isEmpty())
     }
 
     @Test
     fun inputMessagesDistinguishIpv6AndInvalidTarget() {
         assertTrue(
             TraceroutePresentationMapper.inputErrorMessage("Only IPv4 traceroute is supported in Phase 1.")
-                .contains("IPv6"),
+                .let { it.resource == R.string.trace_no_ipv6 },
         )
         assertTrue(
             TraceroutePresentationMapper.inputErrorMessage("Invalid IPv4 address or hostname.")
-                .contains("有效"),
+                .let { it.resource == R.string.trace_invalid_target },
         )
     }
 

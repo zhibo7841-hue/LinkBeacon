@@ -49,7 +49,7 @@ internal fun AboutScreen(
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
-                        AppInformationPresentation.appDescription,
+                        stringResource(AppInformationPresentation.appDescription),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -62,9 +62,9 @@ internal fun AboutScreen(
             }
             HorizontalDivider()
             InformationRow(
-                title = AppInformationPresentation.versionTitle,
-                supportingText = AppInformationPresentation.versionSupport,
-                value = AppInformationPresentation.versionValue(BuildConfig.VERSION_NAME),
+                title = stringResource(AppInformationPresentation.versionTitle),
+                supportingText = stringResource(AppInformationPresentation.versionSupport),
+                value = stringResource(R.string.app_ui_version, BuildConfig.VERSION_NAME),
             )
         }
     }
@@ -85,18 +85,18 @@ internal fun PrivacyScreen(
             verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.MD),
         ) {
             InformationBlock(
-                title = AppInformationPresentation.localFirstTitle,
-                description = AppInformationPresentation.localFirstDescription,
+                title = stringResource(AppInformationPresentation.localFirstTitle),
+                description = stringResource(AppInformationPresentation.localFirstDescription),
             )
             HorizontalDivider()
             InformationBlock(
-                title = AppInformationPresentation.uploadTitle,
-                description = AppInformationPresentation.uploadDescription,
+                title = stringResource(AppInformationPresentation.uploadTitle),
+                description = stringResource(AppInformationPresentation.uploadDescription),
             )
             HorizontalDivider()
             InformationBlock(
-                title = AppInformationPresentation.accountTitle,
-                description = AppInformationPresentation.accountDescription,
+                title = stringResource(AppInformationPresentation.accountTitle),
+                description = stringResource(AppInformationPresentation.accountDescription),
             )
         }
     }

@@ -5,7 +5,6 @@ import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.feature.dashboard.presentation.Ipv6DisplayStatus
 import com.networktoolbox.feature.dashboard.presentation.NetworkStatusPresentation
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -14,7 +13,7 @@ import org.junit.Test
 class NetworkStatusPresentationTest {
     @Test
     fun emptyIpv6List_isNotConfigured() {
-        assertEquals(
+        assertPresentationEquals(
             Ipv6DisplayStatus.NOT_CONFIGURED,
             NetworkStatusPresentation.ipv6Status(emptyList()),
         )
@@ -22,7 +21,7 @@ class NetworkStatusPresentationTest {
 
     @Test
     fun linkLocalOnlyIpv6_isClassifiedAsLinkLocalOnly() {
-        assertEquals(
+        assertPresentationEquals(
             Ipv6DisplayStatus.LINK_LOCAL_ONLY,
             NetworkStatusPresentation.ipv6Status(listOf("fe80::1")),
         )
@@ -30,7 +29,7 @@ class NetworkStatusPresentationTest {
 
     @Test
     fun linkLocalAndNonLinkLocalIpv6_isClassifiedAsConfigured() {
-        assertEquals(
+        assertPresentationEquals(
             Ipv6DisplayStatus.CONFIGURED,
             NetworkStatusPresentation.ipv6Status(listOf("fe80::1", "2408::1")),
         )
@@ -38,17 +37,17 @@ class NetworkStatusPresentationTest {
 
     @Test
     fun ipv4Prefix_isConvertedToNetmask() {
-        assertEquals("0.0.0.0", NetworkStatusPresentation.ipv4PrefixToNetmask(0))
-        assertEquals("255.0.0.0", NetworkStatusPresentation.ipv4PrefixToNetmask(8))
-        assertEquals("255.255.255.0", NetworkStatusPresentation.ipv4PrefixToNetmask(24))
-        assertEquals("255.255.255.128", NetworkStatusPresentation.ipv4PrefixToNetmask(25))
-        assertEquals("255.255.255.255", NetworkStatusPresentation.ipv4PrefixToNetmask(32))
-        assertEquals(null, NetworkStatusPresentation.ipv4PrefixToNetmask(33))
+        assertPresentationEquals("0.0.0.0", NetworkStatusPresentation.ipv4PrefixToNetmask(0))
+        assertPresentationEquals("255.0.0.0", NetworkStatusPresentation.ipv4PrefixToNetmask(8))
+        assertPresentationEquals("255.255.255.0", NetworkStatusPresentation.ipv4PrefixToNetmask(24))
+        assertPresentationEquals("255.255.255.128", NetworkStatusPresentation.ipv4PrefixToNetmask(25))
+        assertPresentationEquals("255.255.255.255", NetworkStatusPresentation.ipv4PrefixToNetmask(32))
+        assertPresentationEquals(null, NetworkStatusPresentation.ipv4PrefixToNetmask(33))
     }
 
     @Test
     fun preferredDns_prefersIpv4OverIpv6() {
-        assertEquals(
+        assertPresentationEquals(
             "192.0.2.53",
             NetworkStatusPresentation.preferredDnsForSummary(
                 listOf("2001:db8::53", "192.0.2.53", "192.0.2.54"),
@@ -58,11 +57,11 @@ class NetworkStatusPresentationTest {
 
     @Test
     fun preferredDns_usesIpv6WhenIpv4IsUnavailable() {
-        assertEquals(
+        assertPresentationEquals(
             "2001:db8::53",
             NetworkStatusPresentation.preferredDnsForSummary(listOf("2001:db8::53")),
         )
-        assertEquals(null, NetworkStatusPresentation.preferredDnsForSummary(emptyList()))
+        assertPresentationEquals(null, NetworkStatusPresentation.preferredDnsForSummary(emptyList()))
     }
 
     @Test
@@ -74,8 +73,8 @@ class NetworkStatusPresentationTest {
             ),
         )
 
-        assertEquals("IPv4 地址", summary.label)
-        assertEquals("192.0.2.10", summary.value)
+        assertPresentationEquals("IPv4 地址", summary.label)
+        assertPresentationEquals("192.0.2.10", summary.value)
     }
 
     @Test
@@ -87,8 +86,8 @@ class NetworkStatusPresentationTest {
             ),
         )
 
-        assertEquals("IPv6 地址", summary.label)
-        assertEquals("2001:db8::10", summary.value)
+        assertPresentationEquals("IPv6 地址", summary.label)
+        assertPresentationEquals("2001:db8::10", summary.value)
     }
 
     @Test
@@ -97,8 +96,8 @@ class NetworkStatusPresentationTest {
             context(ipv4Address = null, ipv6Addresses = listOf("fe80::10")),
         )
 
-        assertEquals("IPv6", summary.label)
-        assertEquals("仅链路本地", summary.value)
+        assertPresentationEquals("IPv6", summary.label)
+        assertPresentationEquals("仅链路本地", summary.value)
     }
 
     @Test
@@ -107,8 +106,8 @@ class NetworkStatusPresentationTest {
 
         assertFalse(NetworkStatusPresentation.shouldShowGateway(context))
         assertFalse(NetworkStatusPresentation.shouldShowWifiSignal(context))
-        assertEquals("移动网络", NetworkStatusPresentation.networkIdentity(context))
-        assertEquals(
+        assertPresentationEquals("移动网络", NetworkStatusPresentation.networkIdentity(context))
+        assertPresentationEquals(
             "不适用",
             NetworkStatusPresentation.summaryMetrics(context)[2].value,
         )
@@ -124,39 +123,39 @@ class NetworkStatusPresentationTest {
 
     @Test
     fun wifiSignalStrength_mapsKnownLevelsAndUnknownValues() {
-        assertEquals(
+        assertPresentationEquals(
             com.networktoolbox.feature.dashboard.presentation.WifiSignalStrength.STRONG,
             NetworkStatusPresentation.wifiSignalStrength(4),
         )
-        assertEquals(
+        assertPresentationEquals(
             com.networktoolbox.feature.dashboard.presentation.WifiSignalStrength.MEDIUM,
             NetworkStatusPresentation.wifiSignalStrength(2),
         )
-        assertEquals(
+        assertPresentationEquals(
             com.networktoolbox.feature.dashboard.presentation.WifiSignalStrength.WEAK,
             NetworkStatusPresentation.wifiSignalStrength(1),
         )
-        assertEquals(
+        assertPresentationEquals(
             com.networktoolbox.feature.dashboard.presentation.WifiSignalStrength.UNKNOWN,
             NetworkStatusPresentation.wifiSignalStrength(null),
         )
-        assertEquals("Wi-Fi 信号强", NetworkStatusPresentation.wifiSignalContentDescription(4))
-        assertEquals("Wi-Fi 信号未知", NetworkStatusPresentation.wifiSignalContentDescription(null))
+        assertPresentationEquals("Wi-Fi 信号强", NetworkStatusPresentation.wifiSignalContentDescription(4))
+        assertPresentationEquals("Wi-Fi 信号未知", NetworkStatusPresentation.wifiSignalContentDescription(null))
     }
 
     @Test
     fun heroIconKind_followsNetworkTypeAndConnectivity() {
-        assertEquals(
+        assertPresentationEquals(
             com.networktoolbox.feature.dashboard.presentation.NetworkHeroIconKind.WIFI_STRONG,
             NetworkStatusPresentation.networkHeroIconKind(context(wifiSignalLevel = 4)),
         )
-        assertEquals(
+        assertPresentationEquals(
             com.networktoolbox.feature.dashboard.presentation.NetworkHeroIconKind.CELLULAR,
             NetworkStatusPresentation.networkHeroIconKind(
                 context(connectionType = ConnectionType.CELLULAR),
             ),
         )
-        assertEquals(
+        assertPresentationEquals(
             com.networktoolbox.feature.dashboard.presentation.NetworkHeroIconKind.DISCONNECTED,
             NetworkStatusPresentation.networkHeroIconKind(NetworkContext.noActiveNetwork()),
         )
@@ -166,7 +165,7 @@ class NetworkStatusPresentationTest {
     fun vpnStateDoesNotDiscardUnderlyingNetworkData() {
         val context = context(connectionType = ConnectionType.WIFI, vpnActive = true)
 
-        assertEquals(ConnectionType.WIFI, context.connectionType)
+        assertPresentationEquals(ConnectionType.WIFI, context.connectionType)
         assertTrue(context.vpnActive == true)
         assertTrue(NetworkStatusPresentation.shouldShowGateway(context))
     }
@@ -175,21 +174,21 @@ class NetworkStatusPresentationTest {
     fun noActiveNetwork_mapsToExplicitDisconnectedState() {
         val context = NetworkContext.noActiveNetwork()
 
-        assertEquals("当前没有活动网络", NetworkStatusPresentation.networkIdentity(context))
-        assertEquals("未连接", NetworkStatusPresentation.connectionStatusLabel(context))
-        assertEquals(
+        assertPresentationEquals("当前没有活动网络", NetworkStatusPresentation.networkIdentity(context))
+        assertPresentationEquals("未连接", NetworkStatusPresentation.connectionStatusLabel(context))
+        assertPresentationEquals(
             StatusVisualState.ERROR,
             NetworkStatusPresentation.connectionStatusVisualState(context),
         )
-        assertEquals("未配置", NetworkStatusPresentation.dnsSummary(context.dnsServers))
+        assertPresentationEquals("未配置", NetworkStatusPresentation.dnsSummary(context.dnsServers))
     }
 
     @Test
     fun unknownNetwork_mapsToUnknownStatusWithoutInventingConnectivity() {
         val context = NetworkContext.unknown()
 
-        assertEquals("状态未知", NetworkStatusPresentation.connectionStatusLabel(context))
-        assertEquals(
+        assertPresentationEquals("状态未知", NetworkStatusPresentation.connectionStatusLabel(context))
+        assertPresentationEquals(
             StatusVisualState.UNKNOWN,
             NetworkStatusPresentation.connectionStatusVisualState(context),
         )
@@ -197,40 +196,40 @@ class NetworkStatusPresentationTest {
 
     @Test
     fun dnsSummary_countsDistinctNonBlankServers() {
-        assertEquals(
+        assertPresentationEquals(
             "2 个服务器",
             NetworkStatusPresentation.dnsSummary(
                 listOf("192.0.2.53", "192.0.2.53", "2001:db8::53", " "),
             ),
         )
-        assertEquals("1 个服务器", NetworkStatusPresentation.dnsSummary(listOf("192.0.2.53")))
-        assertEquals("未配置", NetworkStatusPresentation.dnsSummary(emptyList()))
+        assertPresentationEquals("1 个服务器", NetworkStatusPresentation.dnsSummary(listOf("192.0.2.53")))
+        assertPresentationEquals("未配置", NetworkStatusPresentation.dnsSummary(emptyList()))
     }
 
     @Test
     fun dnsSummaryValue_prefersIpv4AndShowsOnlyOneAddress() {
-        assertEquals(
+        assertPresentationEquals(
             "192.0.2.53",
             NetworkStatusPresentation.dnsSummaryValue(listOf("192.0.2.53")),
         )
-        assertEquals(
+        assertPresentationEquals(
             "192.0.2.53",
             NetworkStatusPresentation.dnsSummaryValue(
                 listOf("2001:db8::53", "192.0.2.53"),
             ),
         )
-        assertEquals(
+        assertPresentationEquals(
             "192.0.2.53",
             NetworkStatusPresentation.dnsSummaryValue(
                 listOf("192.0.2.53", "2001:db8::53", "192.0.2.53"),
             ),
         )
-        assertEquals("未配置", NetworkStatusPresentation.dnsSummaryValue(emptyList()))
+        assertPresentationEquals("未配置", NetworkStatusPresentation.dnsSummaryValue(emptyList()))
     }
 
     @Test
     fun dnsSummaryValue_withMultipleIpv4Servers_showsOnlyTheFirst() {
-        assertEquals(
+        assertPresentationEquals(
             "192.0.2.53",
             NetworkStatusPresentation.dnsSummaryValue(
                 listOf("192.0.2.53", "192.0.2.54", "192.0.2.55", "192.0.2.56"),
@@ -240,7 +239,7 @@ class NetworkStatusPresentationTest {
 
     @Test
     fun dnsSummaryValue_fallsBackToIpv6WhenNoIpv4Exists() {
-        assertEquals(
+        assertPresentationEquals(
             "2001:db8::53",
             NetworkStatusPresentation.dnsSummaryValue(listOf("2001:db8::53")),
         )
@@ -256,13 +255,13 @@ class NetworkStatusPresentationTest {
             ),
         )
 
-        assertEquals(
+        assertPresentationEquals(
             listOf("IPv4 地址", "子网掩码", "默认网关", "DNS"),
             metrics.map { it.label },
         )
-        assertEquals("255.255.255.0", metrics[1].value)
-        assertFalse(metrics.any { it.label == "IPv6" })
-        assertFalse(metrics.any { it.label == "信号" })
+        assertPresentationEquals("255.255.255.0", metrics[1].value)
+        assertFalse(metrics.any { it.label.testText() == "IPv6" })
+        assertFalse(metrics.any { it.label.testText() == "信号" })
     }
 
     @Test
@@ -276,15 +275,15 @@ class NetworkStatusPresentationTest {
     fun unknownWifiName_isNotPresentedAsNetworkIdentity() {
         assertNull(NetworkStatusPresentation.displayableWifiName("<unknown ssid>"))
         assertNull(NetworkStatusPresentation.displayableWifiName("  "))
-        assertEquals("Lab Wi-Fi", NetworkStatusPresentation.displayableWifiName(" Lab Wi-Fi "))
+        assertPresentationEquals("Lab Wi-Fi", NetworkStatusPresentation.displayableWifiName(" Lab Wi-Fi "))
     }
 
     @Test
     fun longWifiName_remainsRealDataForEllipsizedHero() {
         val longName = "HomeLab-WiFi-5G-非常长的网络名称"
 
-        assertEquals(longName, NetworkStatusPresentation.displayableWifiName(longName))
-        assertEquals(
+        assertPresentationEquals(longName, NetworkStatusPresentation.displayableWifiName(longName))
+        assertPresentationEquals(
             longName,
             NetworkStatusPresentation.networkIdentity(
                 context(wifiName = longName),

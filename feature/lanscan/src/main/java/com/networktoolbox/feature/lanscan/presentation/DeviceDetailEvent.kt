@@ -1,5 +1,8 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.designsystem.UiText
+import com.networktoolbox.feature.lanscan.R
+
 /**
  * One-shot feedback emitted by actions on the Device Detail screen.
  *
@@ -8,21 +11,21 @@ package com.networktoolbox.feature.lanscan.presentation
  * result.
  */
 sealed interface DeviceDetailEvent {
-    val message: String
+    val message: UiText
 
     data object WakePacketSent : DeviceDetailEvent {
-        override val message: String = "唤醒包已发送"
+        override val message: UiText = UiText(R.string.lan_error_sent)
     }
 
     data class WakePacketFailed(
-        override val message: String,
+        override val message: UiText,
     ) : DeviceDetailEvent
 
     data object WakeOnLanConfigurationSaved : DeviceDetailEvent {
-        override val message: String = "Wake-on-LAN 配置已保存"
+        override val message: UiText = UiText(R.string.lan_error_saved)
     }
 
     data class WakeOnLanConfigurationSaveFailed(
-        override val message: String,
+        override val message: UiText,
     ) : DeviceDetailEvent
 }

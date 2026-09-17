@@ -1,0 +1,27 @@
+<resources>
+    <string name="tcp_title">TCP Port Check</string>
+    <string name="tcp_connection_target">Connection target</string>
+    <string name="tcp_host">Host</string>
+    <string name="tcp_port">Port</string>
+    <string name="tcp_invalid_help">Enter a host and a port between 1 and 65535.</string>
+    <string name="tcp_checking_button">Checking…</string>
+    <string name="tcp_start">Check</string>
+    <string name="tcp_running">Checking</string>
+    <string name="tcp_checking">Checking</string>
+    <string name="tcp_target">Target</string>
+    <string name="tcp_result">TCP result</string>
+    <string name="tcp_unknown">Unknown</string>
+    <string name="tcp_latency">Latency</string>
+    <string name="tcp_connected">Connected</string>
+    <string name="tcp_connected_help">The target port accepted the TCP connection.</string>
+    <string name="tcp_refused">Connection refused</string>
+    <string name="tcp_refused_help">The target is reachable, but no service accepted the connection on this port.</string>
+    <string name="tcp_timeout">Connection timed out</string>
+    <string name="tcp_timeout_help">The target did not respond to the TCP connection within the timeout.</string>
+    <string name="tcp_unreachable">Target unreachable</string>
+    <string name="tcp_unreachable_help">The connection could not be completed. The network path or routing may be involved.</string>
+    <string name="tcp_undetermined">Result undetermined</string>
+    <string name="tcp_undetermined_help">The outcome of this TCP connection could not be determined.</string>
+    <string name="tcp_invalid">Invalid input</string>
+    <string name="tcp_check_input">Check the host address and port range.</string>
+</resources>

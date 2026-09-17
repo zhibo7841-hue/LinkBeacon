@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="lan_address_count"><item quantity="one">%1$d 个地址</item><item quantity="other">%1$d 个地址</item></plurals>
+    <plurals name="lan_scannable_count"><item quantity="one">%1$d 个可扫描地址</item><item quantity="other">%1$d 个可扫描地址</item></plurals>
+    <plurals name="lan_discovered_count"><item quantity="one">已发现 %1$d 台设备</item><item quantity="other">已发现 %1$d 台设备</item></plurals>
+</resources>

@@ -1,5 +1,6 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.feature.lanscan.domain.LanScanRangeCalculator
@@ -40,7 +41,6 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -68,9 +68,9 @@ class LanScannerViewModelTest {
         advanceUntilIdle()
 
         val state = viewModel.uiState.value as LanScannerUiState.Ready
-        assertEquals("192.168.1.0/30", state.range.cidr)
-        assertEquals(2, state.range.hostCount)
-        assertEquals(LanScanRangeMode.CURRENT_NETWORK, state.rangeMode)
+        assertPresentationEquals("192.168.1.0/30", state.range.cidr)
+        assertPresentationEquals(2, state.range.hostCount)
+        assertPresentationEquals(LanScanRangeMode.CURRENT_NETWORK, state.rangeMode)
     }
 
     @Test
@@ -82,8 +82,8 @@ class LanScannerViewModelTest {
         viewModel.selectRangeMode(LanScanRangeMode.CUSTOM)
 
         var state = viewModel.uiState.value as LanScannerUiState.Ready
-        assertEquals("192.168.1.1", state.customStartAddress)
-        assertEquals("192.168.1.254", state.customEndAddress)
+        assertPresentationEquals("192.168.1.1", state.customStartAddress)
+        assertPresentationEquals("192.168.1.254", state.customEndAddress)
         assertTrue(state.customRangeResult is LanCustomRangeResult.Valid)
 
         viewModel.onCustomStartAddressChanged("192.168.1.10")
@@ -92,9 +92,9 @@ class LanScannerViewModelTest {
         viewModel.selectRangeMode(LanScanRangeMode.CUSTOM)
 
         state = viewModel.uiState.value as LanScannerUiState.Ready
-        assertEquals("192.168.1.10", state.customStartAddress)
-        assertEquals("192.168.1.20", state.customEndAddress)
-        assertEquals(
+        assertPresentationEquals("192.168.1.10", state.customStartAddress)
+        assertPresentationEquals("192.168.1.20", state.customEndAddress)
+        assertPresentationEquals(
             11,
             (state.customRangeResult as LanCustomRangeResult.Valid).range.hostCount,
         )
@@ -113,7 +113,7 @@ class LanScannerViewModelTest {
 
         val state = viewModel.uiState.value as LanScannerUiState.Ready
         assertTrue(state.customRangeResult is LanCustomRangeResult.Invalid)
-        assertEquals(
+        assertPresentationEquals(
             com.networktoolbox.feature.lanscan.domain.LanCustomRangeError.START_AFTER_END,
             (state.customRangeResult as LanCustomRangeResult.Invalid).reason,
         )
@@ -149,10 +149,10 @@ class LanScannerViewModelTest {
         viewModel.rescan()
         advanceUntilIdle()
 
-        assertEquals(2, ranges.size)
-        assertEquals("192.168.1.10", ranges[0].firstHost)
-        assertEquals("192.168.1.20", ranges[0].lastHost)
-        assertEquals(ranges[0], ranges[1])
+        assertPresentationEquals(2, ranges.size)
+        assertPresentationEquals("192.168.1.10", ranges[0].firstHost)
+        assertPresentationEquals("192.168.1.20", ranges[0].lastHost)
+        assertPresentationEquals(ranges[0], ranges[1])
     }
 
     @Test
@@ -187,10 +187,10 @@ class LanScannerViewModelTest {
         viewModel.modifyRange()
 
         val state = viewModel.uiState.value as LanScannerUiState.Ready
-        assertEquals(LanScanRangeMode.CUSTOM, state.rangeMode)
-        assertEquals("192.168.1.10", state.customStartAddress)
-        assertEquals("192.168.1.100", state.customEndAddress)
-        assertEquals(1, scanCalls)
+        assertPresentationEquals(LanScanRangeMode.CUSTOM, state.rangeMode)
+        assertPresentationEquals("192.168.1.10", state.customStartAddress)
+        assertPresentationEquals("192.168.1.100", state.customEndAddress)
+        assertPresentationEquals(1, scanCalls)
     }
 
     @Test
@@ -209,13 +209,13 @@ class LanScannerViewModelTest {
 
         viewModel.modifyRange()
         var state = viewModel.uiState.value as LanScannerUiState.Ready
-        assertEquals(LanScanRangeMode.CURRENT_NETWORK, state.rangeMode)
+        assertPresentationEquals(LanScanRangeMode.CURRENT_NETWORK, state.rangeMode)
 
         viewModel.selectRangeMode(LanScanRangeMode.CUSTOM)
         state = viewModel.uiState.value as LanScannerUiState.Ready
-        assertEquals(LanScanRangeMode.CUSTOM, state.rangeMode)
-        assertEquals(range.firstHost, state.customStartAddress)
-        assertEquals(range.lastHost, state.customEndAddress)
+        assertPresentationEquals(LanScanRangeMode.CUSTOM, state.rangeMode)
+        assertPresentationEquals(range.firstHost, state.customStartAddress)
+        assertPresentationEquals(range.lastHost, state.customEndAddress)
     }
 
     @Test
@@ -246,7 +246,7 @@ class LanScannerViewModelTest {
         viewModel.rescan()
         advanceUntilIdle()
 
-        assertEquals(listOf(range), exactRanges)
+        assertPresentationEquals(listOf(range), exactRanges)
         assertTrue(viewModel.uiState.value is LanScannerUiState.Completed)
     }
 
@@ -285,9 +285,9 @@ class LanScannerViewModelTest {
         viewModel.rescanCurrentNetwork()
         advanceUntilIdle()
 
-        assertEquals(2, automaticCalls)
-        assertEquals(0, customCalls)
-        assertEquals(automaticRange, (viewModel.uiState.value as LanScannerUiState.Completed).session.range)
+        assertPresentationEquals(2, automaticCalls)
+        assertPresentationEquals(0, customCalls)
+        assertPresentationEquals(automaticRange, (viewModel.uiState.value as LanScannerUiState.Completed).session.range)
     }
 
     @Test
@@ -302,9 +302,9 @@ class LanScannerViewModelTest {
         viewModel.prepareDeviceCenter()
 
         val state = viewModel.uiState.value as LanScannerUiState.Ready
-        assertEquals(LanScanRangeMode.CURRENT_NETWORK, state.rangeMode)
-        assertEquals("192.168.1.10", state.customStartAddress)
-        assertEquals("192.168.1.20", state.customEndAddress)
+        assertPresentationEquals(LanScanRangeMode.CURRENT_NETWORK, state.rangeMode)
+        assertPresentationEquals("192.168.1.10", state.customStartAddress)
+        assertPresentationEquals("192.168.1.20", state.customEndAddress)
     }
 
     @Test
@@ -341,7 +341,7 @@ class LanScannerViewModelTest {
                 state.update.discoveredDevices.single().ipAddress == "192.168.1.3"
         })
         val state = viewModel.uiState.value as LanScannerUiState.Completed
-        assertEquals(listOf("192.168.1.3"), state.session.discoveredDevices.map { it.ipAddress })
+        assertPresentationEquals(listOf("192.168.1.3"), state.session.discoveredDevices.map { it.ipAddress })
     }
 
     @Test
@@ -373,8 +373,8 @@ class LanScannerViewModelTest {
 
         val state = viewModel.uiState.value as LanScannerUiState.Cancelled
         assertTrue(cancellationObserved.get())
-        assertEquals(1, state.session.scannedHosts)
-        assertEquals("192.168.1.3", state.session.discoveredDevices.single().ipAddress)
+        assertPresentationEquals(1, state.session.scannedHosts)
+        assertPresentationEquals("192.168.1.3", state.session.discoveredDevices.single().ipAddress)
 
         viewModel.modifyRange()
         assertTrue(viewModel.uiState.value is LanScannerUiState.Ready)
@@ -392,7 +392,7 @@ class LanScannerViewModelTest {
         advanceUntilIdle()
 
         val state = viewModel.uiState.value as LanScannerUiState.Ready
-        assertEquals(LanScanNotice.NETWORK_CHANGED, state.notice)
+        assertPresentationEquals(LanScanNotice.NETWORK_CHANGED, state.notice)
         assertFalse(viewModel.uiState.value is LanScannerUiState.Error)
 
         viewModel.modifyRange()
@@ -422,8 +422,8 @@ class LanScannerViewModelTest {
         runCurrent()
 
         val state = viewModel.uiState.value as LanScannerUiState.Ready
-        assertEquals(changedContext, state.readiness.networkContext)
-        assertEquals(LanScanNotice.NETWORK_CHANGED, state.notice)
+        assertPresentationEquals(changedContext, state.readiness.networkContext)
+        assertPresentationEquals(LanScanNotice.NETWORK_CHANGED, state.notice)
     }
 
     @Test
@@ -465,9 +465,9 @@ class LanScannerViewModelTest {
 
         val state = viewModel.uiState.value as LanScannerUiState.Ready
         assertTrue(cancellationObserved.get())
-        assertEquals(1, scanCalls)
-        assertEquals(changed, state.readiness.networkContext)
-        assertEquals(LanScanNotice.NETWORK_CHANGED, state.notice)
+        assertPresentationEquals(1, scanCalls)
+        assertPresentationEquals(changed, state.readiness.networkContext)
+        assertPresentationEquals(LanScanNotice.NETWORK_CHANGED, state.notice)
     }
 
     @Test
@@ -509,10 +509,10 @@ class LanScannerViewModelTest {
 
         val state = viewModel.uiState.value as LanScannerUiState.Ready
         assertTrue(cancellationObserved.get())
-        assertEquals(LanScanRangeMode.CUSTOM, state.rangeMode)
-        assertEquals("192.168.1.10", state.customStartAddress)
-        assertEquals("192.168.1.20", state.customEndAddress)
-        assertEquals(LanScanNotice.NETWORK_CHANGED, state.notice)
+        assertPresentationEquals(LanScanRangeMode.CUSTOM, state.rangeMode)
+        assertPresentationEquals("192.168.1.10", state.customStartAddress)
+        assertPresentationEquals("192.168.1.20", state.customEndAddress)
+        assertPresentationEquals(LanScanNotice.NETWORK_CHANGED, state.notice)
     }
 
     @Test
@@ -542,43 +542,43 @@ class LanScannerViewModelTest {
             ),
         )
 
-        assertEquals("本机", LanScannerPresentation.deviceRole(local))
-        assertEquals("网关", LanScannerPresentation.deviceRole(gateway))
-        assertEquals("", LanScannerPresentation.deviceRole(device("192.168.1.30")))
-        assertEquals("TCP 445 可连接", LanScannerPresentation.discoveryEvidence(tcp))
-        assertEquals(
+        assertPresentationEquals("本机", LanScannerPresentation.deviceRole(local))
+        assertPresentationEquals("网关", LanScannerPresentation.deviceRole(gateway))
+        assertPresentationEquals(null, LanScannerPresentation.deviceRole(device("192.168.1.30")))
+        assertPresentationEquals("TCP 445 可连接", LanScannerPresentation.discoveryEvidence(tcp))
+        assertPresentationEquals(
             "可达性检测 · 16 ms",
             LanScannerPresentation.deviceSecondaryText(
                 device("192.168.1.31", latencyMs = 16),
             ),
         )
-        assertEquals(
+        assertPresentationEquals(
             "可达性检测",
             LanScannerPresentation.deviceSecondaryText(device("192.168.1.32")),
         )
-        assertEquals("当前设备", LanScannerPresentation.deviceSecondaryText(local))
-        assertEquals("网关信息", LanScannerPresentation.deviceSecondaryText(gateway))
-        assertEquals(0.5f, LanScannerPresentation.progressFraction(1, 2))
+        assertPresentationEquals("当前设备", LanScannerPresentation.deviceSecondaryText(local))
+        assertPresentationEquals("网关信息", LanScannerPresentation.deviceSecondaryText(gateway))
+        assertPresentationEquals(0.5f, LanScannerPresentation.progressFraction(1, 2))
 
         val named = device("192.168.1.40").copy(hostName = "HOME-SERVER")
-        assertEquals("HOME-SERVER", LanScannerPresentation.devicePrimaryText(named))
-        assertEquals("192.168.1.40", LanScannerPresentation.deviceAddressText(named))
+        assertPresentationEquals("HOME-SERVER", LanScannerPresentation.devicePrimaryText(named))
+        assertPresentationEquals("192.168.1.40", LanScannerPresentation.deviceAddressText(named))
         val mdnsNamed = device("192.168.1.41").copy(mdnsDisplayNameCandidate = "Living Room Printer")
-        assertEquals("Living Room Printer", LanScannerPresentation.devicePrimaryText(mdnsNamed))
-        assertEquals("192.168.1.41", LanScannerPresentation.deviceAddressText(mdnsNamed))
-        assertEquals("192.168.1.30", LanScannerPresentation.devicePrimaryText(device("192.168.1.30")))
-        assertEquals(null, LanScannerPresentation.deviceAddressText(device("192.168.1.30")))
+        assertPresentationEquals("Living Room Printer", LanScannerPresentation.devicePrimaryText(mdnsNamed))
+        assertPresentationEquals("192.168.1.41", LanScannerPresentation.deviceAddressText(mdnsNamed))
+        assertPresentationEquals("192.168.1.30", LanScannerPresentation.devicePrimaryText(device("192.168.1.30")))
+        assertPresentationEquals(null, LanScannerPresentation.deviceAddressText(device("192.168.1.30")))
 
         val completedSession = session(
             context = context("192.168.1.5", 24),
             range = readyRange(context("192.168.1.5", 24)),
             devices = listOf(local, gateway),
         )
-        assertEquals(
+        assertPresentationEquals(
             "254 个地址 · 2 台设备 · 1 毫秒",
             LanScannerPresentation.sessionSummary(completedSession),
         )
-        assertEquals(
+        assertPresentationEquals(
             "已扫描 66 / 254 个地址 · 发现 2 台设备 · 1 毫秒",
             LanScannerPresentation.sessionSummary(
                 completedSession.copy(
@@ -613,9 +613,9 @@ class LanScannerViewModelTest {
 
         val discovered = (viewModel.uiState.value as LanScannerUiState.Completed)
             .session.discoveredDevices.single()
-        assertEquals("HOME-SERVER", discovered.hostName)
-        assertEquals(LanDeviceNameSource.REVERSE_DNS, discovered.hostNameSource)
-        assertEquals("192.168.1.3", discovered.ipAddress)
+        assertPresentationEquals("HOME-SERVER", discovered.hostName)
+        assertPresentationEquals(LanDeviceNameSource.REVERSE_DNS, discovered.hostNameSource)
+        assertPresentationEquals("192.168.1.3", discovered.ipAddress)
     }
 
     @Test
@@ -668,8 +668,8 @@ class LanScannerViewModelTest {
 
         val device = (viewModel.uiState.value as LanScannerUiState.Completed)
             .session.discoveredDevices.single()
-        assertEquals("192.168.1.4", device.ipAddress)
-        assertEquals("SECOND-SCAN", device.hostName)
+        assertPresentationEquals("192.168.1.4", device.ipAddress)
+        assertPresentationEquals("SECOND-SCAN", device.hostName)
     }
 
     @Test
@@ -701,8 +701,8 @@ class LanScannerViewModelTest {
         advanceUntilIdle()
 
         val state = viewModel.uiState.value as LanScannerUiState.Ready
-        assertEquals(changed, state.readiness.networkContext)
-        assertEquals(LanScanNotice.NETWORK_CHANGED, state.notice)
+        assertPresentationEquals(changed, state.readiness.networkContext)
+        assertPresentationEquals(LanScanNotice.NETWORK_CHANGED, state.notice)
     }
 
     @Test
@@ -770,10 +770,10 @@ class LanScannerViewModelTest {
 
         val discovered = (viewModel.uiState.value as LanScannerUiState.Completed)
             .session.discoveredDevices.single()
-        assertEquals("reverse.example.lan", discovered.hostName)
-        assertEquals("Friendly Printer", discovered.mdnsDisplayNameCandidate)
-        assertEquals(1, discovered.mdnsObservations.size)
-        assertEquals("Friendly Printer", LanScannerPresentation.devicePrimaryText(discovered))
+        assertPresentationEquals("reverse.example.lan", discovered.hostName)
+        assertPresentationEquals("Friendly Printer", discovered.mdnsDisplayNameCandidate)
+        assertPresentationEquals(1, discovered.mdnsObservations.size)
+        assertPresentationEquals("Friendly Printer", LanScannerPresentation.devicePrimaryText(discovered))
     }
 
     @Test
@@ -811,7 +811,7 @@ class LanScannerViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value is LanScannerUiState.Completed)
-        assertEquals(
+        assertPresentationEquals(
             null,
             (viewModel.uiState.value as LanScannerUiState.Completed)
                 .session.discoveredDevices.single().mdnsDisplayNameCandidate,

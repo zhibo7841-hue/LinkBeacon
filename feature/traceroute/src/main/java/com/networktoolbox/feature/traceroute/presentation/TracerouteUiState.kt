@@ -30,5 +30,5 @@ sealed interface TracerouteUiStatus {
         val elapsedMs: Long = 0L,
     ) : TracerouteUiStatus
 
-    data class Error(val message: String) : TracerouteUiStatus
+    data class Error(val message: com.networktoolbox.core.designsystem.UiText) : TracerouteUiStatus
 }

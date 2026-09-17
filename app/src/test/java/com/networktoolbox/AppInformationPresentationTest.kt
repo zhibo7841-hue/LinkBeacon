@@ -35,12 +35,12 @@ class AppInformationPresentationTest {
 
     @Test
     fun aboutUsesRealAppIdentityAndBuildVersion() {
-        assertEquals("关于", AppInformationPresentation.aboutTitle)
+        assertEquals(R.string.info_about_title, AppInformationPresentation.aboutTitle)
         assertEquals("LinkBeacon", AppInformationPresentation.appName)
         assertEquals("LinkBeacon by LY", AppInformationPresentation.brandSignature)
         assertEquals("by LY", AppInformationPresentation.brandByline)
-        assertEquals("开源网络分析与故障诊断工具箱", AppInformationPresentation.appDescription)
-        assertEquals("当前版本", AppInformationPresentation.versionTitle)
+        assertEquals(R.string.info_app_description, AppInformationPresentation.appDescription)
+        assertEquals(R.string.info_version_title, AppInformationPresentation.versionTitle)
         assertEquals(
             "Version ${BuildConfig.VERSION_NAME}",
             AppInformationPresentation.versionValue(BuildConfig.VERSION_NAME),
@@ -55,9 +55,9 @@ class AppInformationPresentationTest {
 
     @Test
     fun privacyCopyStatesLocalFirstNoAccountAndNoUpload() {
-        assertTrue(AppInformationPresentation.localFirstDescription.contains("本地"))
-        assertTrue(AppInformationPresentation.uploadDescription.contains("不会"))
-        assertEquals("无需账号", AppInformationPresentation.accountTitle)
-        assertTrue(AppInformationPresentation.accountDescription.contains("无需账号"))
+        assertEquals(R.string.info_local_first_description, AppInformationPresentation.localFirstDescription)
+        assertEquals(R.string.info_upload_description, AppInformationPresentation.uploadDescription)
+        assertEquals(R.string.info_account_title, AppInformationPresentation.accountTitle)
+        assertEquals(R.string.info_account_description, AppInformationPresentation.accountDescription)
     }
 }

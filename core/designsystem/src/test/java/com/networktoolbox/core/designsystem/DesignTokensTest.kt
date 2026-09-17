@@ -50,14 +50,14 @@ class DesignTokensTest {
 
     @Test
     fun statusMappingKeepsSemanticLabelsAndThemeAwareColors() {
-        assertEquals("正常", NetworkToolboxStatusVisuals.resolve(StatusVisualState.NORMAL, false).label)
-        assertEquals("提示", NetworkToolboxStatusVisuals.resolve(StatusVisualState.NOTICE, false).label)
-        assertEquals("异常", NetworkToolboxStatusVisuals.resolve(StatusVisualState.WARNING, false).label)
-        assertEquals("严重异常", NetworkToolboxStatusVisuals.resolve(StatusVisualState.ERROR, false).label)
-        assertEquals("未确定", NetworkToolboxStatusVisuals.resolve(StatusVisualState.UNKNOWN, false).label)
-        assertEquals("进行中", NetworkToolboxStatusVisuals.resolve(StatusVisualState.RUNNING, false).label)
-        assertEquals("已停止", NetworkToolboxStatusVisuals.resolve(StatusVisualState.CANCELLED, false).label)
-        assertEquals("未执行", NetworkToolboxStatusVisuals.resolve(StatusVisualState.NOT_EXECUTED, false).label)
+        assertEquals(R.string.common_normal, NetworkToolboxStatusVisuals.resolve(StatusVisualState.NORMAL, false).label)
+        assertEquals(R.string.common_notice, NetworkToolboxStatusVisuals.resolve(StatusVisualState.NOTICE, false).label)
+        assertEquals(R.string.common_warning, NetworkToolboxStatusVisuals.resolve(StatusVisualState.WARNING, false).label)
+        assertEquals(R.string.common_error, NetworkToolboxStatusVisuals.resolve(StatusVisualState.ERROR, false).label)
+        assertEquals(R.string.common_unknown, NetworkToolboxStatusVisuals.resolve(StatusVisualState.UNKNOWN, false).label)
+        assertEquals(R.string.common_running, NetworkToolboxStatusVisuals.resolve(StatusVisualState.RUNNING, false).label)
+        assertEquals(R.string.common_cancelled, NetworkToolboxStatusVisuals.resolve(StatusVisualState.CANCELLED, false).label)
+        assertEquals(R.string.common_not_executed, NetworkToolboxStatusVisuals.resolve(StatusVisualState.NOT_EXECUTED, false).label)
         assertEquals(
             NetworkToolboxColors.DarkSuccess,
             NetworkToolboxStatusVisuals.resolve(StatusVisualState.NORMAL, true).foregroundColor,

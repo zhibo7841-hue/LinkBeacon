@@ -1,5 +1,6 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteIdentityType
 import com.networktoolbox.core.network.model.ConnectionType
@@ -12,7 +13,6 @@ import com.networktoolbox.feature.lanscan.domain.model.LanUpnpObservation
 import com.networktoolbox.feature.lanscan.domain.LanNetworkScope
 import com.networktoolbox.core.common.wol.MacAddress
 import com.networktoolbox.core.common.wol.WakeOnLanConfig
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -41,7 +41,7 @@ class DeviceDetailPresentationTest {
 
         val detail = DeviceCenterPresentation.detail(profile, context)
 
-        assertEquals(WakeOnLanAvailability.AVAILABLE, detail.wakeOnLan.availability)
+        assertPresentationEquals(WakeOnLanAvailability.AVAILABLE, detail.wakeOnLan.availability)
         assertTrue(detail.wakeOnLan.canSend)
     }
 
@@ -56,7 +56,7 @@ class DeviceDetailPresentationTest {
             context = context.copy(ipv4Address = "10.0.2.20", gateway = "10.0.2.1"),
         )
 
-        assertEquals(WakeOnLanAvailability.SCOPE_MISMATCH, presentation.availability)
+        assertPresentationEquals(WakeOnLanAvailability.SCOPE_MISMATCH, presentation.availability)
         assertFalse(presentation.canSend)
     }
 
@@ -70,7 +70,7 @@ class DeviceDetailPresentationTest {
             context = context,
         )
 
-        assertEquals(WakeOnLanAvailability.UNSUPPORTED_NETWORK, presentation.availability)
+        assertPresentationEquals(WakeOnLanAvailability.UNSUPPORTED_NETWORK, presentation.availability)
         assertFalse(presentation.canSend)
     }
 
@@ -82,13 +82,13 @@ class DeviceDetailPresentationTest {
             context = context(),
         )
 
-        assertEquals("未知设备", detail.displayName)
-        assertEquals("10.0.1.22", detail.ipAddress)
+        assertPresentationEquals("未知设备", detail.displayName)
+        assertPresentationEquals("10.0.1.22", detail.ipAddress)
         assertTrue(detail.observedThisScan)
         assertFalse(detail.isFavorite)
         assertNull(detail.macAddress)
-        assertEquals("未收藏", detail.favoriteStatusLabel)
-        assertEquals("收藏设备", detail.favoriteToggleContentDescription)
+        assertPresentationEquals("未收藏", detail.favoriteStatusLabel)
+        assertPresentationEquals("收藏设备", detail.favoriteToggleContentDescription)
     }
 
     @Test
@@ -99,7 +99,7 @@ class DeviceDetailPresentationTest {
             context = context(),
         )
 
-        assertEquals("10.0.1.10", detail.networkToolTarget)
+        assertPresentationEquals("10.0.1.10", detail.networkToolTarget)
     }
 
     @Test
@@ -139,15 +139,15 @@ class DeviceDetailPresentationTest {
             context = context(),
         )
 
-        assertEquals("Home Router", detail.displayName)
-        assertEquals("AA:BB:CC:DD:EE:FF", detail.macAddress)
-        assertEquals("Example", detail.vendor)
-        assertEquals("Router 1", detail.model)
-        assertEquals("网关", detail.role)
+        assertPresentationEquals("Home Router", detail.displayName)
+        assertPresentationEquals("AA:BB:CC:DD:EE:FF", detail.macAddress)
+        assertPresentationEquals("Example", detail.vendor)
+        assertPresentationEquals("Router 1", detail.model)
+        assertPresentationEquals("网关", detail.role)
         assertTrue(detail.mdnsNames.contains("Printer"))
         assertTrue(detail.mdnsNames.contains("printer.local"))
-        assertEquals(listOf("Home Router"), detail.upnpNames)
-        assertEquals("当前局域网", detail.networkScope)
+        assertPresentationEquals(listOf("Home Router"), detail.upnpNames)
+        assertPresentationEquals("当前局域网", detail.networkScope)
     }
 
     @Test
@@ -173,16 +173,16 @@ class DeviceDetailPresentationTest {
 
         val detail = DeviceCenterPresentation.detail(favorite, context())
 
-        assertEquals("Home Server", detail.displayName)
-        assertEquals("10.0.1.50", detail.ipAddress)
-        assertEquals("当前局域网", detail.networkScope)
+        assertPresentationEquals("Home Server", detail.displayName)
+        assertPresentationEquals("10.0.1.50", detail.ipAddress)
+        assertPresentationEquals("当前局域网", detail.networkScope)
         assertFalse(detail.observedThisScan)
         assertTrue(detail.isFavorite)
-        assertEquals("server.local", detail.hostname)
-        assertEquals(listOf("Server"), detail.mdnsNames)
-        assertEquals(123L, detail.lastSeenAt)
-        assertEquals("已收藏", detail.favoriteStatusLabel)
-        assertEquals("取消收藏", detail.favoriteToggleContentDescription)
+        assertPresentationEquals("server.local", detail.hostname)
+        assertPresentationEquals(listOf("Server"), detail.mdnsNames)
+        assertPresentationEquals(123L, detail.lastSeenAt)
+        assertPresentationEquals("已收藏", detail.favoriteStatusLabel)
+        assertPresentationEquals("取消收藏", detail.favoriteToggleContentDescription)
     }
 
     @Test
@@ -208,9 +208,9 @@ class DeviceDetailPresentationTest {
 
         val detail = DeviceCenterPresentation.detail(favorite, context())
 
-        assertEquals("书房打印机", detail.displayName)
+        assertPresentationEquals("书房打印机", detail.displayName)
         assertFalse(detail.isFavorite)
-        assertEquals("书房打印机", detail.customName)
+        assertPresentationEquals("书房打印机", detail.customName)
     }
 
     private fun context() = NetworkContext(

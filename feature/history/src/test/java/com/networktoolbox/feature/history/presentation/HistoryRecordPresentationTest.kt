@@ -3,7 +3,6 @@ package com.networktoolbox.feature.history.presentation
 import com.networktoolbox.core.common.history.HistoryRecord
 import com.networktoolbox.core.common.history.HistoryType
 import com.networktoolbox.core.designsystem.StatusVisualState
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -22,8 +21,8 @@ class HistoryRecordPresentationTest {
             ),
         )
 
-        assertEquals(StatusVisualState.NORMAL, visual.state)
-        assertEquals("正常", visual.label)
+        assertPresentationEquals(StatusVisualState.NORMAL, visual.state)
+        assertPresentationEquals("正常", visual.label)
     }
 
     @Test
@@ -36,8 +35,8 @@ class HistoryRecordPresentationTest {
             ),
         )
 
-        assertEquals(StatusVisualState.NOTICE, visual.state)
-        assertEquals("需要关注", visual.label)
+        assertPresentationEquals(StatusVisualState.NOTICE, visual.state)
+        assertPresentationEquals("需要关注", visual.label)
     }
 
     @Test
@@ -46,8 +45,8 @@ class HistoryRecordPresentationTest {
             report(detailJson = """{"analysis":{"diagnosis":{"status":"ERROR"}}}"""),
         )
 
-        assertEquals(StatusVisualState.ERROR, visual.state)
-        assertEquals("严重异常", visual.label)
+        assertPresentationEquals(StatusVisualState.ERROR, visual.state)
+        assertPresentationEquals("严重异常", visual.label)
     }
 
     @Test
@@ -56,7 +55,7 @@ class HistoryRecordPresentationTest {
             report(detailJson = """{"schemaVersion":2,"overallStatus":"HEALTHY"}"""),
         )
 
-        assertEquals(StatusVisualState.NORMAL, visual.state)
+        assertPresentationEquals(StatusVisualState.NORMAL, visual.state)
     }
 
     @Test
@@ -68,14 +67,14 @@ class HistoryRecordPresentationTest {
             ),
         )
 
-        assertEquals(StatusVisualState.UNKNOWN, visual.state)
-        assertEquals("未确定", visual.label)
+        assertPresentationEquals(StatusVisualState.UNKNOWN, visual.state)
+        assertPresentationEquals("未确定", visual.label)
     }
 
     @Test
     fun pingSessionQualityLevelDrivesToolScopedStatus() {
-        assertEquals(
-            HistoryStatusVisual(StatusVisualState.NORMAL, "正常"),
+        assertPresentationEquals(
+            HistoryStatusVisual(StatusVisualState.NORMAL, com.networktoolbox.feature.history.R.string.history_normal),
             HistoryRecordPresentation.status(
                 record(
                     HistoryType.PING,
@@ -83,20 +82,20 @@ class HistoryRecordPresentationTest {
                 ),
             ),
         )
-        assertEquals(
-            HistoryStatusVisual(StatusVisualState.NORMAL, "正常"),
+        assertPresentationEquals(
+            HistoryStatusVisual(StatusVisualState.NORMAL, com.networktoolbox.feature.history.R.string.history_normal),
             HistoryRecordPresentation.status(
                 record(HistoryType.PING, """{"qualityLevel":"GOOD"}"""),
             ),
         )
-        assertEquals(
-            HistoryStatusVisual(StatusVisualState.NOTICE, "需关注"),
+        assertPresentationEquals(
+            HistoryStatusVisual(StatusVisualState.NOTICE, com.networktoolbox.feature.history.R.string.history_attention),
             HistoryRecordPresentation.status(
                 record(HistoryType.PING, """{"qualityLevel":"FAIR"}"""),
             ),
         )
-        assertEquals(
-            HistoryStatusVisual(StatusVisualState.NOTICE, "需关注"),
+        assertPresentationEquals(
+            HistoryStatusVisual(StatusVisualState.NOTICE, com.networktoolbox.feature.history.R.string.history_attention),
             HistoryRecordPresentation.status(
                 record(HistoryType.PING, """{"qualityLevel":"POOR"}"""),
             ),
@@ -120,8 +119,8 @@ class HistoryRecordPresentationTest {
             ),
         )
 
-        assertEquals(HistoryStatusVisual(StatusVisualState.NOTICE, "未响应"), noResponse)
-        assertEquals(HistoryStatusVisual(StatusVisualState.UNKNOWN, "未确定"), insufficient)
+        assertPresentationEquals(HistoryStatusVisual(StatusVisualState.NOTICE, com.networktoolbox.feature.history.R.string.history_no_response), noResponse)
+        assertPresentationEquals(HistoryStatusVisual(StatusVisualState.UNKNOWN, com.networktoolbox.feature.history.R.string.history_unknown), insufficient)
     }
 
     @Test
@@ -130,37 +129,37 @@ class HistoryRecordPresentationTest {
             record(HistoryType.PING, """{"status":"CANCELLED"}"""),
         )
 
-        assertEquals(StatusVisualState.CANCELLED, visual.state)
-        assertEquals("已停止", visual.label)
+        assertPresentationEquals(StatusVisualState.CANCELLED, visual.state)
+        assertPresentationEquals("已停止", visual.label)
     }
 
     @Test
     fun legacyToolRecordsRemainConservativeWhenFailureReasonIsMissing() {
-        assertEquals(
+        assertPresentationEquals(
             StatusVisualState.NORMAL,
             HistoryRecordPresentation.status(
                 record(HistoryType.PING, "{\"success\":true}"),
             ).state,
         )
-        assertEquals(
+        assertPresentationEquals(
             StatusVisualState.UNKNOWN,
             HistoryRecordPresentation.status(
                 record(HistoryType.TCP, "{\"success\":false}"),
             ).state,
         )
-        assertEquals(
+        assertPresentationEquals(
             StatusVisualState.NOTICE,
             HistoryRecordPresentation.status(
                 record(HistoryType.DNS, "{\"status\":\"NO_RECORDS\"}"),
             ).state,
         )
-        assertEquals(
+        assertPresentationEquals(
             StatusVisualState.NORMAL,
             HistoryRecordPresentation.status(
                 record(HistoryType.DNS, "{\"success\":true}"),
             ).state,
         )
-        assertEquals(
+        assertPresentationEquals(
             StatusVisualState.UNKNOWN,
             HistoryRecordPresentation.status(
                 record(HistoryType.DNS, "{\"success\":false}"),
@@ -170,20 +169,20 @@ class HistoryRecordPresentationTest {
 
     @Test
     fun dnsStructuredStatusesStayScopedToDnsLookup() {
-        assertEquals(
-            HistoryStatusVisual(StatusVisualState.NORMAL, "正常"),
+        assertPresentationEquals(
+            HistoryStatusVisual(StatusVisualState.NORMAL, com.networktoolbox.feature.history.R.string.history_normal),
             HistoryRecordPresentation.status(
                 record(HistoryType.DNS, """{"status":"SUCCESS"}"""),
             ),
         )
-        assertEquals(
-            HistoryStatusVisual(StatusVisualState.WARNING, "域名不存在"),
+        assertPresentationEquals(
+            HistoryStatusVisual(StatusVisualState.WARNING, com.networktoolbox.feature.history.R.string.history_nxdomain),
             HistoryRecordPresentation.status(
                 record(HistoryType.DNS, """{"status":"NXDOMAIN"}"""),
             ),
         )
-        assertEquals(
-            HistoryStatusVisual(StatusVisualState.ERROR, "严重异常"),
+        assertPresentationEquals(
+            HistoryStatusVisual(StatusVisualState.ERROR, com.networktoolbox.feature.history.R.string.history_error),
             HistoryRecordPresentation.status(
                 record(HistoryType.DNS, """{"status":"TIMEOUT"}"""),
             ),
@@ -192,32 +191,32 @@ class HistoryRecordPresentationTest {
 
     @Test
     fun tcpOutcomePreservesTargetScopedSemantics() {
-        assertEquals(
-            HistoryStatusVisual(StatusVisualState.NORMAL, "正常"),
+        assertPresentationEquals(
+            HistoryStatusVisual(StatusVisualState.NORMAL, com.networktoolbox.feature.history.R.string.history_normal),
             HistoryRecordPresentation.status(
                 record(HistoryType.TCP, """{"outcome":"CONNECT_SUCCESS"}"""),
             ),
         )
-        assertEquals(
-            HistoryStatusVisual(StatusVisualState.NOTICE, "需关注"),
+        assertPresentationEquals(
+            HistoryStatusVisual(StatusVisualState.NOTICE, com.networktoolbox.feature.history.R.string.history_attention),
             HistoryRecordPresentation.status(
                 record(HistoryType.TCP, """{"outcome":"CONNECTION_REFUSED"}"""),
             ),
         )
-        assertEquals(
-            HistoryStatusVisual(StatusVisualState.NOTICE, "未响应"),
+        assertPresentationEquals(
+            HistoryStatusVisual(StatusVisualState.NOTICE, com.networktoolbox.feature.history.R.string.history_no_response),
             HistoryRecordPresentation.status(
                 record(HistoryType.TCP, """{"outcome":"TIMEOUT"}"""),
             ),
         )
-        assertEquals(
-            HistoryStatusVisual(StatusVisualState.ERROR, "无法到达"),
+        assertPresentationEquals(
+            HistoryStatusVisual(StatusVisualState.ERROR, com.networktoolbox.feature.history.R.string.history_unreachable),
             HistoryRecordPresentation.status(
                 record(HistoryType.TCP, """{"outcome":"NO_ROUTE"}"""),
             ),
         )
-        assertEquals(
-            HistoryStatusVisual(StatusVisualState.ERROR, "无法到达"),
+        assertPresentationEquals(
+            HistoryStatusVisual(StatusVisualState.ERROR, com.networktoolbox.feature.history.R.string.history_unreachable),
             HistoryRecordPresentation.status(
                 record(HistoryType.TCP, """{"outcome":"NETWORK_UNREACHABLE"}"""),
             ),
@@ -227,8 +226,8 @@ class HistoryRecordPresentationTest {
     @Test
     fun malformedToolPayloadsSafelyRemainUnknown() {
         listOf(HistoryType.PING, HistoryType.DNS, HistoryType.TCP).forEach { type ->
-            assertEquals(
-                HistoryStatusVisual(StatusVisualState.UNKNOWN, "未确定"),
+            assertPresentationEquals(
+                HistoryStatusVisual(StatusVisualState.UNKNOWN, com.networktoolbox.feature.history.R.string.history_unknown),
                 HistoryRecordPresentation.status(record(type, "not-json")),
             )
         }
@@ -244,7 +243,7 @@ class HistoryRecordPresentationTest {
             ),
         )
 
-        assertEquals("移动网络", label)
+        assertPresentationEquals("移动网络", label)
     }
 
     @Test
@@ -266,9 +265,9 @@ class HistoryRecordPresentationTest {
         )
 
         assertNull(content.secondaryTitle)
-        assertEquals("网络诊断", content.title)
-        assertEquals("发现 DNS 异常", content.summary)
-        assertEquals("Wi-Fi · 公网正常 · DNS异常", content.metadata)
+        assertPresentationEquals("网络诊断", content.title)
+        assertPresentationEquals("发现 DNS 异常", content.summary)
+        assertPresentationEquals("Wi-Fi · 公网正常 · DNS异常", content.metadata)
     }
 
     @Test
@@ -280,8 +279,8 @@ class HistoryRecordPresentationTest {
             metadata = listOf("平均 16 ms", "丢包 0%"),
         )
 
-        assertEquals("10.0.1.122", content.secondaryTitle)
-        assertEquals("平均 16 ms · 丢包 0%", content.metadata)
+        assertPresentationEquals("10.0.1.122", content.secondaryTitle)
+        assertPresentationEquals("平均 16 ms · 丢包 0%", content.metadata)
     }
 
     @Test
@@ -289,7 +288,7 @@ class HistoryRecordPresentationTest {
         val zone = ZoneId.of("UTC")
         val today = LocalDate.of(2026, 9, 8)
 
-        assertEquals(
+        assertPresentationEquals(
             "今天 19:07",
             HistoryRecordPresentation.timeLabel(
                 Instant.parse("2026-09-08T19:07:00Z").toEpochMilli(),
@@ -297,7 +296,7 @@ class HistoryRecordPresentationTest {
                 today = today,
             ),
         )
-        assertEquals(
+        assertPresentationEquals(
             "昨天 22:10",
             HistoryRecordPresentation.timeLabel(
                 Instant.parse("2026-09-07T22:10:00Z").toEpochMilli(),
@@ -305,7 +304,7 @@ class HistoryRecordPresentationTest {
                 today = today,
             ),
         )
-        assertEquals(
+        assertPresentationEquals(
             "2026-09-01 08:00",
             HistoryRecordPresentation.timeLabel(
                 Instant.parse("2026-09-01T08:00:00Z").toEpochMilli(),

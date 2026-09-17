@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_ui_pdf_saved">Report saved as PDF</string>
+    <string name="app_ui_pdf_failed">Could not save PDF. Please try again.</string>
+    <string name="app_ui_pdf_expired">The pending export expired. Return to the report and export again.</string>
+    <string name="app_ui_clipboard_label">LinkBeacon report</string>
+    <string name="app_ui_pdf_expired_retry">The pending export expired. Select Save PDF again.</string>
+    <string name="app_ui_pdf_busy">Finish the current save operation first.</string>
+    <string name="app_ui_pdf_picker_failed">Could not open the file picker.</string>
+    <string name="app_ui_pdf_share">Share diagnostic PDF</string>
+    <string name="app_ui_pdf_no_app">No app is available to share the PDF.</string>
+    <string name="app_ui_pdf_share_failed">Could not share PDF. Please try again.</string>
+    <string name="app_ui_type_dns">DNS Lookup</string>
+    <string name="app_ui_type_tcp">TCP Port Check</string>
+    <string name="app_ui_type_report">Network Diagnosis</string>
+    <string name="app_ui_type_lan">LAN Scanner</string>
+    <string name="app_ui_type_other">Other</string>
+    <string name="app_ui_version">Version %1$s</string>
+</resources>

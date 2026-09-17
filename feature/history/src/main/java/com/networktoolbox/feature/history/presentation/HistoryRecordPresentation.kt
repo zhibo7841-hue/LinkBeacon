@@ -1,5 +1,7 @@
 package com.networktoolbox.feature.history.presentation
 
+import com.networktoolbox.core.designsystem.UiText
+import com.networktoolbox.feature.history.R
 import com.networktoolbox.core.common.history.HistoryRecord
 import com.networktoolbox.core.common.history.HistoryType
 import com.networktoolbox.core.designsystem.StatusVisualState
@@ -25,7 +27,7 @@ internal data class HistoryCardContent(
  */
 internal data class HistoryStatusVisual(
     val state: StatusVisualState,
-    val label: String,
+    val label: Int,
 )
 
 internal object HistoryRecordPresentation {
@@ -49,13 +51,13 @@ internal object HistoryRecordPresentation {
         timestamp: Long,
         zone: ZoneId = ZoneId.systemDefault(),
         today: LocalDate = LocalDate.now(zone),
-    ): String {
+    ): UiText {
         val dateTime = Instant.ofEpochMilli(timestamp).atZone(zone)
         val time = DateTimeFormatter.ofPattern("HH:mm").format(dateTime)
         return when (dateTime.toLocalDate()) {
-            today -> "今天 $time"
-            today.minusDays(1) -> "昨天 $time"
-            else -> DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(dateTime)
+            today -> UiText(R.string.history_today, time)
+            today.minusDays(1) -> UiText(R.string.history_yesterday, time)
+            else -> UiText(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(dateTime))
         }
     }
 
@@ -72,17 +74,17 @@ internal object HistoryRecordPresentation {
         HistoryType.UNKNOWN -> unknown()
     }
 
-    fun networkLabel(record: HistoryRecord): String? {
+    fun networkLabel(record: HistoryRecord): UiText? {
         if (record.type != HistoryType.REPORT) return null
         val raw = record.detailJson.readNestedJsonString("networkSummary", "connectionType")
             ?: record.detailJson.readNestedJsonString("networkSnapshot", "connectionType")
             ?: record.detailJson.readNestedJsonString("evidence", "connectionType")
         return when (raw?.uppercase()) {
-            "WIFI" -> "Wi-Fi"
-            "CELLULAR" -> "移动网络"
-            "ETHERNET" -> "以太网"
-            "VPN" -> "VPN"
-            "BLUETOOTH" -> "蓝牙"
+            "WIFI" -> UiText("Wi-Fi")
+            "CELLULAR" -> UiText(R.string.history_mobile)
+            "ETHERNET" -> UiText(R.string.history_ethernet)
+            "VPN" -> UiText("VPN")
+            "BLUETOOTH" -> UiText(R.string.history_bluetooth)
             else -> null
         }
     }
@@ -101,8 +103,8 @@ internal object HistoryRecordPresentation {
         if (qualityLevel != null) {
             return when (qualityLevel) {
                 "EXCELLENT", "GOOD" -> normal()
-                "FAIR", "POOR" -> notice("需关注")
-                "UNKNOWN" -> if (json.hasNoResponses()) notice("未响应") else unknown()
+                "FAIR", "POOR" -> notice(R.string.history_attention)
+                "UNKNOWN" -> if (json.hasNoResponses()) notice(R.string.history_no_response) else unknown()
                 else -> unknown()
             }
         }
@@ -119,9 +121,9 @@ internal object HistoryRecordPresentation {
         if (outcome != null) {
             return when (outcome) {
                 "CONNECT_SUCCESS" -> normal()
-                "CONNECTION_REFUSED" -> notice("需关注")
-                "TIMEOUT" -> notice("未响应")
-                "NO_ROUTE", "NETWORK_UNREACHABLE" -> error("无法到达")
+                "CONNECTION_REFUSED" -> notice(R.string.history_attention)
+                "TIMEOUT" -> notice(R.string.history_no_response)
+                "NO_ROUTE", "NETWORK_UNREACHABLE" -> error(R.string.history_unreachable)
                 "UNKNOWN" -> unknown()
                 else -> unknown()
             }
@@ -139,11 +141,11 @@ internal object HistoryRecordPresentation {
         if (status != null) {
             return when (status) {
                 "SUCCESS" -> normal()
-                "NO_RECORDS" -> notice("无记录")
-                "NXDOMAIN" -> warning("域名不存在")
-                "PARTIAL" -> warning("部分完成")
+                "NO_RECORDS" -> notice(R.string.history_no_records)
+                "NXDOMAIN" -> warning(R.string.history_nxdomain)
+                "PARTIAL" -> warning(R.string.history_partial)
                 "TIMEOUT", "NETWORK_ERROR", "INVALID_RESPONSE", "FAILED", "INVALID_QUERY" ->
-                    error("严重异常")
+                    error(R.string.history_error)
 
                 else -> unknown()
             }
@@ -159,24 +161,24 @@ internal object HistoryRecordPresentation {
 
     private fun statusVisual(raw: String?): HistoryStatusVisual = when (raw?.uppercase()) {
         "NORMAL", "HEALTHY" -> normal()
-        "ATTENTION", "NOTICE" -> notice("需要关注")
-        "LIMITED", "WARNING" -> warning("异常")
-        "ERROR" -> error("严重异常")
+        "ATTENTION", "NOTICE" -> notice(R.string.history_notice)
+        "LIMITED", "WARNING" -> warning(R.string.history_warning)
+        "ERROR" -> error(R.string.history_error)
         "UNKNOWN" -> unknown()
         else -> unknown()
     }
 
-    private fun normal() = HistoryStatusVisual(StatusVisualState.NORMAL, "正常")
+    private fun normal() = HistoryStatusVisual(StatusVisualState.NORMAL, R.string.history_normal)
 
-    private fun notice(label: String) = HistoryStatusVisual(StatusVisualState.NOTICE, label)
+    private fun notice(label: Int) = HistoryStatusVisual(StatusVisualState.NOTICE, label)
 
-    private fun warning(label: String) = HistoryStatusVisual(StatusVisualState.WARNING, label)
+    private fun warning(label: Int) = HistoryStatusVisual(StatusVisualState.WARNING, label)
 
-    private fun error(label: String) = HistoryStatusVisual(StatusVisualState.ERROR, label)
+    private fun error(label: Int) = HistoryStatusVisual(StatusVisualState.ERROR, label)
 
-    private fun cancelled() = HistoryStatusVisual(StatusVisualState.CANCELLED, "已停止")
+    private fun cancelled() = HistoryStatusVisual(StatusVisualState.CANCELLED, R.string.history_stopped)
 
-    private fun unknown() = HistoryStatusVisual(StatusVisualState.UNKNOWN, "未确定")
+    private fun unknown() = HistoryStatusVisual(StatusVisualState.UNKNOWN, R.string.history_unknown)
 }
 
 private fun String.readJsonBoolean(key: String): Boolean? {

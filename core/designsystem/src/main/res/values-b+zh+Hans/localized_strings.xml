@@ -1,0 +1,11 @@
+<resources>
+    <string name="common_back">返回</string>
+    <string name="common_normal">正常</string>
+    <string name="common_notice">提示</string>
+    <string name="common_warning">异常</string>
+    <string name="common_error">严重异常</string>
+    <string name="common_unknown">未确定</string>
+    <string name="common_running">进行中</string>
+    <string name="common_cancelled">已停止</string>
+    <string name="common_not_executed">未执行</string>
+</resources>

@@ -1,5 +1,6 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteDeviceCandidate
 import com.networktoolbox.core.common.favorites.FavoriteDeviceObservation
@@ -41,7 +42,6 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -75,8 +75,8 @@ class LanFavoritesViewModelTest {
         val initialDetail = viewModel.resolveDeviceDetail(route, viewModel.favoriteDevices.value)
         assertNotNull(initialDetail)
         assertTrue(initialDetail!!.isFavorite.not())
-        assertEquals("未收藏", initialDetail.favoriteStatusLabel)
-        assertEquals("收藏设备", initialDetail.favoriteToggleContentDescription)
+        assertPresentationEquals("未收藏", initialDetail.favoriteStatusLabel)
+        assertPresentationEquals("收藏设备", initialDetail.favoriteToggleContentDescription)
 
         viewModel.toggleFavoriteByRouteKey(route)
         advanceUntilIdle()
@@ -84,13 +84,13 @@ class LanFavoritesViewModelTest {
         val favorite = viewModel.favoriteDevices.value.single()
         val detail = viewModel.resolveDeviceDetail(route, viewModel.favoriteDevices.value)
 
-        assertEquals("10.0.1.20", favorite.lastKnownIpv4)
+        assertPresentationEquals("10.0.1.20", favorite.lastKnownIpv4)
         assertTrue(favorite.isLocalDevice.not())
         assertNotNull(detail)
         assertTrue(detail!!.isFavorite)
         assertTrue(detail.observedThisScan)
-        assertEquals("已收藏", detail.favoriteStatusLabel)
-        assertEquals("取消收藏", detail.favoriteToggleContentDescription)
+        assertPresentationEquals("已收藏", detail.favoriteStatusLabel)
+        assertPresentationEquals("取消收藏", detail.favoriteToggleContentDescription)
     }
 
     @Test
@@ -129,16 +129,16 @@ class LanFavoritesViewModelTest {
 
             val detail = viewModel.resolveDeviceDetail(route, viewModel.favoriteDevices.value)
             assertNotNull(detail)
-            assertEquals(expectedFavorite, detail!!.isFavorite)
-            assertEquals(
+            assertPresentationEquals(expectedFavorite, detail!!.isFavorite)
+            assertPresentationEquals(
                 if (expectedFavorite) "已收藏" else "未收藏",
                 detail.favoriteStatusLabel,
             )
-            assertEquals(
+            assertPresentationEquals(
                 if (expectedFavorite) "取消收藏" else "收藏设备",
                 detail.favoriteToggleContentDescription,
             )
-            assertEquals(if (expectedFavorite) 1 else 0, viewModel.favoriteDevices.value.size)
+            assertPresentationEquals(if (expectedFavorite) 1 else 0, viewModel.favoriteDevices.value.size)
         }
     }
 
@@ -165,16 +165,16 @@ class LanFavoritesViewModelTest {
 
             val detail = viewModel.resolveDeviceDetail(route, viewModel.favoriteDevices.value)
             assertNotNull(detail)
-            assertEquals(expectedFavorite, detail!!.isFavorite)
-            assertEquals(
+            assertPresentationEquals(expectedFavorite, detail!!.isFavorite)
+            assertPresentationEquals(
                 if (expectedFavorite) "已收藏" else "未收藏",
                 detail.favoriteStatusLabel,
             )
-            assertEquals(
+            assertPresentationEquals(
                 if (expectedFavorite) "取消收藏" else "收藏设备",
                 detail.favoriteToggleContentDescription,
             )
-            assertEquals(if (expectedFavorite) 1 else 0, viewModel.favoriteDevices.value.size)
+            assertPresentationEquals(if (expectedFavorite) 1 else 0, viewModel.favoriteDevices.value.size)
         }
     }
 
@@ -205,14 +205,14 @@ class LanFavoritesViewModelTest {
 
         val addedDetail = viewModel.resolveDeviceDetail(route, viewModel.favoriteDevices.value)
         assertTrue(addedDetail!!.isFavorite)
-        assertEquals("已收藏", addedDetail.favoriteStatusLabel)
+        assertPresentationEquals("已收藏", addedDetail.favoriteStatusLabel)
 
         repository.delete(viewModel.favoriteDevices.value.single().id)
         advanceUntilIdle()
 
         val removedDetail = viewModel.resolveDeviceDetail(route, viewModel.favoriteDevices.value)
         assertTrue(removedDetail!!.isFavorite.not())
-        assertEquals("未收藏", removedDetail.favoriteStatusLabel)
+        assertPresentationEquals("未收藏", removedDetail.favoriteStatusLabel)
     }
 
     @Test
@@ -240,7 +240,7 @@ class LanFavoritesViewModelTest {
         )
         assertNotNull(detailAfterRemoval)
         assertTrue(detailAfterRemoval!!.isFavorite.not())
-        assertEquals("未收藏", detailAfterRemoval.favoriteStatusLabel)
+        assertPresentationEquals("未收藏", detailAfterRemoval.favoriteStatusLabel)
 
         viewModel.toggleFavoriteByRouteKey(favoriteRoute)
         advanceUntilIdle()
@@ -251,8 +251,8 @@ class LanFavoritesViewModelTest {
         )
         assertNotNull(detailAfterReAdd)
         assertTrue(detailAfterReAdd!!.isFavorite)
-        assertEquals("已收藏", detailAfterReAdd.favoriteStatusLabel)
-        assertEquals(1, viewModel.favoriteDevices.value.size)
+        assertPresentationEquals("已收藏", detailAfterReAdd.favoriteStatusLabel)
+        assertPresentationEquals(1, viewModel.favoriteDevices.value.size)
     }
 
     @Test
@@ -276,7 +276,7 @@ class LanFavoritesViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.favoriteDevices.value.isEmpty())
-        assertEquals(null, viewModel.resolveDeviceDetail(route, viewModel.favoriteDevices.value))
+        assertPresentationEquals(null, viewModel.resolveDeviceDetail(route, viewModel.favoriteDevices.value))
     }
 
     @Test
@@ -294,7 +294,7 @@ class LanFavoritesViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.favoriteDevices.value.isEmpty())
-        assertEquals(null, viewModel.favoriteActionError.value)
+        assertPresentationEquals(null, viewModel.favoriteActionError.value)
     }
 
     @Test
@@ -311,7 +311,7 @@ class LanFavoritesViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.favoriteDevices.value.isEmpty())
-        assertEquals("收藏失败，请重试。", viewModel.favoriteActionError.value)
+        assertPresentationEquals("收藏失败，请重试。", viewModel.favoriteActionError.value)
     }
 
     @Test
@@ -330,14 +330,14 @@ class LanFavoritesViewModelTest {
         advanceUntilIdle()
 
         val profile = viewModel.savedProfiles.value.single()
-        assertEquals("客厅 NAS", profile.customName)
+        assertPresentationEquals("客厅 NAS", profile.customName)
         assertTrue(profile.isFavorite.not())
         assertTrue(viewModel.favoriteDevices.value.isEmpty())
         val detail = viewModel.resolveDeviceDetail(route, viewModel.savedProfiles.value)
         assertNotNull(detail)
-        assertEquals("客厅 NAS", detail!!.displayName)
+        assertPresentationEquals("客厅 NAS", detail!!.displayName)
         assertTrue(detail.isFavorite.not())
-        assertEquals(null, viewModel.customNameActionError.value)
+        assertPresentationEquals(null, viewModel.customNameActionError.value)
     }
 
     @Test
@@ -358,14 +358,14 @@ class LanFavoritesViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.savedProfiles.value.single().isFavorite)
-        assertEquals("主路由", viewModel.savedProfiles.value.single().customName)
+        assertPresentationEquals("主路由", viewModel.savedProfiles.value.single().customName)
 
         viewModel.clearCustomNameByRouteKey(route)
         advanceUntilIdle()
 
         assertTrue(viewModel.savedProfiles.value.single().isFavorite)
-        assertEquals(null, viewModel.savedProfiles.value.single().customName)
-        assertEquals("未知设备", viewModel.resolveDeviceDetail(route, viewModel.savedProfiles.value)!!.displayName)
+        assertPresentationEquals(null, viewModel.savedProfiles.value.single().customName)
+        assertPresentationEquals("未知设备", viewModel.resolveDeviceDetail(route, viewModel.savedProfiles.value)!!.displayName)
     }
 
     @Test
@@ -383,7 +383,7 @@ class LanFavoritesViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.savedProfiles.value.isEmpty())
-        assertEquals("名称不能为空、不能包含控制字符，且最多 40 个字符。", viewModel.customNameActionError.value)
+        assertPresentationEquals("名称不能为空、不能包含控制字符，且最多 40 个字符。", viewModel.customNameActionError.value)
     }
 
     @Test
@@ -419,8 +419,8 @@ class LanFavoritesViewModelTest {
         advanceUntilIdle()
 
         val profile = viewModel.savedProfiles.value.single()
-        assertEquals("实验设备", profile.customName)
-        assertEquals("new-device.local", profile.lastKnownDisplayName)
+        assertPresentationEquals("实验设备", profile.customName)
+        assertPresentationEquals("new-device.local", profile.lastKnownDisplayName)
     }
 
     @Test
@@ -450,8 +450,8 @@ class LanFavoritesViewModelTest {
         viewModel.sendWakeOnLanByRouteKey(viewModel.detailRouteKey(device))
         advanceUntilIdle()
 
-        assertEquals(DeviceDetailEvent.WakePacketSent, event.await())
-        assertEquals(before, viewModel.savedProfiles.value.single())
+        assertPresentationEquals(DeviceDetailEvent.WakePacketSent, event.await())
+        assertPresentationEquals(before, viewModel.savedProfiles.value.single())
         assertTrue(viewModel.deviceDetailEvents.replayCache.isEmpty())
     }
 
@@ -481,11 +481,11 @@ class LanFavoritesViewModelTest {
         viewModel.sendWakeOnLanByRouteKey(viewModel.detailRouteKey(device))
         advanceUntilIdle()
 
-        assertEquals(
-            DeviceDetailEvent.WakePacketFailed("无法发送唤醒包，请检查当前局域网连接后重试。"),
+        assertPresentationEquals(
+            DeviceDetailEvent.WakePacketFailed(UiText(com.networktoolbox.feature.lanscan.R.string.lan_error_send_failed)),
             event.await(),
         )
-        assertEquals(profile, viewModel.savedProfiles.value.single())
+        assertPresentationEquals(profile, viewModel.savedProfiles.value.single())
     }
 
     @Test
@@ -514,14 +514,14 @@ class LanFavoritesViewModelTest {
         runCurrent()
         viewModel.sendWakeOnLanByRouteKey(route)
         advanceUntilIdle()
-        assertEquals(DeviceDetailEvent.WakePacketSent, firstEvent.await())
+        assertPresentationEquals(DeviceDetailEvent.WakePacketSent, firstEvent.await())
 
         val secondEvent = async { viewModel.deviceDetailEvents.first() }
         runCurrent()
         viewModel.sendWakeOnLanByRouteKey(route)
         advanceUntilIdle()
-        assertEquals(DeviceDetailEvent.WakePacketSent, secondEvent.await())
-        assertEquals(profile, viewModel.savedProfiles.value.single())
+        assertPresentationEquals(DeviceDetailEvent.WakePacketSent, secondEvent.await())
+        assertPresentationEquals(profile, viewModel.savedProfiles.value.single())
     }
 
     @Test
@@ -554,9 +554,9 @@ class LanFavoritesViewModelTest {
         viewModel.sendWakeOnLanByRouteKey(LanDeviceDetailRouteKey.forFavorite(profile))
         advanceUntilIdle()
 
-        assertEquals(1, sendCount)
-        assertEquals(DeviceDetailEvent.WakePacketSent, event.await())
-        assertEquals(before, viewModel.savedProfiles.value.single())
+        assertPresentationEquals(1, sendCount)
+        assertPresentationEquals(DeviceDetailEvent.WakePacketSent, event.await())
+        assertPresentationEquals(before, viewModel.savedProfiles.value.single())
     }
 
     @Test
@@ -579,11 +579,11 @@ class LanFavoritesViewModelTest {
         )
         advanceUntilIdle()
 
-        assertEquals(DeviceDetailEvent.WakeOnLanConfigurationSaved, event.await())
+        assertPresentationEquals(DeviceDetailEvent.WakeOnLanConfigurationSaved, event.await())
         val saved = viewModel.savedProfiles.value.single()
         assertTrue(saved.isFavorite.not())
-        assertEquals(null, saved.customName)
-        assertEquals(
+        assertPresentationEquals(null, saved.customName)
+        assertPresentationEquals(
             WakeOnLanConfig(MacAddress.parse("02:AA:BB:CC:DD:EE")!!),
             saved.wolConfig,
         )

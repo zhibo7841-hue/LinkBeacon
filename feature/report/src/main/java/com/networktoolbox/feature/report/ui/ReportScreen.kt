@@ -20,6 +20,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.stringResource
+import com.networktoolbox.feature.report.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -111,7 +113,7 @@ fun ReportScreen(
             verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.MD),
         ) {
             ToolScreenHeader(
-                title = context.title,
+                title = stringResource(if (context == ReportPresentationContext.LIVE_TOOL) R.string.report_title else R.string.report_saved_title),
                 icon = Icons.Outlined.Assessment,
                 accent = NetworkToolAccent.AMBER,
                 onBack = onBack,
@@ -128,7 +130,7 @@ fun ReportScreen(
             when {
                 context == ReportPresentationContext.SAVED_REPORT && !hasRestoredReport ->
                     OutlinedNetworkCard {
-                        Text(if (savedReportLoading) "正在读取已保存报告…" else "该报告已删除或无法恢复，请返回历史记录。")
+                        Text(if (savedReportLoading) stringResource(R.string.report_saved_loading) else stringResource(R.string.report_saved_missing))
                     }
 
                 restoredAutomaticResult != null -> AutomaticReportContent(
@@ -200,11 +202,11 @@ private fun StartDiagnosticCard(
     val completed = status is ReportStatus.Success || status is ReportStatus.Completed
     OutlinedNetworkCard {
         Text(
-            DiagnosticPresentationMapper.startCardTitle(completed),
+            stringResource(if (completed) R.string.report_restart_title else R.string.report_start_title),
             style = MaterialTheme.typography.titleMedium,
         )
         Text(
-            "检测将在本机完成，不上传诊断数据。",
+            stringResource(R.string.report_privacy),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -213,7 +215,7 @@ private fun StartDiagnosticCard(
             onClick = onRunCheck,
         ) {
             Text(
-                DiagnosticPresentationMapper.startCardActionLabel(completed),
+                stringResource(if (completed) R.string.report_retry else R.string.report_start),
             )
         }
     }
@@ -230,9 +232,9 @@ private fun RunningContent(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS)) {
-                Text("正在诊断…", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.report_running), style = MaterialTheme.typography.titleLarge)
                 Text(
-                    "逐步检查当前网络环境",
+                    stringResource(R.string.report_running_help),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -241,7 +243,7 @@ private fun RunningContent(
         }
         val completed = progress.stageStates.values.count { it == ReportStageStatus.COMPLETED }
         Text(
-            "已完成 $completed / ${diagnosticStages.size} 个阶段",
+            stringResource(R.string.report_progress, completed, diagnosticStages.size),
             style = MaterialTheme.typography.bodyMedium,
         )
         if (diagnosticStages.isNotEmpty()) {
@@ -264,7 +266,7 @@ private fun RunningContent(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onStopCheck,
             ) {
-                Text("停止诊断")
+                Text(stringResource(R.string.report_stop))
             }
     }
 }
@@ -317,7 +319,7 @@ private fun UnifiedDiagnosticReportContent(
             DiagnosticVerificationCard(verification)
         }
 
-        ReportSectionCard(title = "诊断结论") {
+        ReportSectionCard(title = stringResource(R.string.report_conclusion)) {
             Text(
                 text = presentation.explanation,
                 style = MaterialTheme.typography.bodyLarge,
@@ -330,10 +332,11 @@ private fun UnifiedDiagnosticReportContent(
         // found when no material finding exists.
         if (visibleFindings.isNotEmpty() || hasNoticeStage) {
             ReportSectionCard(
-                title = DiagnosticPresentationMapper.findingsTitleForPresentation(
-                    visibleFindings,
-                    hasNoticeStage = hasNoticeStage,
-                ),
+                title = stringResource(when {
+                    visibleFindings.any { it.severity == AutomaticDiagnosticSeverity.WARNING || it.severity == AutomaticDiagnosticSeverity.ERROR } -> R.string.report_issues
+                    visibleFindings.any { it.severity == AutomaticDiagnosticSeverity.NOTICE } || hasNoticeStage -> R.string.report_context_notices
+                    else -> R.string.report_findings
+                }),
             ) {
                 if (visibleFindings.isEmpty()) {
                     Text(DiagnosticPresentationMapper.noMaterialFindingMessage())
@@ -351,9 +354,7 @@ private fun UnifiedDiagnosticReportContent(
             .takeIf(List<*>::isNotEmpty)
             ?.let { recommendations ->
                 ReportSectionCard(
-                    title = DiagnosticPresentationMapper.recommendationSectionTitle(
-                        presentation.overallStatus,
-                    ),
+                    title = stringResource(if (presentation.overallStatus == DiagnosticDiagnosisStatus.NORMAL) R.string.report_still_issues else R.string.report_recommendations),
                 ) {
                     recommendations.forEachIndexed { index, recommendation ->
                         Text(
@@ -373,9 +374,9 @@ private fun UnifiedDiagnosticReportContent(
                 }
             }
 
-        ReportSectionCard(title = "检查结果") {
+        ReportSectionCard(title = stringResource(R.string.report_checks)) {
             if (stageSummaries.isEmpty()) {
-                Text("暂无阶段结果。")
+                Text(stringResource(R.string.report_empty_checks))
             } else {
                 stageSummaries.forEach { summary -> AutomaticStageSummaryRow(summary) }
             }
@@ -385,7 +386,7 @@ private fun UnifiedDiagnosticReportContent(
             modifier = Modifier.fillMaxWidth(),
             onClick = { detailsExpanded = !detailsExpanded },
         ) {
-            Text(if (detailsExpanded) "收起详细信息" else "查看详细信息")
+            Text(if (detailsExpanded) stringResource(R.string.report_collapse) else stringResource(R.string.report_expand))
         }
         if (detailsExpanded) {
             UnifiedDiagnosticDetails(presentation)
@@ -407,8 +408,8 @@ private fun DiagnosticVerificationCard(
 ) {
     val visual = DiagnosticStatusPresentation.verification(comparison.status)
     OutlinedNetworkCard {
-            Text("与上次相比", style = MaterialTheme.typography.titleMedium)
-            NetworkStatusChip(visual.state, label = visual.label)
+            Text(stringResource(R.string.report_comparison), style = MaterialTheme.typography.titleMedium)
+            NetworkStatusChip(visual.state, label = stringResource(visual.label))
             Text(comparison.summary, style = MaterialTheme.typography.bodyLarge)
 
             comparison.resolvedFindingCodes.forEach { code ->
@@ -444,17 +445,17 @@ private fun DiagnosticVerificationCard(
 @Composable
 private fun DiagnosticVerificationStatus.displayInfo(): Pair<String, Color> = when (this) {
     DiagnosticVerificationStatus.RESOLVED_OR_NOT_REPRODUCED ->
-        "此前问题未再次出现" to MaterialTheme.colorScheme.primary
+        stringResource(R.string.report_resolved_status) to MaterialTheme.colorScheme.primary
     DiagnosticVerificationStatus.STILL_PRESENT ->
-        "此前问题仍需关注" to MaterialTheme.colorScheme.secondary
+        stringResource(R.string.report_persistent_status) to MaterialTheme.colorScheme.secondary
     DiagnosticVerificationStatus.NEW_FINDINGS ->
-        "发现新的网络问题" to MaterialTheme.colorScheme.secondary
+        stringResource(R.string.report_new_status) to MaterialTheme.colorScheme.secondary
     DiagnosticVerificationStatus.UNCHANGED ->
-        "结果基本一致" to MaterialTheme.colorScheme.primary
+        stringResource(R.string.report_unchanged_status) to MaterialTheme.colorScheme.primary
     DiagnosticVerificationStatus.INCONCLUSIVE ->
-        "暂时无法确认" to MaterialTheme.colorScheme.onSurfaceVariant
+        stringResource(R.string.report_unconfirmed_status) to MaterialTheme.colorScheme.onSurfaceVariant
     DiagnosticVerificationStatus.CONTEXT_CHANGED ->
-        "检测环境已变化" to MaterialTheme.colorScheme.tertiary
+        stringResource(R.string.report_changed) to MaterialTheme.colorScheme.tertiary
 }
 
 private fun DiagnosticVerificationStatus.suggestion(): String = when (this) {
@@ -550,11 +551,11 @@ private fun ReportExportActions(
         modifier = Modifier.fillMaxWidth(),
         onClick = { optionsVisible = true },
     ) {
-        Text("导出报告")
+        Text(stringResource(R.string.report_export))
     }
     if (copyFeedbackVisible) {
         Text(
-            text = "报告已复制",
+            text = stringResource(R.string.report_copied),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.primary,
         )
@@ -563,39 +564,38 @@ private fun ReportExportActions(
     if (optionsVisible) {
         AlertDialog(
             onDismissRequest = { optionsVisible = false },
-            title = { Text("导出报告") },
+            title = { Text(stringResource(R.string.report_export)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        "完整报告包含本地网络信息。\n" +
-                            "可能包括本机 IP、网关、DNS、VPN/Private DNS 状态和检测目标。",
+                        stringResource(R.string.report_export_privacy),
                     )
                     TextButton(onClick = {
                         dispatch(ReportExportOperation.SAVE_PDF)
                     }) {
-                        Text("保存 PDF")
+                        Text(stringResource(R.string.report_save_pdf))
                     }
                     TextButton(onClick = {
                         dispatch(ReportExportOperation.SHARE_PDF)
                     }) {
-                        Text("分享 PDF")
+                        Text(stringResource(R.string.report_share_pdf))
                     }
                     TextButton(onClick = {
                         dispatch(ReportExportOperation.COPY_TEXT)
                     }) {
-                        Text("复制文本")
+                        Text(stringResource(R.string.report_copy))
                     }
                 }
             },
             confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { optionsVisible = false }) { Text("取消") }
+                TextButton(onClick = { optionsVisible = false }) { Text(stringResource(R.string.report_cancel)) }
             },
         )
     }
     if (pdfErrorVisible) {
         Text(
-            text = "无法生成 PDF，请稍后重试。",
+            text = stringResource(R.string.report_pdf_error),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
         )
@@ -611,7 +611,7 @@ private fun ReportFindingItem(finding: DiagnosticFindingPresentation) {
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
         ) {
-            NetworkStatusChip(visual.state, label = visual.label)
+            NetworkStatusChip(visual.state, label = stringResource(visual.label))
             Text(finding.title, style = MaterialTheme.typography.bodyLarge)
         }
         Text(finding.description, style = MaterialTheme.typography.bodyMedium)
@@ -621,16 +621,16 @@ private fun ReportFindingItem(finding: DiagnosticFindingPresentation) {
 @Composable
 private fun UnifiedDiagnosticDetails(presentation: DiagnosticReportPresentation) {
     val summary = presentation.networkSummary
-    ReportSectionCard(title = "网络环境") {
+    ReportSectionCard(title = stringResource(R.string.report_environment)) {
         if (summary == null) {
-            Text("未获得网络环境信息。")
+            Text(stringResource(R.string.report_no_environment))
         } else {
-            ResultRow("网络类型", summary.connectionType.displayName())
+            ResultRow(stringResource(R.string.report_type), summary.connectionType.displayName())
             if (summary.localAddressSummary.isEmpty()) {
-                ResultRow("本机地址", "未检测到")
+                ResultRow(stringResource(R.string.report_local), stringResource(R.string.report_not_detected))
             } else {
                 Text(
-                    "本机地址",
+                    stringResource(R.string.report_local),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -638,22 +638,22 @@ private fun UnifiedDiagnosticDetails(presentation: DiagnosticReportPresentation)
                     Text(address, style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            summary.prefixLength?.let { ResultRow("IPv4 前缀", "/$it") }
+            summary.prefixLength?.let { ResultRow(stringResource(R.string.report_prefix), "/$it") }
             ResultRow(
-                DiagnosticPresentationMapper.networkGatewayLabel(summary.connectionType),
-                summary.gateway ?: "未提供",
+                stringResource(if (summary.connectionType == DiagnosticConnectionType.CELLULAR) R.string.report_next_hop else R.string.report_gateway),
+                summary.gateway ?: stringResource(R.string.report_not_provided),
             )
             ResultRow("VPN", summary.vpnActive.toEnabledText())
-            ResultRow("私人 DNS", summary.privateDnsActive.toEnabledText())
-            summary.privateDnsServerName?.let { ResultRow("私人 DNS 名称", it) }
-            ResultRow("系统联网验证", summary.validated.toValidatedText())
+            ResultRow(stringResource(R.string.report_private_dns), summary.privateDnsActive.toEnabledText())
+            summary.privateDnsServerName?.let { ResultRow(stringResource(R.string.report_private_name), it) }
+            ResultRow(stringResource(R.string.report_validated), summary.validated.toValidatedText())
             Text(
-                "网络配置 DNS",
+                stringResource(R.string.report_dns_servers),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (summary.configuredDnsServers.isEmpty()) {
-                Text("未配置")
+                Text(stringResource(R.string.report_not_configured))
             } else {
                 summary.configuredDnsServers.take(MAX_DETAIL_DNS).forEach { server ->
                     Text(server, style = MaterialTheme.typography.bodyMedium)
@@ -671,12 +671,12 @@ private fun UnifiedDiagnosticDetails(presentation: DiagnosticReportPresentation)
         .forEach { (stage, checks) ->
             ReportSectionCard(title = stage.detailDisplayName()) {
                 checks.forEach { check ->
-                    ResultRow("结果", check.status.displayName())
+                    ResultRow(stringResource(R.string.report_result), check.status.displayName())
                     DiagnosticPresentationMapper.targetDisplayName(check)?.let { target ->
-                        ResultRow("目标", target)
+                        ResultRow(stringResource(R.string.report_target), target)
                     }
                     check.method?.let { method ->
-                        ResultRow("检测方式", DiagnosticPresentationMapper.methodDisplayName(method))
+                        ResultRow(stringResource(R.string.report_method), method.methodDisplayName())
                     }
                     Text(
                         check.summary,
@@ -702,7 +702,7 @@ private fun UnifiedDiagnosticDetails(presentation: DiagnosticReportPresentation)
         .take(MAX_VISIBLE_FINDINGS)
         .takeIf(List<DiagnosticFindingPresentation>::isNotEmpty)
         ?.let { findings ->
-            ReportSectionCard(title = "分析依据") {
+            ReportSectionCard(title = stringResource(R.string.report_evidence)) {
                 findings.forEach { finding ->
                     val evidence = listOfNotNull(
                         finding.confidence?.displayName(),
@@ -746,7 +746,7 @@ private fun DiagnosticRawDataDetails(
                     )
                 }
             check.rawData["avgLatencyMs"]?.let {
-                ResultRow("平均延迟", formatMilliseconds(it))
+                ResultRow(stringResource(R.string.report_avg), formatMilliseconds(it))
             }
         }
 
@@ -756,24 +756,24 @@ private fun DiagnosticRawDataDetails(
                 ?.filter(String::isNotBlank)
                 ?.forEach { outcome -> Text(formatTargetOutcome(outcome)) }
             check.rawData["domainAccess"]?.let {
-                ResultRow("实际域名访问", it.toStatusDisplayName())
+                ResultRow(stringResource(R.string.report_domain_access), it.toStatusDisplayName())
             }
         }
 
         AutomaticDiagnosticStage.DNS -> {
-            check.rawData["requestedTypes"]?.let { ResultRow("查询类型", it) }
+            check.rawData["requestedTypes"]?.let { ResultRow(stringResource(R.string.report_query_types), it) }
             check.rawData["recordCounts"]
                 ?.split(',')
                 ?.filter(String::isNotBlank)
                 ?.forEach { count ->
                     val type = count.substringBefore('=')
                     val value = count.substringAfter('=', "0")
-                    ResultRow("$type 记录", "$value 条")
+                    ResultRow(stringResource(R.string.report_record_type, type), stringResource(R.string.report_record_count, value))
                 }
             check.rawData["durationMs"]?.let {
-                ResultRow("查询耗时", formatMilliseconds(it))
+                ResultRow(stringResource(R.string.report_duration), formatMilliseconds(it))
             }
-            check.rawData["recordCount"]?.let { ResultRow("记录数量", it) }
+            check.rawData["recordCount"]?.let { ResultRow(stringResource(R.string.report_records), it) }
             check.rawData["fakeIpObserved"]
                 ?.toBooleanStrictOrNull()
                 ?.takeIf { it }
@@ -799,7 +799,7 @@ private fun DiagnosticRawDataDetails(
             check.rawData["addresses"]
                 ?.split(',')
                 ?.filter(String::isNotBlank)
-                ?.forEach { address -> Text("地址：$address") }
+                ?.forEach { address -> Text(stringResource(R.string.report_address, address)) }
         }
 
         AutomaticDiagnosticStage.NETWORK_STATE,
@@ -834,8 +834,8 @@ private fun ReportMetadata(presentation: DiagnosticReportPresentation) {
 private fun AutomaticOverview(status: DiagnosticDiagnosisStatus?) {
     val visual = DiagnosticStatusPresentation.diagnosis(status)
     NetworkCard(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh) {
-        Text("诊断完成", style = MaterialTheme.typography.titleLarge)
-        NetworkStatusChip(visual.state, label = visual.label)
+        Text(stringResource(R.string.report_complete), style = MaterialTheme.typography.titleLarge)
+        NetworkStatusChip(visual.state, label = stringResource(visual.label))
     }
 }
 
@@ -872,7 +872,7 @@ private fun AutomaticStageSummaryRow(summary: DiagnosticStageSummary) {
                 text = summary.stage.checkDisplayName(),
                 style = MaterialTheme.typography.bodyLarge,
             )
-            NetworkStatusChip(visual.state, label = visual.label)
+            NetworkStatusChip(visual.state, label = stringResource(visual.label))
         }
         Text(
             text = summary.summary,
@@ -898,16 +898,16 @@ private fun AutomaticFindingItem(finding: DiagnosticFinding) {
 @Composable
 private fun AutomaticDiagnosticDetails(result: AutomaticDiagnosticResult) {
     val summary = result.evidence.networkContextSummary
-    ReportSectionCard(title = "网络环境") {
+    ReportSectionCard(title = stringResource(R.string.report_environment)) {
         if (summary == null) {
-            Text("未获得网络环境信息。")
+            Text(stringResource(R.string.report_no_environment))
         } else {
-            ResultRow("网络类型", summary.connectionType.displayName())
+            ResultRow(stringResource(R.string.report_type), summary.connectionType.displayName())
             if (summary.localAddressSummary.isEmpty()) {
-                ResultRow("本机地址", "未检测到")
+                ResultRow(stringResource(R.string.report_local), stringResource(R.string.report_not_detected))
             } else {
                 Text(
-                    "本机地址",
+                    stringResource(R.string.report_local),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -915,19 +915,19 @@ private fun AutomaticDiagnosticDetails(result: AutomaticDiagnosticResult) {
                     Text(address, style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            summary.prefixLength?.let { ResultRow("IPv4 前缀", "/$it") }
-            ResultRow("网关", summary.gateway ?: "未提供")
+            summary.prefixLength?.let { ResultRow(stringResource(R.string.report_prefix), "/$it") }
+            ResultRow(stringResource(R.string.report_gateway), summary.gateway ?: stringResource(R.string.report_not_provided))
             ResultRow("VPN", summary.vpnActive.toEnabledText())
-            ResultRow("私人 DNS", summary.privateDnsActive.toEnabledText())
-            summary.privateDnsServerName?.let { ResultRow("私人 DNS 名称", it) }
-            ResultRow("系统联网验证", summary.validated.toValidatedText())
+            ResultRow(stringResource(R.string.report_private_dns), summary.privateDnsActive.toEnabledText())
+            summary.privateDnsServerName?.let { ResultRow(stringResource(R.string.report_private_name), it) }
+            ResultRow(stringResource(R.string.report_validated), summary.validated.toValidatedText())
             Text(
-                "网络配置 DNS",
+                stringResource(R.string.report_dns_servers),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (summary.configuredDnsServers.isEmpty()) {
-                Text("未配置")
+                Text(stringResource(R.string.report_not_configured))
             } else {
                 summary.configuredDnsServers.take(MAX_DETAIL_DNS).forEach { server ->
                     Text(server, style = MaterialTheme.typography.bodyMedium)
@@ -945,12 +945,12 @@ private fun AutomaticDiagnosticDetails(result: AutomaticDiagnosticResult) {
         .forEach { (stage, checks) ->
             ReportSectionCard(title = stage.detailDisplayName()) {
                 checks.forEach { check ->
-                    ResultRow("结果", check.status.displayName())
+                    ResultRow(stringResource(R.string.report_result), check.status.displayName())
                     DiagnosticPresentationMapper.targetDisplayName(check)?.let { target ->
-                        ResultRow("目标", target)
+                        ResultRow(stringResource(R.string.report_target), target)
                     }
                     check.method?.let { method ->
-                        ResultRow("检测方式", DiagnosticPresentationMapper.methodDisplayName(method))
+                        ResultRow(stringResource(R.string.report_method), method.methodDisplayName())
                     }
                     Text(
                         check.userFacingSummary(),
@@ -972,7 +972,7 @@ private fun AutomaticDiagnosticDetails(result: AutomaticDiagnosticResult) {
         .take(MAX_VISIBLE_FINDINGS)
         .let { findings ->
             if (findings.isNotEmpty()) {
-                ReportSectionCard(title = "分析依据") {
+                ReportSectionCard(title = stringResource(R.string.report_evidence)) {
                     findings.forEach { finding ->
                         Text(
                             "${finding.title} · ${finding.confidence.displayName()} · " +
@@ -995,10 +995,10 @@ private fun DiagnosticObservationDetails(
         (observation.value as? DiagnosticObservationValue.TcpOutcomeValue)?.outcome
     }
     if (tcpOutcomes.isNotEmpty()) {
-        Text("TCP 探测结果", style = MaterialTheme.typography.labelLarge)
+        Text(stringResource(R.string.report_tcp_results), style = MaterialTheme.typography.labelLarge)
         tcpOutcomes.forEach { outcome ->
             Text(
-                DiagnosticPresentationMapper.tcpOutcomeDisplayName(outcome),
+                outcome.name.tcpOutcomeLabel(),
                 style = MaterialTheme.typography.bodySmall,
             )
         }
@@ -1006,17 +1006,17 @@ private fun DiagnosticObservationDetails(
     val latencies = observations.mapNotNull { observation ->
         (observation.value as? DiagnosticObservationValue.LatencyValue)?.milliseconds
     }
-    latencies.forEach { latency -> ResultRow("延迟", "$latency ms") }
+    latencies.forEach { latency -> ResultRow(stringResource(R.string.report_latency), "$latency ms") }
 
     val records = observations.mapNotNull { observation ->
         observation.value as? DiagnosticObservationValue.DnsRecordValue
     }
     if (records.isNotEmpty()) {
-        Text("DNS 记录", style = MaterialTheme.typography.labelLarge)
+        Text(stringResource(R.string.report_dns_records), style = MaterialTheme.typography.labelLarge)
         records.take(MAX_DETAIL_DNS_RECORDS).forEach { record ->
             val suffix = buildString {
                 record.ttlSeconds?.let { append(" · TTL $it s") }
-                record.priority?.let { append(" · 优先级 $it") }
+                record.priority?.let { append(stringResource(R.string.report_priority, it)) }
             }
             Text(
                 "${record.recordType}  ${record.value}$suffix",
@@ -1043,8 +1043,8 @@ private fun NetworkChangedContent(
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
         ) {
-            NetworkStatusChip(StatusVisualState.NOTICE, label = "检测环境已变化")
-            Text("本次结果需谨慎解读", style = MaterialTheme.typography.titleMedium)
+            NetworkStatusChip(StatusVisualState.NOTICE, label = stringResource(R.string.report_changed))
+            Text(stringResource(R.string.report_caution), style = MaterialTheme.typography.titleMedium)
         }
         Text(
             result.analysis.diagnosis?.explanation
@@ -1054,7 +1054,7 @@ private fun NetworkChangedContent(
             "建议在网络稳定后重新执行诊断。",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        SecondaryActionButton(onClick = onRunCheck) { Text("重新诊断") }
+        SecondaryActionButton(onClick = onRunCheck) { Text(stringResource(R.string.report_retry)) }
     }
 }
 
@@ -1068,12 +1068,12 @@ private fun FailedContent(
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
         ) {
-            NetworkStatusChip(StatusVisualState.ERROR, label = "无法完成")
-            Text("诊断无法完成", style = MaterialTheme.typography.titleMedium)
+            NetworkStatusChip(StatusVisualState.ERROR, label = stringResource(R.string.report_unable))
+            Text(stringResource(R.string.report_failed), style = MaterialTheme.typography.titleMedium)
         }
-        Text(status.message)
+        Text(stringResource(R.string.report_failure_help))
         status.result?.analysis?.diagnosis?.explanation?.let { Text(it) }
-        SecondaryActionButton(onClick = onRetry) { Text("重新诊断") }
+        SecondaryActionButton(onClick = onRetry) { Text(stringResource(R.string.report_retry)) }
     }
 }
 
@@ -1120,7 +1120,7 @@ private fun ReportOverview(report: DiagnosticReportV2) {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("诊断完成", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.report_complete), style = MaterialTheme.typography.titleLarge)
             Surface(
                 color = statusColor.copy(alpha = 0.14f),
                 contentColor = statusColor,
@@ -1172,19 +1172,19 @@ private fun FindingItem(finding: DiagnosticFindingV2) {
 @Composable
 private fun DiagnosticDetails(report: DiagnosticReportV2) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        ReportSectionCard(title = "网络环境") {
+        ReportSectionCard(title = stringResource(R.string.report_environment)) {
             val context = report.networkSnapshot
             if (context == null) {
-                Text("未获得网络环境信息。")
+                Text(stringResource(R.string.report_no_environment))
             } else {
-                ResultRow("网络类型", context.connectionType.displayName())
-                ResultRow("IPv4", context.ipv4Address ?: "未检测到")
-                ResultRow("IPv6", context.ipv6Address ?: "未检测到")
+                ResultRow(stringResource(R.string.report_type), context.connectionType.displayName())
+                ResultRow("IPv4", context.ipv4Address ?: stringResource(R.string.report_not_detected))
+                ResultRow("IPv6", context.ipv6Address ?: stringResource(R.string.report_not_detected))
                 ResultRow("VPN", context.vpnActive.toEnabledText())
-                ResultRow("系统联网验证", context.validated.toValidatedText())
-                Text("网络配置 DNS", style = MaterialTheme.typography.labelLarge)
+                ResultRow(stringResource(R.string.report_validated), context.validated.toValidatedText())
+                Text(stringResource(R.string.report_dns_servers), style = MaterialTheme.typography.labelLarge)
                 if (context.dnsServers.isEmpty()) {
-                    Text("未检测到", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.report_not_detected), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
                     context.dnsServers.forEach { dns -> Text(dns) }
                 }
@@ -1192,24 +1192,24 @@ private fun DiagnosticDetails(report: DiagnosticReportV2) {
         }
 
         report.checks.firstOrNull { it.stage == DiagnosticStage.GATEWAY }?.let { check ->
-            ReportSectionCard(title = "网关") {
+            ReportSectionCard(title = stringResource(R.string.report_gateway)) {
                 if (check.rawData["reason"] == "cellular_gateway_not_applicable") {
-                    ResultRow("系统报告网关", check.target ?: "未提供")
+                    ResultRow(stringResource(R.string.report_system_gateway), check.target ?: stringResource(R.string.report_not_provided))
                 } else {
-                    ResultRow("目标", check.target ?: "未提供")
+                    ResultRow(stringResource(R.string.report_target), check.target ?: stringResource(R.string.report_not_provided))
                 }
-                ResultRow("结果", check.status.displayName())
-                check.method?.let { ResultRow("检测方式", it.methodDisplayName()) }
+                ResultRow(stringResource(R.string.report_result), check.status.displayName())
+                check.method?.let { ResultRow(stringResource(R.string.report_method), it.methodDisplayName()) }
                 check.rawData["avgLatencyMs"]?.let {
-                    ResultRow("平均延迟", formatMilliseconds(it))
+                    ResultRow(stringResource(R.string.report_avg), formatMilliseconds(it))
                 }
                 Text(check.summary, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
         report.checks.firstOrNull { it.stage == DiagnosticStage.PUBLIC_CONNECTIVITY }?.let { check ->
-            ReportSectionCard(title = "公网") {
-                Text("公网探测", style = MaterialTheme.typography.labelLarge)
+            ReportSectionCard(title = stringResource(R.string.report_public)) {
+                Text(stringResource(R.string.report_public_probes), style = MaterialTheme.typography.labelLarge)
                 check.rawData["targetOutcomes"]
                     ?.split(';')
                     ?.filter(String::isNotBlank)
@@ -1217,53 +1217,53 @@ private fun DiagnosticDetails(report: DiagnosticReportV2) {
                         Text(formatTargetOutcome(outcome))
                     }
                 check.rawData["domainAccess"]?.let {
-                    ResultRow("实际域名访问", it.toStatusDisplayName())
+                    ResultRow(stringResource(R.string.report_domain_access), it.toStatusDisplayName())
                 }
-                ResultRow("综合判断", check.status.displayName())
+                ResultRow(stringResource(R.string.report_overall), check.status.displayName())
                 Text(check.summary, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
         report.checks.firstOrNull { it.stage == DiagnosticStage.DNS }?.let { check ->
             ReportSectionCard(title = "DNS") {
-                ResultRow("查询域名", check.target ?: "未提供")
-                ResultRow("状态", check.status.displayName())
-                check.rawData["requestedTypes"]?.let { ResultRow("查询类型", it) }
+                ResultRow(stringResource(R.string.report_domain), check.target ?: stringResource(R.string.report_not_provided))
+                ResultRow(stringResource(R.string.report_status), check.status.displayName())
+                check.rawData["requestedTypes"]?.let { ResultRow(stringResource(R.string.report_query_types), it) }
                 check.rawData["recordCounts"]
                     ?.split(',')
                     ?.filter(String::isNotBlank)
                     ?.forEach { count ->
                         val type = count.substringBefore('=')
                         val value = count.substringAfter('=', "0")
-                        ResultRow("$type 记录", "$value 条")
+                        ResultRow(stringResource(R.string.report_record_type, type), stringResource(R.string.report_record_count, value))
                     }
                 check.rawData["durationMs"]
-                    ?.let { ResultRow("查询耗时", formatMilliseconds(it)) }
-                check.rawData["recordCount"]?.let { ResultRow("记录数量", it) }
-                check.method?.let { ResultRow("查询方式", it.methodDisplayName()) }
+                    ?.let { ResultRow(stringResource(R.string.report_duration), formatMilliseconds(it)) }
+                check.rawData["recordCount"]?.let { ResultRow(stringResource(R.string.report_records), it) }
+                check.method?.let { ResultRow(stringResource(R.string.report_query_method), it.methodDisplayName()) }
                 check.rawData["fakeIpObserved"]?.toBooleanStrictOrNull()
                     ?.takeIf { it }
                     ?.let { Text("提示：检测到特殊用途地址，可能存在 Fake-IP DNS 环境。") }
                 check.rawData["error"]
                     ?.takeIf { it.isNotBlank() }
-                    ?.let { ResultRow("错误", it) }
+                    ?.let { ResultRow(stringResource(R.string.report_error_label), it) }
             }
         }
 
         report.checks.firstOrNull { it.stage == DiagnosticStage.DOMAIN_CONNECTIVITY }?.let { check ->
-            ReportSectionCard(title = "域名访问") {
-                ResultRow("目标", check.target ?: "未提供")
-                ResultRow("结果", check.status.displayName())
+            ReportSectionCard(title = stringResource(R.string.report_domain_stage)) {
+                ResultRow(stringResource(R.string.report_target), check.target ?: stringResource(R.string.report_not_provided))
+                ResultRow(stringResource(R.string.report_result), check.status.displayName())
                 check.rawData["addresses"]
                     ?.split(',')
                     ?.filter(String::isNotBlank)
-                    ?.forEach { address -> Text("地址：$address") }
+                    ?.forEach { address -> Text(stringResource(R.string.report_address, address)) }
                 Text(check.summary, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
         report.checks.firstOrNull { it.stage == DiagnosticStage.NETWORK_CHANGED }?.let { check ->
-            ReportSectionCard(title = "网络切换") {
+            ReportSectionCard(title = stringResource(R.string.report_network_change)) {
                 Text(check.summary)
             }
         }
@@ -1300,11 +1300,11 @@ private fun CancelledContent(onRunCheck: () -> Unit) {
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
         ) {
-            NetworkStatusChip(StatusVisualState.CANCELLED, label = "已停止")
-            Text("诊断已停止", style = MaterialTheme.typography.titleMedium)
+            NetworkStatusChip(StatusVisualState.CANCELLED, label = stringResource(R.string.report_stopped))
+            Text(stringResource(R.string.report_cancelled), style = MaterialTheme.typography.titleMedium)
         }
-        Text("本次未生成完整报告，也不会写入历史记录。")
-        SecondaryActionButton(onClick = onRunCheck) { Text("重新诊断") }
+        Text(stringResource(R.string.report_cancel_help))
+        SecondaryActionButton(onClick = onRunCheck) { Text(stringResource(R.string.report_retry)) }
     }
 }
 
@@ -1318,11 +1318,11 @@ private fun ErrorContent(
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
         ) {
-            NetworkStatusChip(StatusVisualState.ERROR, label = "无法完成")
-            Text("诊断无法完成", style = MaterialTheme.typography.titleMedium)
+            NetworkStatusChip(StatusVisualState.ERROR, label = stringResource(R.string.report_unable))
+            Text(stringResource(R.string.report_failed), style = MaterialTheme.typography.titleMedium)
         }
-        Text(message)
-        SecondaryActionButton(onClick = onRetry) { Text("重试") }
+        Text(stringResource(R.string.report_failure_help))
+        SecondaryActionButton(onClick = onRetry) { Text(stringResource(R.string.report_retry_short)) }
     }
 }
 
@@ -1333,41 +1333,45 @@ private const val MAX_DETAIL_ADDRESSES = 16
 private const val MAX_DETAIL_DNS = 16
 private const val MAX_DETAIL_DNS_RECORDS = 12
 
+@Composable
 private fun formatReportTimestamp(timestamp: Long): String = runCatching {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
     Instant.ofEpochMilli(timestamp)
         .atZone(ZoneId.systemDefault())
         .format(formatter)
-}.getOrDefault("时间未记录")
+}.getOrDefault(stringResource(R.string.report_time_missing))
 
+@Composable
 private fun AutomaticDiagnosticStage.displayName(): String = when (this) {
-    AutomaticDiagnosticStage.NETWORK_STATE -> "获取网络状态"
-    AutomaticDiagnosticStage.IP_CONFIGURATION -> "检查 IP 配置"
-    AutomaticDiagnosticStage.GATEWAY -> "检查本地网关"
-    AutomaticDiagnosticStage.INTERNET -> "检查公网连接"
-    AutomaticDiagnosticStage.DNS -> "检查 DNS"
-    AutomaticDiagnosticStage.TARGET -> "检查目标访问"
-    AutomaticDiagnosticStage.ADVANCED_PATH -> "检查高级路径"
+    AutomaticDiagnosticStage.NETWORK_STATE -> stringResource(R.string.report_get_network)
+    AutomaticDiagnosticStage.IP_CONFIGURATION -> stringResource(R.string.report_check_ip)
+    AutomaticDiagnosticStage.GATEWAY -> stringResource(R.string.report_check_gateway)
+    AutomaticDiagnosticStage.INTERNET -> stringResource(R.string.report_check_internet)
+    AutomaticDiagnosticStage.DNS -> stringResource(R.string.report_check_dns)
+    AutomaticDiagnosticStage.TARGET -> stringResource(R.string.report_check_target)
+    AutomaticDiagnosticStage.ADVANCED_PATH -> stringResource(R.string.report_check_advanced)
 }
 
+@Composable
 private fun AutomaticDiagnosticStage.checkDisplayName(): String = when (this) {
-    AutomaticDiagnosticStage.NETWORK_STATE -> "本机网络"
-    AutomaticDiagnosticStage.IP_CONFIGURATION -> "IP 配置"
-    AutomaticDiagnosticStage.GATEWAY -> "本地网关"
-    AutomaticDiagnosticStage.INTERNET -> "公网连接"
-    AutomaticDiagnosticStage.DNS -> "DNS 解析"
-    AutomaticDiagnosticStage.TARGET -> "域名访问"
-    AutomaticDiagnosticStage.ADVANCED_PATH -> "高级路径"
+    AutomaticDiagnosticStage.NETWORK_STATE -> stringResource(R.string.report_local_network)
+    AutomaticDiagnosticStage.IP_CONFIGURATION -> stringResource(R.string.report_ip_config)
+    AutomaticDiagnosticStage.GATEWAY -> stringResource(R.string.report_local_gateway)
+    AutomaticDiagnosticStage.INTERNET -> stringResource(R.string.report_internet)
+    AutomaticDiagnosticStage.DNS -> stringResource(R.string.report_dns_stage)
+    AutomaticDiagnosticStage.TARGET -> stringResource(R.string.report_domain_stage)
+    AutomaticDiagnosticStage.ADVANCED_PATH -> stringResource(R.string.report_advanced)
 }
 
+@Composable
 private fun AutomaticDiagnosticStage.detailDisplayName(): String = when (this) {
-    AutomaticDiagnosticStage.NETWORK_STATE -> "网络状态"
-    AutomaticDiagnosticStage.IP_CONFIGURATION -> "IP 配置"
-    AutomaticDiagnosticStage.GATEWAY -> "网关"
-    AutomaticDiagnosticStage.INTERNET -> "公网"
+    AutomaticDiagnosticStage.NETWORK_STATE -> stringResource(R.string.report_network_status)
+    AutomaticDiagnosticStage.IP_CONFIGURATION -> stringResource(R.string.report_ip_config)
+    AutomaticDiagnosticStage.GATEWAY -> stringResource(R.string.report_gateway)
+    AutomaticDiagnosticStage.INTERNET -> stringResource(R.string.report_public)
     AutomaticDiagnosticStage.DNS -> "DNS"
-    AutomaticDiagnosticStage.TARGET -> "目标访问"
-    AutomaticDiagnosticStage.ADVANCED_PATH -> "高级路径"
+    AutomaticDiagnosticStage.TARGET -> stringResource(R.string.report_target_access)
+    AutomaticDiagnosticStage.ADVANCED_PATH -> stringResource(R.string.report_advanced)
 }
 
 @Composable
@@ -1384,23 +1388,23 @@ private fun automaticStatusDisplayInfo(
     severity: AutomaticDiagnosticSeverity,
 ): Triple<String, String, Color> = when (status) {
     AutomaticDiagnosticCheckStatus.PASS -> if (severity == AutomaticDiagnosticSeverity.HEALTHY) {
-        Triple("✓", "正常", AutomaticDiagnosticSeverity.HEALTHY.color())
+        Triple("✓", stringResource(R.string.report_normal), AutomaticDiagnosticSeverity.HEALTHY.color())
     } else {
-        Triple("!", "提示", AutomaticDiagnosticSeverity.NOTICE.color())
+        Triple("!", stringResource(R.string.report_notice), AutomaticDiagnosticSeverity.NOTICE.color())
     }
     AutomaticDiagnosticCheckStatus.FAIL -> if (severity == AutomaticDiagnosticSeverity.ERROR) {
-        Triple("×", "严重异常", AutomaticDiagnosticSeverity.ERROR.color())
+        Triple("×", stringResource(R.string.report_severe), AutomaticDiagnosticSeverity.ERROR.color())
     } else {
-        Triple("!", "异常", AutomaticDiagnosticSeverity.WARNING.color())
+        Triple("!", stringResource(R.string.report_warning), AutomaticDiagnosticSeverity.WARNING.color())
     }
     AutomaticDiagnosticCheckStatus.NO_RECORDS ->
-        Triple("!", "无记录", AutomaticDiagnosticSeverity.NOTICE.color())
+        Triple("!", stringResource(R.string.report_no_records), AutomaticDiagnosticSeverity.NOTICE.color())
     AutomaticDiagnosticCheckStatus.NOT_APPLICABLE ->
-        Triple("－", "不适用", MaterialTheme.colorScheme.onSurfaceVariant)
+        Triple("－", stringResource(R.string.report_na), MaterialTheme.colorScheme.onSurfaceVariant)
     AutomaticDiagnosticCheckStatus.SKIPPED ->
-        Triple("－", "未执行", MaterialTheme.colorScheme.onSurfaceVariant)
+        Triple("－", stringResource(R.string.report_not_run), MaterialTheme.colorScheme.onSurfaceVariant)
     AutomaticDiagnosticCheckStatus.UNKNOWN ->
-        Triple("?", "未确定", MaterialTheme.colorScheme.onSurfaceVariant)
+        Triple("?", stringResource(R.string.report_unknown), MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
@@ -1413,90 +1417,97 @@ private fun AutomaticDiagnosticSeverity.color(): Color = when (this) {
 
 @Composable
 private fun AutomaticDiagnosticSeverity.findingDisplayInfo(): Triple<String, String, Color> = when (this) {
-    AutomaticDiagnosticSeverity.HEALTHY -> Triple("✓", "正常", color())
-    AutomaticDiagnosticSeverity.NOTICE -> Triple("ℹ", "提示", color())
-    AutomaticDiagnosticSeverity.WARNING -> Triple("!", "异常", color())
-    AutomaticDiagnosticSeverity.ERROR -> Triple("×", "严重异常", color())
+    AutomaticDiagnosticSeverity.HEALTHY -> Triple("✓", stringResource(R.string.report_normal), color())
+    AutomaticDiagnosticSeverity.NOTICE -> Triple("ℹ", stringResource(R.string.report_notice), color())
+    AutomaticDiagnosticSeverity.WARNING -> Triple("!", stringResource(R.string.report_warning), color())
+    AutomaticDiagnosticSeverity.ERROR -> Triple("×", stringResource(R.string.report_severe), color())
 }
 
 @Composable
 private fun DiagnosticDiagnosisStatus?.overviewDisplayInfo(): Pair<String, Color> = when (this) {
-    DiagnosticDiagnosisStatus.NORMAL -> "🟢 网络状态正常" to MaterialTheme.colorScheme.primary
-    DiagnosticDiagnosisStatus.ATTENTION -> "🟡 发现需要关注的问题" to MaterialTheme.colorScheme.secondary
-    DiagnosticDiagnosisStatus.LIMITED -> "🟠 部分网络能力受限" to MaterialTheme.colorScheme.secondary
+    DiagnosticDiagnosisStatus.NORMAL -> stringResource(R.string.report_legacy_normal) to MaterialTheme.colorScheme.primary
+    DiagnosticDiagnosisStatus.ATTENTION -> stringResource(R.string.report_legacy_attention) to MaterialTheme.colorScheme.secondary
+    DiagnosticDiagnosisStatus.LIMITED -> stringResource(R.string.report_legacy_limited) to MaterialTheme.colorScheme.secondary
     DiagnosticDiagnosisStatus.UNKNOWN,
     null,
-    -> "⚪ 暂时无法确定网络状态" to MaterialTheme.colorScheme.onSurfaceVariant
+    -> stringResource(R.string.report_legacy_unknown) to MaterialTheme.colorScheme.onSurfaceVariant
 }
 
+@Composable
 private fun AutomaticDiagnosticCheckStatus.displayName(): String = when (this) {
-    AutomaticDiagnosticCheckStatus.PASS -> "正常"
-    AutomaticDiagnosticCheckStatus.FAIL -> "异常"
-    AutomaticDiagnosticCheckStatus.NO_RECORDS -> "无记录"
-    AutomaticDiagnosticCheckStatus.NOT_APPLICABLE -> "不适用"
-    AutomaticDiagnosticCheckStatus.SKIPPED -> "未执行"
-    AutomaticDiagnosticCheckStatus.UNKNOWN -> "未确定"
+    AutomaticDiagnosticCheckStatus.PASS -> stringResource(R.string.report_normal)
+    AutomaticDiagnosticCheckStatus.FAIL -> stringResource(R.string.report_warning)
+    AutomaticDiagnosticCheckStatus.NO_RECORDS -> stringResource(R.string.report_no_records)
+    AutomaticDiagnosticCheckStatus.NOT_APPLICABLE -> stringResource(R.string.report_na)
+    AutomaticDiagnosticCheckStatus.SKIPPED -> stringResource(R.string.report_not_run)
+    AutomaticDiagnosticCheckStatus.UNKNOWN -> stringResource(R.string.report_unknown)
 }
 
 private fun AutomaticDiagnosticCheck.userFacingSummary(): String =
     DiagnosticPresentationMapper.userFacingSummary(this)
 
+@Composable
 private fun DiagnosticConnectionType.displayName(): String = when (this) {
     DiagnosticConnectionType.WIFI -> "Wi-Fi"
-    DiagnosticConnectionType.CELLULAR -> "移动网络"
-    DiagnosticConnectionType.ETHERNET -> "以太网"
+    DiagnosticConnectionType.CELLULAR -> stringResource(R.string.report_mobile)
+    DiagnosticConnectionType.ETHERNET -> stringResource(R.string.report_ethernet)
     DiagnosticConnectionType.VPN -> "VPN"
-    DiagnosticConnectionType.BLUETOOTH -> "蓝牙"
-    DiagnosticConnectionType.UNKNOWN -> "未知网络"
+    DiagnosticConnectionType.BLUETOOTH -> stringResource(R.string.report_bluetooth)
+    DiagnosticConnectionType.UNKNOWN -> stringResource(R.string.report_unknown_network)
 }
 
+@Composable
 private fun DiagnosticEvidenceLevel.displayName(): String = when (this) {
-    DiagnosticEvidenceLevel.CONFIRMED -> "已确认"
-    DiagnosticEvidenceLevel.SUPPORTED -> "有一定依据"
-    DiagnosticEvidenceLevel.INCONCLUSIVE -> "证据不足"
-    DiagnosticEvidenceLevel.CONTRADICTED -> "存在冲突"
+    DiagnosticEvidenceLevel.CONFIRMED -> stringResource(R.string.report_confirmed)
+    DiagnosticEvidenceLevel.SUPPORTED -> stringResource(R.string.report_supported)
+    DiagnosticEvidenceLevel.INCONCLUSIVE -> stringResource(R.string.report_inconclusive)
+    DiagnosticEvidenceLevel.CONTRADICTED -> stringResource(R.string.report_contradicted)
 }
 
+@Composable
 private fun com.networktoolbox.core.common.diagnostic.DiagnosticConfidence.displayName(): String = when (this) {
-    com.networktoolbox.core.common.diagnostic.DiagnosticConfidence.HIGH -> "高可信度"
-    com.networktoolbox.core.common.diagnostic.DiagnosticConfidence.MEDIUM -> "中等可信度"
-    com.networktoolbox.core.common.diagnostic.DiagnosticConfidence.LOW -> "低可信度"
+    com.networktoolbox.core.common.diagnostic.DiagnosticConfidence.HIGH -> stringResource(R.string.report_high_confidence)
+    com.networktoolbox.core.common.diagnostic.DiagnosticConfidence.MEDIUM -> stringResource(R.string.report_medium_confidence)
+    com.networktoolbox.core.common.diagnostic.DiagnosticConfidence.LOW -> stringResource(R.string.report_low_confidence)
 }
 
+@Composable
 private fun String.toTechnicalDisplayName(): String = when (this) {
-    "TCP_CONNECT" -> "TCP 连接探测"
-    "SYSTEM_DNS" -> "系统 DNS 解析器"
-    "ANDROID_DNS_RESOLVER" -> "Android 系统 DNS 解析器"
-    "TCP_443_PROBES_WITH_VALIDATED_CONTEXT" -> "TCP 443 辅助探测与系统联网状态"
+    "TCP_CONNECT" -> stringResource(R.string.report_tcp_method)
+    "SYSTEM_DNS" -> stringResource(R.string.report_system_dns)
+    "ANDROID_DNS_RESOLVER" -> stringResource(R.string.report_android_dns)
+    "TCP_443_PROBES_WITH_VALIDATED_CONTEXT" -> stringResource(R.string.report_tcp_validated)
     else -> replace('_', ' ')
 }
 
+@Composable
 private fun DiagnosticStage.displayName(): String = when (this) {
-    DiagnosticStage.NETWORK_CONTEXT -> "获取网络状态"
-    DiagnosticStage.GATEWAY -> "检查本地网关"
-    DiagnosticStage.PUBLIC_CONNECTIVITY -> "检查公网连接"
-    DiagnosticStage.DNS -> "检查 DNS"
-    DiagnosticStage.DOMAIN_CONNECTIVITY -> "检查域名访问"
-    DiagnosticStage.NETWORK_CHANGED -> "检查网络变化"
-    DiagnosticStage.ANALYSIS -> "生成诊断结果"
+    DiagnosticStage.NETWORK_CONTEXT -> stringResource(R.string.report_get_network)
+    DiagnosticStage.GATEWAY -> stringResource(R.string.report_check_gateway)
+    DiagnosticStage.PUBLIC_CONNECTIVITY -> stringResource(R.string.report_check_internet)
+    DiagnosticStage.DNS -> stringResource(R.string.report_check_dns)
+    DiagnosticStage.DOMAIN_CONNECTIVITY -> stringResource(R.string.report_check_domain)
+    DiagnosticStage.NETWORK_CHANGED -> stringResource(R.string.report_check_changed)
+    DiagnosticStage.ANALYSIS -> stringResource(R.string.report_analyze)
 }
 
+@Composable
 private fun DiagnosticCheck.displayName(): String = when (stage) {
-    DiagnosticStage.NETWORK_CONTEXT -> "本机网络"
-    DiagnosticStage.GATEWAY -> "本地网关"
-    DiagnosticStage.PUBLIC_CONNECTIVITY -> "公网连接"
-    DiagnosticStage.DNS -> "DNS 解析"
-    DiagnosticStage.DOMAIN_CONNECTIVITY -> "域名访问"
-    DiagnosticStage.NETWORK_CHANGED -> "网络变化"
-    DiagnosticStage.ANALYSIS -> "诊断分析"
+    DiagnosticStage.NETWORK_CONTEXT -> stringResource(R.string.report_local_network)
+    DiagnosticStage.GATEWAY -> stringResource(R.string.report_local_gateway)
+    DiagnosticStage.PUBLIC_CONNECTIVITY -> stringResource(R.string.report_internet)
+    DiagnosticStage.DNS -> stringResource(R.string.report_dns_stage)
+    DiagnosticStage.DOMAIN_CONNECTIVITY -> stringResource(R.string.report_domain_stage)
+    DiagnosticStage.NETWORK_CHANGED -> stringResource(R.string.report_changed_stage)
+    DiagnosticStage.ANALYSIS -> stringResource(R.string.report_analysis)
 }
 
 @Composable
 private fun DiagnosticCheck.displayInfo(): Triple<String, String, Color> = when (status) {
     DiagnosticCheckStatus.PASS -> if (severity == DiagnosticSeverity.HEALTHY) {
-        Triple("✓", "正常", severity.color())
+        Triple("✓", stringResource(R.string.report_normal), severity.color())
     } else {
-        Triple("!", "提示", severity.color())
+        Triple("!", stringResource(R.string.report_notice), severity.color())
     }
 
     DiagnosticCheckStatus.FAIL -> Triple(
@@ -1505,25 +1516,26 @@ private fun DiagnosticCheck.displayInfo(): Triple<String, String, Color> = when 
         severity.color(),
     )
 
-    DiagnosticCheckStatus.NO_RECORDS -> Triple("!", "无记录", DiagnosticSeverity.NOTICE.color())
-    DiagnosticCheckStatus.NOT_APPLICABLE -> Triple("－", "不适用", DiagnosticSeverity.NOTICE.color())
-    DiagnosticCheckStatus.SKIPPED -> Triple("－", "未执行", DiagnosticSeverity.NOTICE.color())
-    DiagnosticCheckStatus.UNKNOWN -> Triple("?", "未确定", MaterialTheme.colorScheme.onSurfaceVariant)
+    DiagnosticCheckStatus.NO_RECORDS -> Triple("!", stringResource(R.string.report_no_records), DiagnosticSeverity.NOTICE.color())
+    DiagnosticCheckStatus.NOT_APPLICABLE -> Triple("－", stringResource(R.string.report_na), DiagnosticSeverity.NOTICE.color())
+    DiagnosticCheckStatus.SKIPPED -> Triple("－", stringResource(R.string.report_not_run), DiagnosticSeverity.NOTICE.color())
+    DiagnosticCheckStatus.UNKNOWN -> Triple("?", stringResource(R.string.report_unknown), MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
 private fun DiagnosticSeverity.displayInfo(): Triple<String, String, Color> = when (this) {
-    DiagnosticSeverity.HEALTHY -> Triple("✓", "正常", color())
-    DiagnosticSeverity.NOTICE -> Triple("ℹ", "提示", color())
-    DiagnosticSeverity.WARNING -> Triple("!", "异常", color())
-    DiagnosticSeverity.ERROR -> Triple("×", "严重异常", color())
+    DiagnosticSeverity.HEALTHY -> Triple("✓", stringResource(R.string.report_normal), color())
+    DiagnosticSeverity.NOTICE -> Triple("ℹ", stringResource(R.string.report_notice), color())
+    DiagnosticSeverity.WARNING -> Triple("!", stringResource(R.string.report_warning), color())
+    DiagnosticSeverity.ERROR -> Triple("×", stringResource(R.string.report_severe), color())
 }
 
+@Composable
 private fun DiagnosticSeverity.displayName(): String = when (this) {
-    DiagnosticSeverity.HEALTHY -> "正常"
-    DiagnosticSeverity.NOTICE -> "提示"
-    DiagnosticSeverity.WARNING -> "异常"
-    DiagnosticSeverity.ERROR -> "严重异常"
+    DiagnosticSeverity.HEALTHY -> stringResource(R.string.report_normal)
+    DiagnosticSeverity.NOTICE -> stringResource(R.string.report_notice)
+    DiagnosticSeverity.WARNING -> stringResource(R.string.report_warning)
+    DiagnosticSeverity.ERROR -> stringResource(R.string.report_severe)
 }
 
 @Composable
@@ -1536,58 +1548,89 @@ private fun DiagnosticSeverity.color(): Color = when (this) {
 
 @Composable
 private fun DiagnosticOverallStatus.displayInfo(): Pair<String, Color> = when (this) {
-    DiagnosticOverallStatus.HEALTHY -> "🟢 网络状态正常" to MaterialTheme.colorScheme.primary
-    DiagnosticOverallStatus.ATTENTION -> "🟡 发现网络异常" to MaterialTheme.colorScheme.secondary
-    DiagnosticOverallStatus.LIMITED -> "🔴 存在严重异常" to MaterialTheme.colorScheme.error
-    DiagnosticOverallStatus.UNKNOWN -> "⚪ 状态未确定" to MaterialTheme.colorScheme.onSurfaceVariant
+    DiagnosticOverallStatus.HEALTHY -> stringResource(R.string.report_legacy_normal) to MaterialTheme.colorScheme.primary
+    DiagnosticOverallStatus.ATTENTION -> stringResource(R.string.report_legacy_warning) to MaterialTheme.colorScheme.secondary
+    DiagnosticOverallStatus.LIMITED -> stringResource(R.string.report_legacy_error) to MaterialTheme.colorScheme.error
+    DiagnosticOverallStatus.UNKNOWN -> stringResource(R.string.report_legacy_unconfirmed) to MaterialTheme.colorScheme.onSurfaceVariant
 }
 
+@Composable
 private fun DiagnosticCheckStatus.displayName(): String = when (this) {
-    DiagnosticCheckStatus.PASS -> "正常"
-    DiagnosticCheckStatus.FAIL -> "异常"
-    DiagnosticCheckStatus.NO_RECORDS -> "无记录"
-    DiagnosticCheckStatus.NOT_APPLICABLE -> "不适用"
-    DiagnosticCheckStatus.SKIPPED -> "未执行"
-    DiagnosticCheckStatus.UNKNOWN -> "未确定"
+    DiagnosticCheckStatus.PASS -> stringResource(R.string.report_normal)
+    DiagnosticCheckStatus.FAIL -> stringResource(R.string.report_warning)
+    DiagnosticCheckStatus.NO_RECORDS -> stringResource(R.string.report_no_records)
+    DiagnosticCheckStatus.NOT_APPLICABLE -> stringResource(R.string.report_na)
+    DiagnosticCheckStatus.SKIPPED -> stringResource(R.string.report_not_run)
+    DiagnosticCheckStatus.UNKNOWN -> stringResource(R.string.report_unknown)
 }
 
+@Composable
 private fun ConnectionType.displayName(): String = when (this) {
     ConnectionType.WIFI -> "Wi-Fi"
-    ConnectionType.CELLULAR -> "移动网络"
-    ConnectionType.ETHERNET -> "以太网"
-    ConnectionType.BLUETOOTH -> "蓝牙"
+    ConnectionType.CELLULAR -> stringResource(R.string.report_mobile)
+    ConnectionType.ETHERNET -> stringResource(R.string.report_ethernet)
+    ConnectionType.BLUETOOTH -> stringResource(R.string.report_bluetooth)
     ConnectionType.VPN -> "VPN"
-    ConnectionType.UNKNOWN -> "未知"
+    ConnectionType.UNKNOWN -> stringResource(R.string.report_unknown_short)
 }
 
+@Composable
 private fun Boolean?.toEnabledText(): String = when (this) {
-    true -> "已启用"
-    false -> "未启用"
-    null -> "未确定"
+    true -> stringResource(R.string.report_enabled)
+    false -> stringResource(R.string.report_disabled)
+    null -> stringResource(R.string.report_unknown)
 }
 
+@Composable
 private fun Boolean?.toValidatedText(): String = when (this) {
-    true -> "已通过"
-    false -> "未通过"
-    null -> "未确定"
+    true -> stringResource(R.string.report_passed)
+    false -> stringResource(R.string.report_not_passed)
+    null -> stringResource(R.string.report_unknown)
 }
 
-private fun String.methodDisplayName(): String = DiagnosticPresentationMapper.methodDisplayName(this)
+@Composable
+private fun String.methodDisplayName(): String = stringResource(when (trim().uppercase(Locale.US)) {
+    "SYSTEM_REACHABILITY" -> R.string.report_reachability_method
+    "ICMP" -> R.string.report_icmp_method
+    "UNAVAILABLE" -> R.string.report_unavailable_method
+    "TCP_CONNECT" -> R.string.report_tcp_method
+    "SYSTEM_DNS" -> R.string.report_system_dns
+    "SYSTEM_RESOLVER" -> R.string.report_system_resolver
+    "ANDROID_DNS_RESOLVER" -> R.string.report_android_dns
+    "TCP_443_PROBES_WITH_VALIDATED_CONTEXT" -> R.string.report_tcp_validated
+    "TCP_CONNECT_TO_RESOLVED_ADDRESS" -> R.string.report_resolved_tcp
+    else -> R.string.report_other_method
+})
 
+@Composable
+private fun String.tcpOutcomeLabel(): String = stringResource(when (trim().uppercase(Locale.US)) {
+    "PASS" -> R.string.report_success
+    "FAIL" -> R.string.report_not_connected
+    "CONNECT_SUCCESS" -> R.string.report_tcp_success
+    "CONNECTION_REFUSED" -> R.string.report_tcp_refused
+    "TIMEOUT" -> R.string.report_tcp_timeout
+    "NETWORK_UNREACHABLE" -> R.string.report_tcp_network
+    "NO_ROUTE" -> R.string.report_tcp_route
+    "INTERNAL_ERROR" -> R.string.report_tcp_internal
+    else -> R.string.report_unknown
+})
+
+@Composable
 private fun formatTargetOutcome(outcome: String): String {
-    val target = outcome.substringBefore('=').ifBlank { "公网目标" }
+    val target = outcome.substringBefore('=').ifBlank { stringResource(R.string.report_public_target) }
     val result = outcome.substringAfter('=', "")
-    return "$target    ${DiagnosticPresentationMapper.tcpOutcomeDisplayName(result)}"
+    return "$target    ${result.tcpOutcomeLabel()}"
 }
 
+@Composable
 private fun String.toStatusDisplayName(): String = when (this) {
-    "PASS" -> "成功"
-    "FAIL" -> "未连接"
-    "NO_RECORDS" -> "无记录"
-    "NOT_APPLICABLE" -> "不适用"
-    "SKIPPED" -> "未执行"
-    "UNKNOWN" -> "未确定"
-    else -> "未确定"
+    "PASS" -> stringResource(R.string.report_success)
+    "FAIL" -> stringResource(R.string.report_not_connected)
+    "NO_RECORDS" -> stringResource(R.string.report_no_records)
+    "NOT_APPLICABLE" -> stringResource(R.string.report_na)
+    "SKIPPED" -> stringResource(R.string.report_not_run)
+    "UNKNOWN" -> stringResource(R.string.report_unknown)
+    else -> stringResource(R.string.report_unknown)
 }
 
 private fun formatMilliseconds(rawValue: String?): String {

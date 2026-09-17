@@ -56,9 +56,9 @@ object RecreationNetworkModule {
         f.wakeSends++
         WakeOnLanResult.Sent("192.168.50.255", 9)
     }
-    @Provides fun ping(): PingSessionEngine = object : PingSessionEngine {
+    @Provides fun ping(f: RecreationFixture): PingSessionEngine = object : PingSessionEngine {
         override suspend fun run(request: PingRequest, onProgress: (PingSessionProgress) -> Unit): PingSessionResult =
-            error("Unexpected Ping in recreation test")
+            run { f.pingStarts++; error("Unexpected Ping in recreation test") }
     }
     @Provides fun dns(): DnsQueryEngine = object : DnsQueryEngine {
         override suspend fun lookup(request: DnsLookupRequest): DnsLookupResult = error("Unexpected DNS")
@@ -93,6 +93,7 @@ class RecreationFixture {
         activeNetworkAvailable = true, validated = true,
         ipv6Address = null, dnsServers = emptyList(), vpnActive = false, wifiSignalLevel = 4,
     ))
+    var pingStarts = 0
     var scanStarts = 0
     var wakeSends = 0
     var diagnosticStarts = 0

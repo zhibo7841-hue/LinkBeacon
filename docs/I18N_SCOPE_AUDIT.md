@@ -1112,3 +1112,141 @@ packaged languages fixed this, without custom runtime locale resolution.
 
 Locale foundation complete; localization is still partial. Ready for a separately
 authorized full UI resource-extraction task, not full bilingual release acceptance.
+
+## Task 082 — Core UI resources and Settings card (2026-09-17)
+
+Baseline: clean main `e0b8567fa470226e99108f65811817aa38fef17f` (Task 081).
+This is development progress, not a new release or a claim that the complete
+diagnostic/export product is bilingual. Version, permissions and supported
+locales remain unchanged.
+
+### Scope and inventory
+
+The same quoted-token/CJK scan described in section 3.1, applied to tracked
+production Kotlin at this baseline, found **1,531 candidates**. After extraction
+**666 remain**. These are lexical occurrences, not unique user messages. New
+presentation files contain no Chinese literals. English-only copy and accessibility
+labels were inspected separately; protocol strings and user input are not translations.
+
+| Module | Before CJK candidates | Remaining | English / Hans resource units | Migrated this task |
+| --- | ---: | ---: | ---: | ---: |
+| app | 26 | 0 | 40 / 40 | 27 |
+| core/designsystem | 11 | 0 | 10 / 10 | 9 |
+| dashboard | 98 | 0 | 75 / 75 | 75 |
+| DNS | 87 | 10 | 68 / 68 | 68 |
+| History | 49 | 8 | 35 / 35 | 35 |
+| LAN / Devices / Detail / WoL | 163 | 17 | 188 / 188 | 188 |
+| Ping | 87 | 1 | 81 / 81 | 81 |
+| TCP | 37 | 0 | 25 / 25 | 25 |
+| Report | 876 | 613 | 162 / 162 | 162 |
+| Subnet | 12 | 1 | 12 / 12 | 12 |
+| Traceroute | 69 | 0 | 60 / 60 | 60 |
+| core/common (unchanged) | 16 | 16 | not part of Android resource extraction | 0 |
+
+There are **756 matching translatable resource units per locale** (string or
+plural name, excluding non-translatable app_name). Of these, 14 English/Hans units
+already existed and 742 were added/migrated, including the 67 existing LAN keys
+whose English default was previously Chinese. Four of those legacy LAN keys have
+no current production references; **738 migrated units have production references**.
+This is the deduplicated resource inventory, not the number of Text calls or screen
+instances. Quantities inside a plural are not counted as independent messages.
+
+Remaining candidates are deliberately outside this task: report analysis,
+findings, recommendations, verification explanations, history snapshots/metrics,
+text/PDF formatting, common history factories, comments, and internal domain/error
+messages. LAN readiness/validation errors now display through stable reason-to-resource
+adapters; no localized string comparison drives business logic. Subnet's existing
+error-presence flag maps to a UI resource rather than exposing its internal message.
+
+### Implementation boundaries
+
+- English `values` and Simplified Chinese `values-b+zh+Hans`; no runtime translation
+  table, new locale, dependency, account, permission, schema or configuration setting.
+- Presentation-only `UiText` carries resource references and format arguments;
+  nested user-data arguments remain raw. Compose resolves against current resources;
+  one-shot feedback resolves at its existing UI collector, not in a long-lived VM
+  Context. Domain models, Room, history payloads and export formatters do not receive R.
+- Home retains primary DNS/IPv4 preference. Tools order/categories/actions, scan
+  limits, TCP OPEN-only, network classification and probe algorithms are unchanged.
+- Device placeholders use the existing resolver with an empty neutral fallback,
+  then a display resource. Never compare against translated "unknown device" names.
+  Real persisted names, including Chinese custom names, are passed through unchanged.
+- Found in this scan / Not found in this scan do not become Online / Offline.
+  Wake packet sent does not claim the device started. TCP refusal still means
+  connection refused, not a blanket unavailable-network conclusion.
+- History fixed controls/status/date labels and Report fixed controls/sections
+  are localized; original snapshot prose and analyzer explanations remain original.
+  MainActivity changes only resolve fixed export UI messages and history type labels.
+  PDF generation, pending-result ownership, caller-aware navigation and persistence
+  are not changed.
+- Quantity-sensitive recent times and scan counts use plurals. Explicit one/other
+  resources match both catalogues; Android Chinese selects other (Lint's unused-one
+  advisory is expected). Technical TCP port numbers are not quantities of devices.
+- Settings reuses the existing outlined card and surface/radius, with 16dp padding,
+  minimum 36dp inner row (68dp ordinary total), titleMedium and bodyLarge current
+  value in onSurfaceVariant. The value uses flexible remaining width, end alignment
+  and one-line ellipsis, not a fixed width. Whole-card click opens the existing
+  immediate-selection dialog. No chevron, group heading, Apply, theme setting or
+  global font-size reduction. Tool titles can wrap to two lines locally.
+
+### Verification and evidence
+
+- Resource parity tests cover all task keys, plural quantities, argument indices,
+  counts/types, invalid format strings and percent escaping. English defaults reject
+  Chinese except the intentionally native language name 简体中文.
+  App unit-test inputs explicitly include these XML catalogues, so value-only edits
+  cannot incorrectly reuse an UP-TO-DATE parity result.
+- Full JVM report: **770 independent cases**, **1,540 Debug/Release executions**,
+  zero failures/errors. Affected feature suites and app resource tests pass.
+- test, lint, assembleDebug and app assembleDebugAndroidTest gates passed.
+  An initial concurrent Gradle invocation hit Kotlin cache ownership contention;
+  serialized rerun passed. Building every library's test APK at once then exceeded
+  the existing 2 GB DEX heap; targeting the required app test APK with two workers
+  passed, without changing Gradle configuration/dependencies or weakening Lint.
+- Sony XQ-FS72 / Android16: core UI exact-label assertions, real application locale
+  changes and real Activity recreation use fake network/storage boundaries. No live
+  probes are claimed. Final unlocked-device runs passed all six Core UI tests plus
+  four Task081 locale and all 17 Task080 recreation regressions (27 total), including
+  pending PDF and consumed one-shot feedback. Evidence: build/task082-core-unlocked.log
+  and build/task082-regressions-unlocked.log.
+- English screenshots cover all 14 requested pages in Light/Dark, plus the fixed
+  diagnosis entry page. User name 主力机 remains unchanged. Large-font checks cover
+  Home/Tools/Devices/Settings and language dialog. Screenshots wait for Compose idle
+  and a bounded system-transition settling interval; this test-only delay does not
+  drive application progress. Existing locale regression tests verify actual Activity
+  replacement; core UI checks wait for the effective resource locale (resetting an
+  override need not always destroy an Activity). The font-scale rule applies/restores
+  the system setting outside ActivityScenario's lifetime. The dialog check clicks
+  its actual Cancel button: invoking the Activity Back dispatcher twice while a
+  separate dialog Window was open could exit the test Activity, then fail cleanup.
+  Failed/interrupted test-driver attempts are retained, not counted as passes; no
+  production lifecycle change was used to work around them.
+- `adb install -r` succeeded without uninstall/data clear. Original font scale 1.0,
+  system night mode no and empty app locale override are restored after tests.
+  Ignored verification logs/screenshots are under build/task082-*; they are not
+  public assets and contain only the network/storage fixture in test screenshots.
+
+### Explicitly deferred
+
+- Dynamic Diagnostics, findings, recommendations and verification narrative.
+- Old History dynamic text and full typed historical-body localization.
+- PDF/Text Report localization (formatters and generated content unchanged).
+- GitHub bilingual docs.
+- **Android 12 runtime verification pending.** No safe API31/32 runtime is available;
+  runtime persistence/restart/upgrade acceptance is still required before a complete
+  bilingual Release. Sony acceptance is not a substitute for Android 12.
+
+Debug APK SHA-256 (app/build/outputs/apk/debug/app-debug.apk):
+`6fe6da947f85bbd024d502e975f4cb85cf6d8724b137fd7d830efd5624eba9f1`.
+
+Final Sony acceptance passed after maintainer unlock: 6/6 Core UI and 21/21 existing
+locale/recreation tests. All 38 captured screenshots were reviewed, including
+Light/Dark language dialogs and font-scale 1.3. No severe overlap or unusable
+controls were observed; longer tool descriptions can ellipsize and filter rows
+remain horizontally scrollable. Original font scale 1.0, night mode no and empty
+locale override were verified restored. Earlier locked-device timeouts and
+interrupted test-driver attempts are not counted as product acceptance evidence.
+Lint passed with zero errors and 43 warning occurrences; existing advisories were
+not suppressed. Automatic gates and Sony Core UI acceptance are complete.
+
+Core UI localization complete; dynamic diagnostic/report localization remains.

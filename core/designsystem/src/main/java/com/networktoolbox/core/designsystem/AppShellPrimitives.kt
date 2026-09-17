@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 
-const val NETWORK_TOOLBOX_MENU_CONTENT_DESCRIPTION = "打开菜单"
 
 /** A compact app-shell menu action shared by the top-level destinations. */
 @Composable

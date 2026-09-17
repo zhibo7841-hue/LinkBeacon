@@ -1,5 +1,7 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.designsystem.UiText
+import com.networktoolbox.feature.lanscan.R
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.core.common.favorites.DeviceDisplayNameResolver
@@ -24,7 +26,7 @@ import java.util.Locale
  * infer device metadata that the scanner did not observe.
  */
 data class DeviceCenterNetworkSummary(
-    val networkLabel: String,
+    val networkLabel: UiText,
     val networkName: String?,
     val subnet: String?,
     val localAddress: String?,
@@ -33,11 +35,11 @@ data class DeviceCenterNetworkSummary(
 )
 
 data class LanDeviceCardPresentation(
-    val displayName: String,
+    val displayName: UiText,
     val ipAddress: String,
     val identitySummary: String? = null,
-    val evidence: String? = null,
-    val role: String? = null,
+    val evidence: UiText? = null,
+    val role: UiText? = null,
     val macAddress: String? = null,
     val isFavorite: Boolean = false,
     val quickWake: QuickWakePresentation? = null,
@@ -45,7 +47,7 @@ data class LanDeviceCardPresentation(
 
 /** A compact, accessible action shown only for an eligible saved profile. */
 data class QuickWakePresentation(
-    val contentDescription: String,
+    val contentDescription: UiText,
 )
 
 data class DeviceCenterDeviceItem(
@@ -72,7 +74,7 @@ data class DeviceCenterSearchState(
 
 data class DeviceDetailPresentation(
     val detailKey: String,
-    val displayName: String,
+    val displayName: UiText,
     val ipAddress: String?,
     val macAddress: String?,
     val vendor: String?,
@@ -80,9 +82,9 @@ data class DeviceDetailPresentation(
     val hostname: String?,
     val mdnsNames: List<String>,
     val upnpNames: List<String>,
-    val role: String?,
+    val role: UiText?,
     /** User-facing label only; opaque scope fingerprints are never displayed. */
-    val networkScope: String?,
+    val networkScope: UiText?,
     val observedThisScan: Boolean,
     val lastSeenAt: Long?,
     val customName: String? = null,
@@ -91,11 +93,11 @@ data class DeviceDetailPresentation(
     val wakeOnLan: WakeOnLanDetailPresentation = WakeOnLanDetailPresentation.notConfigured(),
 ) {
     /** Derived labels keep the star, status text, and accessibility semantics aligned. */
-    val favoriteStatusLabel: String
-        get() = if (isFavorite) "已收藏" else "未收藏"
+    val favoriteStatusLabel: UiText
+        get() = if (isFavorite) UiText(R.string.lan_favorite) else UiText(R.string.lan_not_favorite)
 
-    val favoriteToggleContentDescription: String
-        get() = if (isFavorite) "取消收藏" else "收藏设备"
+    val favoriteToggleContentDescription: UiText
+        get() = if (isFavorite) UiText(R.string.lan_unfavorite) else UiText(R.string.lan_add_favorite)
 
     /** A validated IPv4 target for the existing Ping/TCP tool entry points. */
     val networkToolTarget: String?
@@ -204,10 +206,10 @@ object DeviceCenterPresentation {
     )
 
     /** Resolves custom override before the detected identity and neutral fallback. */
-    fun deviceDisplayName(device: LanDevice): String = deviceDisplayName(device, null)
+    fun deviceDisplayName(device: LanDevice): UiText = deviceDisplayName(device, null)
 
-    fun deviceDisplayName(device: LanDevice, favorite: FavoriteDevice?): String =
-        DeviceDisplayNameResolver.resolve(
+    fun deviceDisplayName(device: LanDevice, favorite: FavoriteDevice?): UiText =
+        LanScannerPresentation.displayName(
             customName = favorite?.customName,
             detectedName = LanScannerPresentation.devicePrimaryText(device)
                 .takeUnless { it == device.ipAddress },
@@ -218,13 +220,13 @@ object DeviceCenterPresentation {
     fun deviceIdentitySummary(device: LanDevice): String? =
         LanScannerPresentation.deviceIdentitySummary(device)
 
-    fun deviceRole(device: LanDevice): String = LanScannerPresentation.deviceRole(device)
+    fun deviceRole(device: LanDevice): UiText? = LanScannerPresentation.deviceRole(device)
 
     /**
      * The evidence line stays grounded in the scanner's confirmed evidence.
      * Ordinary devices never receive a synthetic "在线" badge.
      */
-    fun deviceEvidence(device: LanDevice): String? =
+    fun deviceEvidence(device: LanDevice): UiText? =
         LanScannerPresentation.deviceSecondaryText(device)
 
     /**
@@ -236,7 +238,7 @@ object DeviceCenterPresentation {
         favorites: List<FavoriteDevice>,
         context: NetworkContext,
         includeUnseenFavorites: Boolean = true,
-        unseenEvidence: String = "本次未发现",
+        unseenEvidence: UiText = UiText(R.string.lan_not_found),
     ): List<DeviceCenterDeviceItem> {
         val scope = LanNetworkScope.from(context)
         val scopedFavorites = favorites.filter { it.networkScope == scope }
@@ -282,7 +284,7 @@ object DeviceCenterPresentation {
             compareBy<DeviceCenterDeviceItem>(
                 { item -> itemGroup(item) },
                 { item -> ipv4SortValue(item.card.ipAddress) },
-                { item -> item.card.displayName },
+                { item -> item.card.displayName.raw.orEmpty() },
             ),
         )
     }
@@ -295,7 +297,7 @@ object DeviceCenterPresentation {
     fun savedProfilesBeforeScan(
         favorites: List<FavoriteDevice>,
         context: NetworkContext,
-        unseenEvidence: String = "尚未进行本次扫描",
+        unseenEvidence: UiText = UiText(R.string.lan_not_scanned),
     ): List<DeviceCenterDeviceItem> = deviceList(
         devices = emptyList(),
         favorites = favorites,
@@ -313,7 +315,7 @@ object DeviceCenterPresentation {
         devices: List<LanDevice>,
         favorites: List<FavoriteDevice>,
         context: NetworkContext,
-        unseenEvidence: String,
+        unseenEvidence: UiText,
     ): List<DeviceCenterDeviceItem> = deviceList(
         devices = devices,
         favorites = favorites,
@@ -334,7 +336,7 @@ object DeviceCenterPresentation {
         wakeOnLanContext: NetworkContext? = null,
     ): DeviceDetailPresentation {
         val identity = device.identity
-        val role = deviceRole(device).takeIf(String::isNotBlank)
+        val role = deviceRole(device)
             ?: favorite?.let(::favoriteRole)
         val mdnsNames = device.mdnsObservations
             .flatMap { observation -> listOf(observation.serviceName, observation.hostname.orEmpty()) }
@@ -361,7 +363,7 @@ object DeviceCenterPresentation {
             mdnsNames = mdnsNames,
             upnpNames = upnpNames,
             role = role,
-            networkScope = LanNetworkScope.from(context)?.let { "当前局域网" },
+            networkScope = LanNetworkScope.from(context)?.let { UiText(R.string.lan_current_lan) },
             observedThisScan = observedThisScan,
             lastSeenAt = device.lastSeen,
             customName = favorite?.customName,
@@ -382,7 +384,7 @@ object DeviceCenterPresentation {
         wakeOnLanContext: NetworkContext? = null,
     ): DeviceDetailPresentation = DeviceDetailPresentation(
         detailKey = detailKey,
-        displayName = DeviceDisplayNameResolver.resolve(
+        displayName = LanScannerPresentation.displayName(
             customName = favorite.customName,
             detectedName = favorite.lastKnownDisplayName
                 ?.trim()
@@ -396,7 +398,7 @@ object DeviceCenterPresentation {
         mdnsNames = listOfNotNull(favorite.lastKnownMdnsName),
         upnpNames = listOfNotNull(favorite.lastKnownUpnpName),
         role = favoriteRole(favorite),
-        networkScope = LanNetworkScope.from(context)?.let { "当前局域网" },
+        networkScope = LanNetworkScope.from(context)?.let { UiText(R.string.lan_current_lan) },
         observedThisScan = false,
         lastSeenAt = favorite.lastSeenAt,
         customName = favorite.customName,
@@ -415,7 +417,7 @@ object DeviceCenterPresentation {
             ipAddress = device.ipAddress,
             identitySummary = deviceIdentitySummary(device),
             evidence = deviceEvidence(device),
-            role = deviceRole(device).takeIf(String::isNotBlank),
+            role = deviceRole(device),
             macAddress = device.macAddress,
             isFavorite = favorite?.isFavorite == true,
         )
@@ -423,9 +425,9 @@ object DeviceCenterPresentation {
     private fun card(
         favorite: FavoriteDevice,
         context: NetworkContext,
-        evidence: String = "本次未发现",
+        evidence: UiText = UiText(R.string.lan_not_found),
     ): LanDeviceCardPresentation {
-        val displayName = DeviceDisplayNameResolver.resolve(
+        val displayName = LanScannerPresentation.displayName(
             customName = favorite.customName,
             detectedName = favorite.lastKnownDisplayName
                 ?.trim()
@@ -433,12 +435,12 @@ object DeviceCenterPresentation {
         )
         return LanDeviceCardPresentation(
             displayName = displayName,
-            ipAddress = favorite.lastKnownIpv4 ?: "地址未知",
+            ipAddress = favorite.lastKnownIpv4.orEmpty(),
             identitySummary = listOfNotNull(favorite.vendor, favorite.model)
                 .joinToString(" · ")
                 .takeIf(String::isNotBlank),
             evidence = evidence,
-            role = favoriteRole(favorite).takeIf(String::isNotBlank),
+            role = favoriteRole(favorite),
             macAddress = favorite.macAddress,
             isFavorite = favorite.isFavorite,
             quickWake = favorite.wolConfig
@@ -449,7 +451,7 @@ object DeviceCenterPresentation {
                         context = context,
                     ).canSend
                 }
-                ?.let { QuickWakePresentation(contentDescription = "唤醒 $displayName") },
+                ?.let { QuickWakePresentation(contentDescription = UiText(R.string.lan_wake_name, displayName)) },
         )
     }
 
@@ -466,10 +468,8 @@ object DeviceCenterPresentation {
         favorite.identityValue,
     ).joinToString("\u0000")
 
-    private fun favoriteRole(favorite: FavoriteDevice): String = buildList {
-        if (favorite.isLocalDevice) add("本机")
-        if (favorite.isGateway) add("网关")
-    }.joinToString(" · ")
+    private fun favoriteRole(favorite: FavoriteDevice): UiText? =
+        LanScannerPresentation.role(favorite.isLocalDevice, favorite.isGateway)
 
     private fun matchesFilter(
         item: DeviceCenterDeviceItem,
@@ -486,7 +486,7 @@ object DeviceCenterPresentation {
             value?.trim()?.takeIf(String::isNotBlank)?.let(::add)
         }
 
-        addValue(item.card.displayName)
+        addValue(item.card.displayName.raw)
         addValue(item.card.ipAddress)
         item.device?.let { device ->
             val identity = device.identity
@@ -516,13 +516,13 @@ object DeviceCenterPresentation {
     private fun ConnectionType.isLocalNetwork(): Boolean = this == ConnectionType.WIFI ||
         this == ConnectionType.ETHERNET
 
-    private fun ConnectionType.displayName(): String = when (this) {
-        ConnectionType.WIFI -> "Wi-Fi"
-        ConnectionType.ETHERNET -> "以太网"
-        ConnectionType.CELLULAR -> "移动网络"
-        ConnectionType.VPN -> "VPN"
-        ConnectionType.BLUETOOTH -> "蓝牙"
-        ConnectionType.UNKNOWN -> "未知网络"
+    private fun ConnectionType.displayName(): UiText = when (this) {
+        ConnectionType.WIFI -> UiText("Wi-Fi")
+        ConnectionType.ETHERNET -> UiText(R.string.lan_ethernet)
+        ConnectionType.CELLULAR -> UiText(R.string.lan_mobile)
+        ConnectionType.VPN -> UiText("VPN")
+        ConnectionType.BLUETOOTH -> UiText(R.string.lan_bluetooth)
+        ConnectionType.UNKNOWN -> UiText(R.string.lan_unknown_network)
     }
 
     private fun String.isRealWifiName(): Boolean = lowercase() !in setOf(

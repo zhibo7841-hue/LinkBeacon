@@ -1,0 +1,14 @@
+<resources>
+    <string name="subnet_title">IPv4 Subnet</string>
+    <string name="subnet_input">Input</string>
+    <string name="subnet_address">IPv4 address/CIDR</string>
+    <string name="subnet_calculate">Calculate</string>
+    <string name="subnet_result">Calculation result</string>
+    <string name="subnet_completed">Completed</string>
+    <string name="subnet_mask">Subnet mask</string>
+    <string name="subnet_network">Network address</string>
+    <string name="subnet_broadcast">Broadcast address</string>
+    <string name="subnet_range">Usable host range</string>
+    <string name="subnet_hosts">Usable hosts</string>
+    <string name="subnet_invalid">Enter a valid IPv4 address and CIDR prefix.</string>
+</resources>

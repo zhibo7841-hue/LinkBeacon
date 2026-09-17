@@ -32,15 +32,15 @@ internal data class DashboardNavigationCallbacks(
 internal data class DashboardToolDefinition(
     val id: DashboardToolId,
     val icon: ImageVector,
-    val title: String,
-    val description: String,
+    val title: Int,
+    val description: Int,
     val accent: NetworkToolAccent,
     val onClick: () -> Unit,
 )
 
 internal data class DashboardToolSection(
-    val title: String,
-    val subtitle: String? = null,
+    val title: Int,
+    val subtitle: Int? = null,
     val tools: List<DashboardToolDefinition>,
 )
 
@@ -50,56 +50,56 @@ internal fun dashboardToolDefinitions(
     DashboardToolDefinition(
         id = DashboardToolId.PING,
         icon = Icons.Outlined.WifiTethering,
-        title = "Ping",
-        description = "测试目标连通性",
+        title = R.string.home_ping,
+        description = R.string.home_ping_help,
         accent = NetworkToolAccent.PRIMARY,
         onClick = callbacks.onOpenPing,
     ),
     DashboardToolDefinition(
         id = DashboardToolId.DNS,
         icon = Icons.Outlined.Dns,
-        title = "DNS 查询",
-        description = "查询域名解析",
+        title = R.string.home_dns,
+        description = R.string.home_dns_help,
         accent = NetworkToolAccent.CYAN,
         onClick = callbacks.onOpenDns,
     ),
     DashboardToolDefinition(
         id = DashboardToolId.TCP,
         icon = Icons.Outlined.Lan,
-        title = "TCP 端口检测",
-        description = "检查 TCP 服务端口",
+        title = R.string.home_tcp,
+        description = R.string.home_tcp_help,
         accent = NetworkToolAccent.AMBER,
         onClick = callbacks.onOpenTcp,
     ),
     DashboardToolDefinition(
         id = DashboardToolId.TRACEROUTE,
         icon = Icons.Outlined.AccountTree,
-        title = "Traceroute",
-        description = "追踪目标网络路径",
+        title = R.string.home_trace,
+        description = R.string.home_trace_help,
         accent = NetworkToolAccent.CYAN,
         onClick = callbacks.onOpenTraceroute,
     ),
     DashboardToolDefinition(
         id = DashboardToolId.SUBNET,
         icon = Icons.Outlined.AccountTree,
-        title = "IPv4 子网计算",
-        description = "计算网络地址",
+        title = R.string.home_subnet,
+        description = R.string.home_subnet_help,
         accent = NetworkToolAccent.CYAN,
         onClick = callbacks.onOpenSubnet,
     ),
     DashboardToolDefinition(
         id = DashboardToolId.LAN_SCAN,
         icon = Icons.Outlined.Lan,
-        title = "局域网扫描",
-        description = "发现局域网设备",
+        title = R.string.home_lan,
+        description = R.string.home_lan_help,
         accent = NetworkToolAccent.PRIMARY,
         onClick = callbacks.onOpenLanScan,
     ),
     DashboardToolDefinition(
         id = DashboardToolId.REPORT,
         icon = Icons.Outlined.Assessment,
-        title = "网络诊断",
-        description = "自动检查网络问题",
+        title = R.string.home_diagnosis,
+        description = R.string.home_diagnosis_help,
         accent = NetworkToolAccent.AMBER,
         onClick = callbacks.onOpenReport,
     ),
@@ -122,7 +122,7 @@ internal fun dashboardToolSections(
     val definitions = dashboardToolDefinitions(callbacks).associateBy { it.id }
     return listOf(
         DashboardToolSection(
-            title = "连通与路径",
+            title = R.string.home_connectivity,
             tools = listOf(
                 definitions.getValue(DashboardToolId.PING),
                 definitions.getValue(DashboardToolId.TCP),
@@ -130,20 +130,20 @@ internal fun dashboardToolSections(
             ),
         ),
         DashboardToolSection(
-            title = "解析与服务",
+            title = R.string.home_resolution,
             tools = listOf(
                 definitions.getValue(DashboardToolId.DNS),
             ),
         ),
         DashboardToolSection(
-            title = "网络与地址",
+            title = R.string.home_network_address,
             tools = listOf(
                 definitions.getValue(DashboardToolId.SUBNET),
                 definitions.getValue(DashboardToolId.LAN_SCAN),
             ),
         ),
         DashboardToolSection(
-            title = "诊断",
+            title = R.string.home_diagnostics,
             tools = listOf(
                 definitions.getValue(DashboardToolId.REPORT),
             ),

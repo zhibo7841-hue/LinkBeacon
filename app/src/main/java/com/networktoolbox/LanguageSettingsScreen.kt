@@ -5,6 +5,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.*
@@ -15,11 +16,13 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.networktoolbox.core.designsystem.NetworkToolboxSpacing
 import com.networktoolbox.core.designsystem.ToolScreenLayout
+import com.networktoolbox.core.designsystem.OutlinedNetworkCard
 
 @Composable
 internal fun LanguageSettingsScreen(onBack: () -> Unit) {
@@ -44,13 +47,26 @@ internal fun LanguageSettingsScreen(onBack: () -> Unit) {
             }
             Text(stringResource(R.string.shell_settings), style = MaterialTheme.typography.headlineSmall)
         }
-        ListItem(
-            headlineContent = { Text(stringResource(R.string.settings_language)) },
-            trailingContent = { Text(selected?.let { stringResource(it.labelRes()) } ?: tags) },
-            modifier = Modifier.fillMaxWidth().selectable(
-                selected = showDialog, role = Role.Button, onClick = { showDialog = true },
-            ),
-        )
+        OutlinedNetworkCard(
+            modifier = Modifier.clickable(role = Role.Button) { showDialog = true },
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().heightIn(min = 36.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.LG),
+            ) {
+                Text(stringResource(R.string.settings_language), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    selected?.let { stringResource(it.labelRes()) } ?: tags,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
     if (showDialog) AlertDialog(
         onDismissRequest = { showDialog = false },

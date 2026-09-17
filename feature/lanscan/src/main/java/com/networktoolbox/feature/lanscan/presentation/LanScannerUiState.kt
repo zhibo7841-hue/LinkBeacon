@@ -1,5 +1,6 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.feature.lanscan.domain.LanCustomRangeResult
 import com.networktoolbox.feature.lanscan.domain.LanScanReadiness
@@ -52,16 +53,16 @@ sealed interface LanScannerUiState {
 
     data class UnsupportedNetwork(
         val readiness: LanScanReadiness,
-        val message: String,
+        val message: UiText,
     ) : LanScannerUiState
 
     data class VpnBlocked(
         val readiness: LanScanReadiness,
-        val message: String,
+        val message: UiText,
     ) : LanScannerUiState
 
     data class Error(
-        val message: String,
+        val message: UiText,
         val readiness: LanScanReadiness? = null,
     ) : LanScannerUiState
 }

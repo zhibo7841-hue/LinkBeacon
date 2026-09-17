@@ -465,3 +465,10 @@ to maintainer confirmation; this section does not assign v0.5.1 or v0.6.0.
 [I18N_SCOPE_AUDIT.md](I18N_SCOPE_AUDIT.md) records the implementation audit and
 recommendations. Its proposed APIs, work packages, and compatibility mechanics
 are not additional accepted product decisions or completed functionality.
+
+Implementation progress (Task 082, development only): Task 081 locale foundation
+and English/Simplified Chinese Core UI resources are implemented, including the
+outlined Language setting. Dynamic diagnostic explanations, old History prose,
+PDF/Text report bodies, bilingual GitHub docs and Android 12 runtime acceptance
+remain pending. This does not change product scope, version or the released v0.5.0
+APK; detailed verification remains in I18N_SCOPE_AUDIT.md.

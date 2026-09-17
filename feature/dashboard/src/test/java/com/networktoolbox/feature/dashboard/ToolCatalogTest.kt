@@ -1,6 +1,5 @@
 package com.networktoolbox.feature.dashboard
 
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -11,12 +10,12 @@ class ToolCatalogTest {
         val callbacks = callbacks()
         val sections = dashboardToolSections(callbacks)
 
-        assertEquals(
+        assertPresentationEquals(
             listOf("连通与路径", "解析与服务", "网络与地址", "诊断"),
             sections.map { it.title },
         )
         assertTrue(sections.all { it.subtitle == null })
-        assertEquals(
+        assertPresentationEquals(
             listOf(
                 listOf(DashboardToolId.PING, DashboardToolId.TCP, DashboardToolId.TRACEROUTE),
                 listOf(DashboardToolId.DNS),
@@ -25,7 +24,7 @@ class ToolCatalogTest {
             ),
             sections.map { section -> section.tools.map(DashboardToolDefinition::id) },
         )
-        assertEquals(7, sections.flatMap { it.tools }.distinctBy(DashboardToolDefinition::id).size)
+        assertPresentationEquals(7, sections.flatMap { it.tools }.distinctBy(DashboardToolDefinition::id).size)
     }
 
     @Test
@@ -33,7 +32,7 @@ class ToolCatalogTest {
         val quickTools = quickToolDefinitions(callbacks())
         val quickIds = quickTools.map(DashboardToolDefinition::id)
 
-        assertEquals(
+        assertPresentationEquals(
             listOf(
                 DashboardToolId.PING,
                 DashboardToolId.DNS,
@@ -42,17 +41,17 @@ class ToolCatalogTest {
             ),
             quickIds,
         )
-        assertEquals(4, quickIds.size)
-        assertTrue(quickTools.all { it.description.isNotBlank() })
-        assertFalse(quickTools.any { it.description == "常用网络检测" })
-        assertFalse(dashboardToolDefinitions(callbacks()).any { it.title.contains("Wake") })
+        assertPresentationEquals(4, quickIds.size)
+        assertTrue(quickTools.all { it.description.testText().isNotBlank() })
+        assertFalse(quickTools.any { it.description.testText() == "常用网络检测" })
+        assertFalse(dashboardToolDefinitions(callbacks()).any { it.title.testText().contains("Wake") })
     }
 
     @Test
     fun toolCardsUseShortUserFacingDescriptionsWithoutHistory() {
         val definitions = dashboardToolDefinitions(callbacks())
 
-        assertEquals(
+        assertPresentationEquals(
             mapOf(
                 DashboardToolId.PING to "测试目标连通性",
                 DashboardToolId.DNS to "查询域名解析",
@@ -64,7 +63,7 @@ class ToolCatalogTest {
             ),
             definitions.associate { it.id to it.description },
         )
-        assertFalse(definitions.any { it.title.contains("历史") })
+        assertFalse(definitions.any { it.title.testText().contains("历史") })
     }
 
     @Test
@@ -74,7 +73,7 @@ class ToolCatalogTest {
 
         definitions.forEach { it.onClick() }
 
-        assertEquals(definitions.map(DashboardToolDefinition::id), calls)
+        assertPresentationEquals(definitions.map(DashboardToolDefinition::id), calls)
         assertTrue(calls.containsAll(DashboardToolId.entries.toList()))
     }
 

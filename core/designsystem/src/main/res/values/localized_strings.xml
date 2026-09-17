@@ -1,0 +1,11 @@
+<resources>
+    <string name="common_back">Back</string>
+    <string name="common_normal">Normal</string>
+    <string name="common_notice">Notice</string>
+    <string name="common_warning">Warning</string>
+    <string name="common_error">Error</string>
+    <string name="common_unknown">Undetermined</string>
+    <string name="common_running">In progress</string>
+    <string name="common_cancelled">Stopped</string>
+    <string name="common_not_executed">Not performed</string>
+</resources>

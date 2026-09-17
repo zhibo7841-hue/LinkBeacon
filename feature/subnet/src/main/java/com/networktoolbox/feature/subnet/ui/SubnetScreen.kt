@@ -8,6 +8,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.networktoolbox.feature.subnet.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.networktoolbox.core.common.ipv4.SubnetResult
@@ -33,19 +35,19 @@ fun SubnetScreen(
 ) {
     ToolScreenLayout(modifier = modifier) {
         ToolScreenHeader(
-            title = "IPv4 子网计算",
+            title = stringResource(R.string.subnet_title),
             description = null,
             icon = Icons.Outlined.AccountTree,
             accent = NetworkToolAccent.CYAN,
             onBack = onBack,
         )
 
-        ToolInputSection(title = "输入") {
+        ToolInputSection(title = stringResource(R.string.subnet_input)) {
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = uiState.input,
                 onValueChange = onInputChanged,
-                label = { Text("IPv4 地址/CIDR") },
+                label = { Text(stringResource(R.string.subnet_address)) },
                 singleLine = true,
                 isError = uiState.errorMessage != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
@@ -54,11 +56,11 @@ fun SubnetScreen(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onCalculate,
             ) {
-                Text("计算")
+                Text(stringResource(R.string.subnet_calculate))
             }
             uiState.errorMessage?.let { message ->
                 Text(
-                    message,
+                    stringResource(R.string.subnet_invalid),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -75,9 +77,9 @@ fun SubnetScreen(
 private fun SubnetResultCard(result: SubnetResult) {
     ToolResultSection {
         ToolStatusSummary(
-            title = "计算结果",
+            title = stringResource(R.string.subnet_result),
             status = StatusVisualState.NORMAL,
-            label = "已完成",
+            label = stringResource(R.string.subnet_completed),
         )
         ToolResultRow(
             "IP",
@@ -86,25 +88,25 @@ private fun SubnetResultCard(result: SubnetResult) {
         )
         ToolResultRow("CIDR", "/${result.prefixLength}")
         ToolResultRow(
-            "子网掩码",
+            stringResource(R.string.subnet_mask),
             result.subnetMask,
             valueStyle = NetworkToolboxTextStyles.TechnicalData,
         )
         ToolResultRow(
-            "网络地址",
+            stringResource(R.string.subnet_network),
             result.networkAddress,
             valueStyle = NetworkToolboxTextStyles.TechnicalData,
         )
         ToolResultRow(
-            "广播地址",
+            stringResource(R.string.subnet_broadcast),
             result.broadcastAddress,
             valueStyle = NetworkToolboxTextStyles.TechnicalData,
         )
         ToolResultRow(
-            "可用范围",
+            stringResource(R.string.subnet_range),
             "${result.usableRangeStart} - ${result.usableRangeEnd}",
             valueStyle = NetworkToolboxTextStyles.TechnicalData,
         )
-        ToolResultRow("主机数量", result.hostCount.toString())
+        ToolResultRow(stringResource(R.string.subnet_hosts), result.hostCount.toString())
     }
 }

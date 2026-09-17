@@ -24,6 +24,11 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import com.networktoolbox.core.designsystem.UiText
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberUpdatedState
+import com.networktoolbox.feature.lanscan.presentation.LanErrorPresentation
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -95,11 +100,12 @@ fun LanDeviceCenterScreen(
     val showNoMatch = hasSearchOrFilter && visibleItems != null &&
         visibleItems.discovered.isEmpty() && visibleItems.notDiscovered.isEmpty()
 
+    val feedbackContext by rememberUpdatedState(LocalContext.current)
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(deviceDetailEvents) {
         deviceDetailEvents.collect { event ->
             snackbarHostState.showSnackbar(
-                message = event.message,
+                message = event.message.resolve(feedbackContext),
                 duration = SnackbarDuration.Short,
             )
         }
@@ -112,7 +118,7 @@ fun LanDeviceCenterScreen(
         ) {
             item {
                 NetworkToolboxTopLevelHeader(
-                    title = "设备",
+                    title = stringResource(R.string.lan_devices),
                     description = null,
                     onOpenMenu = onOpenMenu,
                     trailingContent = {
@@ -130,9 +136,9 @@ fun LanDeviceCenterScreen(
                                     Icons.Outlined.Search
                                 },
                                 contentDescription = if (searchState.isSearchActive) {
-                                    "关闭搜索"
+                                    stringResource(R.string.lan_close_search)
                                 } else {
-                                    "搜索设备"
+                                    stringResource(R.string.lan_search)
                                 },
                             )
                         }
@@ -263,11 +269,11 @@ fun LanDeviceCenterScreen(
                 item {
                     DeviceCenterMessageCard(
                         title = if (state.readiness.networkContext.connectionType == ConnectionType.CELLULAR) {
-                            "当前为移动网络"
+                            stringResource(R.string.lan_on_mobile)
                         } else {
-                            "当前网络不可用"
+                            stringResource(R.string.lan_network_unavailable)
                         },
-                        message = state.message,
+                        message = state.message.resolve(),
                     )
                 }
             }
@@ -276,8 +282,8 @@ fun LanDeviceCenterScreen(
                 item { DeviceCenterNetworkSummaryCard(context = state.readiness.networkContext) }
                 item {
                     DeviceCenterMessageCard(
-                        title = "当前检测到 VPN 网络",
-                        message = state.message,
+                        title = stringResource(R.string.lan_vpn_detected),
+                        message = state.message.resolve(),
                     )
                 }
             }
@@ -294,7 +300,7 @@ fun LanDeviceCenterScreen(
                 }
                 item {
                     LanScanFailureSection(
-                        message = state.message,
+                        message = state.message.resolve(),
                         onRetry = onRescan,
                     )
                 }
@@ -346,7 +352,7 @@ private fun deviceCenterVisibleItems(
                 favorites = favorites,
                 context = state.readiness.networkContext,
                 includeUnseenFavorites = true,
-                unseenEvidence = savedProfileEvidence,
+                unseenEvidence = UiText(savedProfileEvidence),
             )
             notDiscoveredAvailable = false
         }
@@ -357,7 +363,7 @@ private fun deviceCenterVisibleItems(
                 favorites = favorites,
                 context = state.networkContext,
                 includeUnseenFavorites = true,
-                unseenEvidence = waitingProfileEvidence,
+                unseenEvidence = UiText(waitingProfileEvidence),
             )
             notDiscoveredAvailable = false
         }
@@ -368,7 +374,7 @@ private fun deviceCenterVisibleItems(
                 favorites = favorites,
                 context = state.session.initialNetworkContext,
                 includeUnseenFavorites = true,
-                unseenEvidence = notFoundProfileEvidence,
+                unseenEvidence = UiText(notFoundProfileEvidence),
             )
             notDiscoveredAvailable = true
         }
@@ -379,7 +385,7 @@ private fun deviceCenterVisibleItems(
                 favorites = favorites,
                 context = state.session.initialNetworkContext,
                 includeUnseenFavorites = true,
-                unseenEvidence = unfinishedProfileEvidence,
+                unseenEvidence = UiText(unfinishedProfileEvidence),
             )
             notDiscoveredAvailable = false
         }
@@ -391,7 +397,7 @@ private fun deviceCenterVisibleItems(
                 favorites = favorites,
                 context = readiness.networkContext,
                 includeUnseenFavorites = true,
-                unseenEvidence = savedProfileEvidence,
+                unseenEvidence = UiText(savedProfileEvidence),
             )
             notDiscoveredAvailable = false
         }
@@ -421,6 +427,7 @@ private fun DeviceCenterSearchControls(
     onClearSearch: () -> Unit,
     onFilterChanged: (DeviceCenterFilter) -> Unit,
 ) {
+    val clearSearchDescription = stringResource(R.string.lan_clear_search)
     Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
         if (searchState.isSearchActive) {
             OutlinedTextField(
@@ -428,7 +435,7 @@ private fun DeviceCenterSearchControls(
                 onValueChange = onSearchQueryChanged,
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text("搜索设备名称、IP、主机名") },
+                placeholder = { Text(stringResource(R.string.lan_search_hint)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Outlined.Search,
@@ -440,7 +447,7 @@ private fun DeviceCenterSearchControls(
                         IconButton(
                             onClick = onClearSearch,
                             modifier = Modifier.semantics {
-                                contentDescription = "清除搜索"
+                                contentDescription = clearSearchDescription
                             },
                         ) {
                             Icon(
@@ -461,12 +468,13 @@ private fun DeviceCenterSearchControls(
             horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
         ) {
             DeviceCenterFilter.entries.forEach { filter ->
+            val filterDescription = stringResource(R.string.lan_filter, filter.label())
                 FilterChip(
                     selected = searchState.filter == filter,
                     onClick = { onFilterChanged(filter) },
                     label = { Text(filter.label()) },
                     modifier = Modifier.semantics {
-                        contentDescription = "筛选：${filter.label()}"
+                        contentDescription = filterDescription
                     },
                 )
             }
@@ -474,19 +482,20 @@ private fun DeviceCenterSearchControls(
     }
 }
 
+@Composable
 private fun DeviceCenterFilter.label(): String = when (this) {
-    DeviceCenterFilter.ALL -> "全部"
-    DeviceCenterFilter.DISCOVERED -> "本次发现"
-    DeviceCenterFilter.NOT_DISCOVERED -> "本次未发现"
-    DeviceCenterFilter.FAVORITES -> "收藏"
+    DeviceCenterFilter.ALL -> stringResource(R.string.lan_all)
+    DeviceCenterFilter.DISCOVERED -> stringResource(R.string.lan_found_scan)
+    DeviceCenterFilter.NOT_DISCOVERED -> stringResource(R.string.lan_not_found)
+    DeviceCenterFilter.FAVORITES -> stringResource(R.string.lan_favorites)
 }
 
 @Composable
 private fun DeviceCenterNoMatchState() {
     OutlinedNetworkCard {
-        Text("没有匹配的设备", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.lan_no_match), style = MaterialTheme.typography.titleMedium)
         Text(
-            "尝试修改搜索内容或筛选条件",
+            stringResource(R.string.lan_search_help),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
@@ -499,7 +508,7 @@ private fun DeviceCenterNetworkSummaryCard(
 ) {
     val summary = DeviceCenterPresentation.networkSummary(context, range)
     OutlinedNetworkCard {
-        Text("当前网络", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.lan_current_network), style = MaterialTheme.typography.titleMedium)
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -507,28 +516,28 @@ private fun DeviceCenterNetworkSummaryCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    summary.networkName ?: summary.networkLabel,
+                    summary.networkName ?: summary.networkLabel.resolve(),
                     style = MaterialTheme.typography.titleLarge,
                 )
                 if (summary.networkName != null) {
                     Text(
-                        summary.networkLabel,
+                        summary.networkLabel.resolve(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }
             Text(
-                if (context.activeNetworkAvailable == false) "不可用" else "已连接",
+                if (context.activeNetworkAvailable == false) stringResource(R.string.lan_unavailable) else stringResource(R.string.lan_connected),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.labelLarge,
             )
         }
-        summary.subnet?.let { DetailRow(label = "网段", value = it) }
-        summary.localAddress?.let { DetailRow(label = "本机", value = it) }
-        summary.gateway?.let { DetailRow(label = "网关", value = it) }
+        summary.subnet?.let { DetailRow(label = stringResource(R.string.lan_subnet), value = it) }
+        summary.localAddress?.let { DetailRow(label = stringResource(R.string.lan_local), value = it) }
+        summary.gateway?.let { DetailRow(label = stringResource(R.string.lan_gateway), value = it) }
         summary.wifiSignalLevel?.let { signal ->
-            DetailRow(label = "信号", value = "$signal / 4")
+            DetailRow(label = stringResource(R.string.lan_signal), value = "$signal / 4")
         }
     }
 }
@@ -652,8 +661,8 @@ private fun DeviceCenterMessageCard(
 @Composable
 private fun DeviceCenterLoadingCard() {
     OutlinedNetworkCard {
-        Text("正在读取网络状态", style = MaterialTheme.typography.titleMedium)
-        Text("请稍候…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.lan_reading), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.lan_wait), color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

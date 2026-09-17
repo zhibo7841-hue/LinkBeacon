@@ -23,6 +23,11 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import com.networktoolbox.feature.lanscan.R
+import com.networktoolbox.core.designsystem.UiText
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberUpdatedState
+import com.networktoolbox.feature.lanscan.presentation.LanErrorPresentation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,8 +66,8 @@ fun DeviceDetailScreen(
     onToggleFavorite: () -> Unit,
     onSaveCustomName: (String) -> Unit = {},
     onRestoreAutomaticName: () -> Unit = {},
-    favoriteErrorMessage: String? = null,
-    customNameErrorMessage: String? = null,
+    favoriteErrorMessage: UiText? = null,
+    customNameErrorMessage: UiText? = null,
     onOpenPing: (String) -> Unit = {},
     onOpenTcp: (String) -> Unit = {},
     onSaveWakeOnLan: (String, String) -> Unit = { _, _ -> },
@@ -74,11 +79,12 @@ fun DeviceDetailScreen(
     val screenScrollState = scrollState ?: rememberSaveable(detail?.detailKey, saver = ScrollState.Saver) {
         ScrollState(initial = 0)
     }
+    val feedbackContext by rememberUpdatedState(LocalContext.current)
     val snackbarHostState = remember(detail?.detailKey) { SnackbarHostState() }
     LaunchedEffect(detail?.detailKey, deviceDetailEvents) {
         deviceDetailEvents.collect { event ->
             snackbarHostState.showSnackbar(
-                message = event.message,
+                message = event.message.resolve(feedbackContext),
                 duration = SnackbarDuration.Short,
             )
         }
@@ -137,7 +143,7 @@ fun DeviceDetailScreen(
                                     } else {
                                         Icons.Outlined.StarBorder
                                     },
-                                    contentDescription = detail.favoriteToggleContentDescription,
+                                    contentDescription = detail.favoriteToggleContentDescription.resolve(),
                                     tint = if (detail.isFavorite) {
                                         MaterialTheme.colorScheme.primary
                                     } else {
@@ -166,48 +172,48 @@ fun DeviceDetailScreen(
         }
 
         OutlinedNetworkCard {
-            Text(detail.displayName, style = MaterialTheme.typography.headlineSmall)
+            Text(detail.displayName.resolve(), style = MaterialTheme.typography.headlineSmall)
             detail.ipAddress?.takeIf(String::isNotBlank)?.let { ip ->
                 Text(ip, style = NetworkToolboxTextStyles.TechnicalData)
             }
-            detail.role?.takeIf(String::isNotBlank)?.let { role ->
+            detail.role?.let { role ->
                 Text(
-                    role,
+                    role.resolve(),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
             Text(
-                detail.favoriteStatusLabel,
+                detail.favoriteStatusLabel.resolve(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
             )
             favoriteErrorMessage?.let { message ->
                 Text(
-                    message,
+                    message.resolve(),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
             customNameErrorMessage?.let { message ->
                 Text(
-                    message,
+                    message.resolve(),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
         }
 
-        DeviceDetailSection(title = "基本信息") {
+        DeviceDetailSection(title = stringResource(R.string.lan_basic)) {
             detail.ipAddress?.takeIf(String::isNotBlank)?.let { ToolResultRow("IPv4", it) }
             detail.macAddress?.takeIf(String::isNotBlank)?.let { ToolResultRow("MAC", it) }
-            detail.vendor?.takeIf(String::isNotBlank)?.let { ToolResultRow("厂商", it) }
-            detail.model?.takeIf(String::isNotBlank)?.let { ToolResultRow("型号", it) }
+            detail.vendor?.takeIf(String::isNotBlank)?.let { ToolResultRow(stringResource(R.string.lan_vendor), it) }
+            detail.model?.takeIf(String::isNotBlank)?.let { ToolResultRow(stringResource(R.string.lan_model), it) }
         }
 
         if (detail.hostname != null || detail.mdnsNames.isNotEmpty() || detail.upnpNames.isNotEmpty()) {
-            DeviceDetailSection(title = "设备身份") {
-                detail.hostname?.takeIf(String::isNotBlank)?.let { ToolResultRow("主机名", it) }
+            DeviceDetailSection(title = stringResource(R.string.lan_identity)) {
+                detail.hostname?.takeIf(String::isNotBlank)?.let { ToolResultRow(stringResource(R.string.lan_hostname), it) }
                 if (detail.mdnsNames.isNotEmpty()) {
                     ToolResultRow("mDNS", detail.mdnsNames.joinToString("\n"))
                 }
@@ -217,16 +223,16 @@ fun DeviceDetailScreen(
             }
         }
 
-        DeviceDetailSection(title = "网络关系") {
-            detail.role?.takeIf(String::isNotBlank)?.let { ToolResultRow("角色", it) }
-            detail.networkScope?.takeIf(String::isNotBlank)?.let { ToolResultRow("范围", it) }
+        DeviceDetailSection(title = stringResource(R.string.lan_relationship)) {
+            detail.role?.let { ToolResultRow(stringResource(R.string.lan_role), it.resolve()) }
+            detail.networkScope?.let { ToolResultRow(stringResource(R.string.lan_range), it.resolve()) }
         }
 
-        DeviceDetailSection(title = "网络检测") {
+        DeviceDetailSection(title = stringResource(R.string.lan_checks)) {
             detail.networkToolTarget?.let { target ->
                 if (!detail.observedThisScan) {
                     Text(
-                        "将使用最近保存的 IPv4 地址。",
+                        stringResource(R.string.lan_saved_ip),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -245,11 +251,11 @@ fun DeviceDetailScreen(
                         modifier = Modifier.weight(1f),
                         onClick = { onOpenTcp(target) },
                     ) {
-                        Text("端口检测")
+                        Text(stringResource(R.string.lan_port))
                     }
                 }
             } ?: Text(
-                "当前没有可用的 IPv4 地址，暂无法快速检测。",
+                stringResource(R.string.lan_no_ip),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
             )
@@ -314,10 +320,10 @@ fun DeviceDetailScreen(
             }
         }
 
-        DeviceDetailSection(title = "观察状态") {
-            ToolResultRow("本次扫描", if (detail.observedThisScan) "已发现" else "本次未发现")
+        DeviceDetailSection(title = stringResource(R.string.lan_observation)) {
+            ToolResultRow(stringResource(R.string.lan_this_scan), if (detail.observedThisScan) stringResource(R.string.lan_found) else stringResource(R.string.lan_not_found))
             detail.lastSeenAt?.takeIf { it > 0L }?.let { timestamp ->
-                ToolResultRow("最近发现", formatTimestamp(timestamp))
+                ToolResultRow(stringResource(R.string.lan_last_seen), formatTimestamp(timestamp))
             }
         }
 

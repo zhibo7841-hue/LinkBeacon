@@ -1,5 +1,7 @@
 package com.networktoolbox.feature.dashboard
 
+import com.networktoolbox.core.designsystem.UiText
+
 enum class RecentDiagnosticStatus {
     NORMAL,
     NOTICE,
@@ -10,8 +12,8 @@ enum class RecentDiagnosticStatus {
 
 /** Pure display mapping for the Home recent-diagnosis preview. */
 internal object HomePresentation {
-    const val quickToolsTitle = "快速工具"
-    const val recentDiagnosisTitle = "最近诊断"
+    val quickToolsTitle = R.string.home_quick
+    val recentDiagnosisTitle = R.string.home_recent
 
     val sectionOrder: List<String> = listOf(
         "network",
@@ -20,8 +22,8 @@ internal object HomePresentation {
         "recent-diagnosis",
     )
 
-    fun recentDiagnosticBody(preview: RecentHistoryPreview?): String =
-        preview?.title ?: "暂无诊断记录"
+    fun recentDiagnosticBody(preview: RecentHistoryPreview?): UiText =
+        preview?.title?.let(::UiText) ?: UiText(R.string.home_no_recent)
 
     fun recentDiagnosticSummary(preview: RecentHistoryPreview?): String? =
         preview?.summary?.takeIf(String::isNotBlank)
@@ -29,6 +31,6 @@ internal object HomePresentation {
     fun recentDiagnosticStatus(preview: RecentHistoryPreview?): RecentDiagnosticStatus =
         preview?.status ?: RecentDiagnosticStatus.UNKNOWN
 
-    fun networkDetailsContentDescription(expanded: Boolean): String =
-        if (expanded) "收起网络详情" else "查看网络详情"
+    fun networkDetailsContentDescription(expanded: Boolean): Int =
+        if (expanded) R.string.home_collapse else R.string.home_expand
 }

@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_ui_pdf_saved">报告已保存为 PDF</string>
+    <string name="app_ui_pdf_failed">保存 PDF 失败，请重试。</string>
+    <string name="app_ui_pdf_expired">待导出内容已失效，请返回报告重新导出。</string>
+    <string name="app_ui_clipboard_label">LinkBeacon 报告</string>
+    <string name="app_ui_pdf_expired_retry">待导出内容已失效，请重新选择保存 PDF。</string>
+    <string name="app_ui_pdf_busy">请先完成当前保存操作。</string>
+    <string name="app_ui_pdf_picker_failed">无法打开文件保存界面。</string>
+    <string name="app_ui_pdf_share">分享诊断 PDF</string>
+    <string name="app_ui_pdf_no_app">没有可用的应用来分享 PDF。</string>
+    <string name="app_ui_pdf_share_failed">分享 PDF 失败，请重试。</string>
+    <string name="app_ui_type_dns">DNS 查询</string>
+    <string name="app_ui_type_tcp">TCP 端口检测</string>
+    <string name="app_ui_type_report">网络诊断</string>
+    <string name="app_ui_type_lan">局域网扫描</string>
+    <string name="app_ui_type_other">其他</string>
+    <string name="app_ui_version">版本 %1$s</string>
+</resources>

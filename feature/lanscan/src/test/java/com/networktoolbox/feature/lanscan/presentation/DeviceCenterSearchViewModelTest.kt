@@ -1,5 +1,6 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.feature.lanscan.domain.LanScanReadiness
@@ -29,7 +30,6 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -48,9 +48,9 @@ class DeviceCenterSearchViewModelTest {
         val restoredHandle = androidx.lifecycle.SavedStateHandle(handle.keys().associateWith { handle.get<Any?>(it) })
         val second = viewModel(readiness(context("10.0.1.206")), savedState = restoredHandle)
         advanceUntilIdle()
-        assertEquals(first.deviceCenterSearchState.value, second.deviceCenterSearchState.value)
+        assertPresentationEquals(first.deviceCenterSearchState.value, second.deviceCenterSearchState.value)
         assertTrue(second.uiState.value is LanScannerUiState.Ready)
-        assertEquals(setOf("deviceSearchActive", "deviceSearchQuery", "deviceSearchFilter"), handle.keys())
+        assertPresentationEquals(setOf("deviceSearchActive", "deviceSearchQuery", "deviceSearchFilter"), handle.keys())
     }
 
     private val testDispatcher = StandardTestDispatcher()
@@ -70,13 +70,13 @@ class DeviceCenterSearchViewModelTest {
         val viewModel = viewModel(readiness(context("10.0.1.206")))
 
         advanceUntilIdle()
-        assertEquals(DeviceCenterSearchState(), viewModel.deviceCenterSearchState.value)
+        assertPresentationEquals(DeviceCenterSearchState(), viewModel.deviceCenterSearchState.value)
 
         viewModel.openDeviceCenterSearch()
         viewModel.onDeviceCenterSearchQueryChanged("  router ")
         viewModel.setDeviceCenterFilter(DeviceCenterFilter.FAVORITES)
 
-        assertEquals(
+        assertPresentationEquals(
             DeviceCenterSearchState(
                 isSearchActive = true,
                 query = "  router ",
@@ -86,9 +86,9 @@ class DeviceCenterSearchViewModelTest {
         )
 
         viewModel.clearDeviceCenterSearchQuery()
-        assertEquals("", viewModel.deviceCenterSearchState.value.query)
+        assertPresentationEquals("", viewModel.deviceCenterSearchState.value.query)
         viewModel.closeDeviceCenterSearch()
-        assertEquals(DeviceCenterSearchState(), viewModel.deviceCenterSearchState.value)
+        assertPresentationEquals(DeviceCenterSearchState(), viewModel.deviceCenterSearchState.value)
     }
 
     @Test
@@ -123,12 +123,12 @@ class DeviceCenterSearchViewModelTest {
         viewModel.startScan()
         runCurrent()
 
-        assertEquals("10.0.1", viewModel.deviceCenterSearchState.value.query)
-        assertEquals(DeviceCenterFilter.DISCOVERED, viewModel.deviceCenterSearchState.value.filter)
+        assertPresentationEquals("10.0.1", viewModel.deviceCenterSearchState.value.query)
+        assertPresentationEquals(DeviceCenterFilter.DISCOVERED, viewModel.deviceCenterSearchState.value.filter)
 
         advanceUntilIdle()
         assertTrue(viewModel.uiState.value is LanScannerUiState.Completed)
-        assertEquals(
+        assertPresentationEquals(
             DeviceCenterSearchState(
                 isSearchActive = true,
                 query = "10.0.1",
@@ -172,8 +172,8 @@ class DeviceCenterSearchViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value is LanScannerUiState.Cancelled)
-        assertEquals("printer", viewModel.deviceCenterSearchState.value.query)
-        assertEquals(DeviceCenterFilter.NOT_DISCOVERED, viewModel.deviceCenterSearchState.value.filter)
+        assertPresentationEquals("printer", viewModel.deviceCenterSearchState.value.query)
+        assertPresentationEquals(DeviceCenterFilter.NOT_DISCOVERED, viewModel.deviceCenterSearchState.value.filter)
     }
 
     @Test
@@ -206,9 +206,9 @@ class DeviceCenterSearchViewModelTest {
         readinessFlow.value = readiness(changed)
         advanceUntilIdle()
 
-        assertEquals(DeviceCenterSearchState(), viewModel.deviceCenterSearchState.value)
-        assertEquals(0, scanCalls.get())
-        assertEquals(changed, (viewModel.uiState.value as LanScannerUiState.Ready).readiness.networkContext)
+        assertPresentationEquals(DeviceCenterSearchState(), viewModel.deviceCenterSearchState.value)
+        assertPresentationEquals(0, scanCalls.get())
+        assertPresentationEquals(changed, (viewModel.uiState.value as LanScannerUiState.Ready).readiness.networkContext)
     }
 
     @Test
@@ -234,7 +234,7 @@ class DeviceCenterSearchViewModelTest {
         viewModel.clearDeviceCenterSearchQuery()
         viewModel.closeDeviceCenterSearch()
 
-        assertEquals(0, scanCalls.get())
+        assertPresentationEquals(0, scanCalls.get())
     }
 
     private fun viewModel(

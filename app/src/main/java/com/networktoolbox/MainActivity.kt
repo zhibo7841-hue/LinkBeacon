@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.ActivityNotFoundException
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
@@ -114,9 +115,9 @@ class MainActivity : AppCompatActivity() {
                 output.use { it.write(bytes) }
             }
             val message = when (outcome) {
-                PdfExportOutcome.SAVED -> "报告已保存为 PDF"
-                PdfExportOutcome.FAILED -> "保存 PDF 失败，请重试。"
-                PdfExportOutcome.EXPIRED -> "待导出内容已失效，请返回报告重新导出。"
+                PdfExportOutcome.SAVED -> getString(R.string.app_ui_pdf_saved)
+                PdfExportOutcome.FAILED -> getString(R.string.app_ui_pdf_failed)
+                PdfExportOutcome.EXPIRED -> getString(R.string.app_ui_pdf_expired)
                 PdfExportOutcome.CANCELLED, PdfExportOutcome.IGNORED -> null
             }
             message?.let { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }
@@ -132,25 +133,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun copyDiagnosticReport(text: String) {
         val clipboard = getSystemService(ClipboardManager::class.java) ?: return
-        clipboard.setPrimaryClip(ClipData.newPlainText("LinkBeacon 报告", text))
+        clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.app_ui_clipboard_label), text))
     }
 
     private fun saveDiagnosticReportPdf(bytes: ByteArray, fileName: String) {
         if (pdfExportViewModel.expired) {
             pdfExportViewModel.requestId?.let { pdfExportViewModel.complete(it, cancelled = false) { } }
-            Toast.makeText(this, "待导出内容已失效，请重新选择保存 PDF。", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.app_ui_pdf_expired_retry), Toast.LENGTH_LONG).show()
             return
         }
         val id = pdfExportViewModel.prepare(bytes)
         if (id == null) {
-            Toast.makeText(this, "请先完成当前保存操作。", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.app_ui_pdf_busy), Toast.LENGTH_SHORT).show()
             return
         }
         runCatching {
             registerPdfRequest(id).launch(fileName)
         }.onFailure {
             pdfExportViewModel.complete(id, cancelled = true) { }
-            Toast.makeText(this, "无法打开文件保存界面。", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.app_ui_pdf_picker_failed), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -176,12 +177,12 @@ class MainActivity : AppCompatActivity() {
                 putExtra(Intent.EXTRA_STREAM, contentUri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            startActivity(Intent.createChooser(sendIntent, "分享诊断 PDF"))
+            startActivity(Intent.createChooser(sendIntent, getString(R.string.app_ui_pdf_share)))
         }.onFailure { error ->
             val message = if (error is ActivityNotFoundException) {
-                "没有可用的应用来分享 PDF。"
+                getString(R.string.app_ui_pdf_no_app)
             } else {
-                "分享 PDF 失败，请重试。"
+                getString(R.string.app_ui_pdf_share_failed)
             }
             Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         }
@@ -625,13 +626,14 @@ private fun LanScannerUiState.scrollNetworkContext() = when (this) {
     is LanScannerUiState.Error -> readiness?.networkContext
 }
 
+@Composable
 private fun HistoryType.displayName(): String = when (this) {
     HistoryType.PING -> "Ping"
-    HistoryType.DNS -> "DNS 查询"
-    HistoryType.TCP -> "TCP 端口检测"
-    HistoryType.REPORT -> "网络诊断"
-    HistoryType.LAN_SCAN -> "局域网扫描"
-    HistoryType.UNKNOWN -> "其他"
+    HistoryType.DNS -> stringResource(R.string.app_ui_type_dns)
+    HistoryType.TCP -> stringResource(R.string.app_ui_type_tcp)
+    HistoryType.REPORT -> stringResource(R.string.app_ui_type_report)
+    HistoryType.LAN_SCAN -> stringResource(R.string.app_ui_type_lan)
+    HistoryType.UNKNOWN -> stringResource(R.string.app_ui_type_other)
 }
 
 private fun ResolvedDiagnosticHistory.recentDiagnosticStatus(): RecentDiagnosticStatus = when (this) {

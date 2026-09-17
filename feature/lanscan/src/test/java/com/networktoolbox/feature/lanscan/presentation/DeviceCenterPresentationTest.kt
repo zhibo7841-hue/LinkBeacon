@@ -1,5 +1,6 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.feature.lanscan.domain.LanScanRangeCalculator
@@ -9,7 +10,6 @@ import com.networktoolbox.feature.lanscan.domain.model.LanDeviceEvidence
 import com.networktoolbox.feature.lanscan.domain.model.LanDiscoveryMethod
 import com.networktoolbox.feature.lanscan.domain.model.LanMdnsObservation
 import com.networktoolbox.feature.lanscan.domain.model.LanUpnpObservation
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -25,12 +25,12 @@ class DeviceCenterPresentationTest {
 
         val summary = DeviceCenterPresentation.networkSummary(context, readyRange(context))
 
-        assertEquals("Wi-Fi", summary.networkLabel)
-        assertEquals("HomeLab", summary.networkName)
-        assertEquals("10.0.1.0/24", summary.subnet)
-        assertEquals("10.0.1.206", summary.localAddress)
-        assertEquals("10.0.1.1", summary.gateway)
-        assertEquals(4, summary.wifiSignalLevel)
+        assertPresentationEquals("Wi-Fi", summary.networkLabel)
+        assertPresentationEquals("HomeLab", summary.networkName)
+        assertPresentationEquals("10.0.1.0/24", summary.subnet)
+        assertPresentationEquals("10.0.1.206", summary.localAddress)
+        assertPresentationEquals("10.0.1.1", summary.gateway)
+        assertPresentationEquals(4, summary.wifiSignalLevel)
     }
 
     @Test
@@ -43,8 +43,8 @@ class DeviceCenterPresentationTest {
 
         val summary = DeviceCenterPresentation.networkSummary(context)
 
-        assertEquals("移动网络", summary.networkLabel)
-        assertEquals("100.64.0.2", summary.localAddress)
+        assertPresentationEquals("移动网络", summary.networkLabel)
+        assertPresentationEquals("100.64.0.2", summary.localAddress)
         assertNull(summary.gateway)
         assertNull(summary.wifiSignalLevel)
     }
@@ -56,10 +56,10 @@ class DeviceCenterPresentationTest {
             wifiContext(address = null, wifiName = "<unknown ssid>", signal = null),
         )
 
-        assertEquals("未知网络", noNetwork.networkLabel)
+        assertPresentationEquals("未知网络", noNetwork.networkLabel)
         assertNull(noNetwork.localAddress)
         assertNull(noNetwork.gateway)
-        assertEquals("Wi-Fi", unknownSsid.networkLabel)
+        assertPresentationEquals("Wi-Fi", unknownSsid.networkLabel)
         assertNull(unknownSsid.networkName)
     }
 
@@ -86,16 +86,16 @@ class DeviceCenterPresentationTest {
         )
         val unknown = device("10.0.1.22")
 
-        assertEquals("Living Room Hub", DeviceCenterPresentation.deviceDisplayName(upnpNamed))
-        assertEquals("Example · Hub 2", DeviceCenterPresentation.deviceIdentitySummary(upnpNamed))
-        assertEquals("Office Printer", DeviceCenterPresentation.deviceDisplayName(mdnsNamed))
-        assertEquals("未知设备", DeviceCenterPresentation.deviceDisplayName(unknown))
-        assertEquals("10.0.1.22", DeviceCenterPresentation.deviceAddress(unknown))
-        assertEquals(
+        assertPresentationEquals("Living Room Hub", DeviceCenterPresentation.deviceDisplayName(upnpNamed))
+        assertPresentationEquals("Example · Hub 2", DeviceCenterPresentation.deviceIdentitySummary(upnpNamed))
+        assertPresentationEquals("Office Printer", DeviceCenterPresentation.deviceDisplayName(mdnsNamed))
+        assertPresentationEquals("未知设备", DeviceCenterPresentation.deviceDisplayName(unknown))
+        assertPresentationEquals("10.0.1.22", DeviceCenterPresentation.deviceAddress(unknown))
+        assertPresentationEquals(
             LanScannerPresentation.deviceDisplayName(unknown),
             DeviceCenterPresentation.deviceDisplayName(unknown),
         )
-        assertEquals("可达性检测 · 16 ms", DeviceCenterPresentation.deviceEvidence(unknown))
+        assertPresentationEquals("可达性检测 · 16 ms", DeviceCenterPresentation.deviceEvidence(unknown))
     }
 
     @Test
@@ -104,11 +104,11 @@ class DeviceCenterPresentationTest {
         val local = device("10.0.1.206").copy(isLocalDevice = true)
         val ordinary = device("10.0.1.30")
 
-        assertEquals("网关", DeviceCenterPresentation.deviceRole(gateway))
-        assertEquals("本机", DeviceCenterPresentation.deviceRole(local))
-        assertEquals("", DeviceCenterPresentation.deviceRole(ordinary))
-        assertEquals("网关信息", DeviceCenterPresentation.deviceEvidence(gateway))
-        assertEquals("当前设备", DeviceCenterPresentation.deviceEvidence(local))
+        assertPresentationEquals("网关", DeviceCenterPresentation.deviceRole(gateway))
+        assertPresentationEquals("本机", DeviceCenterPresentation.deviceRole(local))
+        assertPresentationEquals(null, DeviceCenterPresentation.deviceRole(ordinary))
+        assertPresentationEquals("网关信息", DeviceCenterPresentation.deviceEvidence(gateway))
+        assertPresentationEquals("当前设备", DeviceCenterPresentation.deviceEvidence(local))
     }
 
     private fun readyRange(context: NetworkContext) =

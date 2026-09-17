@@ -1,5 +1,6 @@
 package com.networktoolbox.feature.report.presentation
 
+import com.networktoolbox.feature.report.R
 import com.networktoolbox.core.common.diagnostic.DiagnosticCheckStatus
 import com.networktoolbox.core.common.diagnostic.DiagnosticDiagnosisStatus
 import com.networktoolbox.core.common.diagnostic.DiagnosticSeverity
@@ -9,23 +10,23 @@ import com.networktoolbox.feature.report.diagnostic.v4.DiagnosticVerificationSta
 /** UI-only mapping from report contracts to the shared semantic status visuals. */
 internal data class DiagnosticStatusVisual(
     val state: StatusVisualState,
-    val label: String,
+    val label: Int,
 )
 
 internal object DiagnosticStatusPresentation {
     fun diagnosis(status: DiagnosticDiagnosisStatus?): DiagnosticStatusVisual = when (status) {
         DiagnosticDiagnosisStatus.NORMAL ->
-            DiagnosticStatusVisual(StatusVisualState.NORMAL, "网络状态正常")
+            DiagnosticStatusVisual(StatusVisualState.NORMAL, R.string.report_normal_status)
 
         DiagnosticDiagnosisStatus.ATTENTION ->
-            DiagnosticStatusVisual(StatusVisualState.NOTICE, "发现需要关注的问题")
+            DiagnosticStatusVisual(StatusVisualState.NOTICE, R.string.report_attention_status)
 
         DiagnosticDiagnosisStatus.LIMITED ->
-            DiagnosticStatusVisual(StatusVisualState.WARNING, "部分网络能力受限")
+            DiagnosticStatusVisual(StatusVisualState.WARNING, R.string.report_limited_status)
 
         DiagnosticDiagnosisStatus.UNKNOWN,
         null,
-        -> DiagnosticStatusVisual(StatusVisualState.UNKNOWN, "状态未确定")
+        -> DiagnosticStatusVisual(StatusVisualState.UNKNOWN, R.string.report_unknown_status)
     }
 
     fun check(
@@ -33,61 +34,61 @@ internal object DiagnosticStatusPresentation {
         severity: DiagnosticSeverity,
     ): DiagnosticStatusVisual = when (status) {
         DiagnosticCheckStatus.PASS -> if (severity == DiagnosticSeverity.HEALTHY) {
-            DiagnosticStatusVisual(StatusVisualState.NORMAL, "正常")
+            DiagnosticStatusVisual(StatusVisualState.NORMAL, R.string.report_normal)
         } else {
-            DiagnosticStatusVisual(StatusVisualState.NOTICE, "提示")
+            DiagnosticStatusVisual(StatusVisualState.NOTICE, R.string.report_notice)
         }
 
         DiagnosticCheckStatus.FAIL -> if (severity == DiagnosticSeverity.ERROR) {
-            DiagnosticStatusVisual(StatusVisualState.ERROR, "严重异常")
+            DiagnosticStatusVisual(StatusVisualState.ERROR, R.string.report_severe)
         } else {
-            DiagnosticStatusVisual(StatusVisualState.WARNING, "异常")
+            DiagnosticStatusVisual(StatusVisualState.WARNING, R.string.report_warning)
         }
 
         DiagnosticCheckStatus.NO_RECORDS ->
-            DiagnosticStatusVisual(StatusVisualState.NOTICE, "无记录")
+            DiagnosticStatusVisual(StatusVisualState.NOTICE, R.string.report_no_records)
 
         DiagnosticCheckStatus.NOT_APPLICABLE ->
-            DiagnosticStatusVisual(StatusVisualState.NOT_EXECUTED, "不适用")
+            DiagnosticStatusVisual(StatusVisualState.NOT_EXECUTED, R.string.report_na)
 
         DiagnosticCheckStatus.SKIPPED ->
-            DiagnosticStatusVisual(StatusVisualState.NOT_EXECUTED, "未执行")
+            DiagnosticStatusVisual(StatusVisualState.NOT_EXECUTED, R.string.report_not_run)
 
         DiagnosticCheckStatus.UNKNOWN ->
-            DiagnosticStatusVisual(StatusVisualState.UNKNOWN, "未确定")
+            DiagnosticStatusVisual(StatusVisualState.UNKNOWN, R.string.report_unknown)
     }
 
     fun severity(severity: DiagnosticSeverity): DiagnosticStatusVisual = when (severity) {
         DiagnosticSeverity.HEALTHY ->
-            DiagnosticStatusVisual(StatusVisualState.NORMAL, "正常")
+            DiagnosticStatusVisual(StatusVisualState.NORMAL, R.string.report_normal)
 
         DiagnosticSeverity.NOTICE ->
-            DiagnosticStatusVisual(StatusVisualState.NOTICE, "提示")
+            DiagnosticStatusVisual(StatusVisualState.NOTICE, R.string.report_notice)
 
         DiagnosticSeverity.WARNING ->
-            DiagnosticStatusVisual(StatusVisualState.WARNING, "异常")
+            DiagnosticStatusVisual(StatusVisualState.WARNING, R.string.report_warning)
 
         DiagnosticSeverity.ERROR ->
-            DiagnosticStatusVisual(StatusVisualState.ERROR, "严重异常")
+            DiagnosticStatusVisual(StatusVisualState.ERROR, R.string.report_severe)
     }
 
     fun verification(status: DiagnosticVerificationStatus): DiagnosticStatusVisual = when (status) {
         DiagnosticVerificationStatus.RESOLVED_OR_NOT_REPRODUCED ->
-            DiagnosticStatusVisual(StatusVisualState.NORMAL, "此前问题未再次出现")
+            DiagnosticStatusVisual(StatusVisualState.NORMAL, R.string.report_resolved_status)
 
         DiagnosticVerificationStatus.STILL_PRESENT ->
-            DiagnosticStatusVisual(StatusVisualState.WARNING, "此前问题仍需关注")
+            DiagnosticStatusVisual(StatusVisualState.WARNING, R.string.report_persistent_status)
 
         DiagnosticVerificationStatus.NEW_FINDINGS ->
-            DiagnosticStatusVisual(StatusVisualState.WARNING, "发现新的网络问题")
+            DiagnosticStatusVisual(StatusVisualState.WARNING, R.string.report_new_status)
 
         DiagnosticVerificationStatus.UNCHANGED ->
-            DiagnosticStatusVisual(StatusVisualState.NORMAL, "结果基本一致")
+            DiagnosticStatusVisual(StatusVisualState.NORMAL, R.string.report_unchanged_status)
 
         DiagnosticVerificationStatus.INCONCLUSIVE ->
-            DiagnosticStatusVisual(StatusVisualState.UNKNOWN, "暂时无法确认")
+            DiagnosticStatusVisual(StatusVisualState.UNKNOWN, R.string.report_unconfirmed_status)
 
         DiagnosticVerificationStatus.CONTEXT_CHANGED ->
-            DiagnosticStatusVisual(StatusVisualState.NOTICE, "检测环境已变化")
+            DiagnosticStatusVisual(StatusVisualState.NOTICE, R.string.report_changed)
     }
 }

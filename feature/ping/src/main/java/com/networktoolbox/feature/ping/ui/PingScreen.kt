@@ -22,6 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
+import com.networktoolbox.feature.ping.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.networktoolbox.core.designsystem.DestructiveActionButton
@@ -87,12 +89,12 @@ fun PingScreen(
                 onStop = onStop,
             )
         } else {
-            ToolInputSection(title = "目标") {
+            ToolInputSection(title = stringResource(R.string.ping_target)) {
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
                     value = uiState.targetInput,
                     onValueChange = onTargetChanged,
-                    label = { Text("目标地址或域名") },
+                    label = { Text(stringResource(R.string.ping_target_hint)) },
                     singleLine = true,
                     isError = uiState.status.isTargetInputError(),
                 )
@@ -108,14 +110,14 @@ fun PingScreen(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onPing,
                 ) {
-                    Text("开始检测")
+                    Text(stringResource(R.string.ping_start))
                 }
 
                 TextButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = { advancedSettingsExpanded = !advancedSettingsExpanded },
                 ) {
-                    Text(if (advancedSettingsExpanded) "收起高级设置" else "高级设置 >")
+                    Text(if (advancedSettingsExpanded) stringResource(R.string.ping_collapse_advanced) else stringResource(R.string.ping_advanced))
                 }
 
                 if (advancedSettingsExpanded) {
@@ -149,25 +151,25 @@ private fun AdvancedSettings(
     onIntervalChanged: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
-        Text("检测模式", style = MaterialTheme.typography.labelLarge)
+        Text(stringResource(R.string.ping_mode), style = MaterialTheme.typography.labelLarge)
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
             SegmentedButton(
                 selected = uiState.mode == PingDetectionMode.QUICK,
                 onClick = { onModeChanged(PingDetectionMode.QUICK) },
                 shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
                 modifier = Modifier.weight(1f),
-                label = { Text("快速检测") },
+                label = { Text(stringResource(R.string.ping_quick)) },
             )
             SegmentedButton(
                 selected = uiState.mode == PingDetectionMode.CONTINUOUS,
                 onClick = { onModeChanged(PingDetectionMode.CONTINUOUS) },
                 shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                 modifier = Modifier.weight(1f),
-                label = { Text("连续检测") },
+                label = { Text(stringResource(R.string.ping_continuous)) },
             )
         }
 
-        Text("协议偏好", style = MaterialTheme.typography.labelLarge)
+        Text(stringResource(R.string.ping_protocol_preference), style = MaterialTheme.typography.labelLarge)
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
             PingProtocol.entries.forEachIndexed { index, protocol ->
                 SegmentedButton(
@@ -189,7 +191,7 @@ private fun AdvancedSettings(
                     modifier = Modifier.weight(1f),
                     value = uiState.countInput,
                     onValueChange = onCountChanged,
-                    label = { Text("次数（1-100）") },
+                    label = { Text(stringResource(R.string.ping_count)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     isError = uiState.status.isCountInputError(),
@@ -198,7 +200,7 @@ private fun AdvancedSettings(
                     modifier = Modifier.weight(1f),
                     value = uiState.intervalInput,
                     onValueChange = onIntervalChanged,
-                    label = { Text("间隔（毫秒）") },
+                    label = { Text(stringResource(R.string.ping_interval)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     isError = uiState.status.isIntervalInputError(),
@@ -215,9 +217,9 @@ private fun RunningCard(
 ) {
     ToolRunningSection {
         ToolStatusSummary(
-            title = if (status.expectedCount == null) "正在连续检测" else "正在检测",
+            title = if (status.expectedCount == null) stringResource(R.string.ping_running_continuous) else stringResource(R.string.ping_running),
             status = StatusVisualState.RUNNING,
-            label = "检测中",
+            label = stringResource(R.string.ping_testing),
         )
         Text(status.target, style = NetworkToolboxTextStyles.TechnicalData)
         status.expectedCount?.let { expectedCount ->
@@ -226,7 +228,7 @@ private fun RunningCard(
             } else {
                 (status.completedCount.toFloat() / expectedCount).coerceIn(0f, 1f)
             }
-            Text("已完成：${status.completedCount} / $expectedCount")
+            Text(stringResource(R.string.ping_progress, status.completedCount, expectedCount))
             LinearProgressIndicator(
                 progress = { progress },
                 modifier = Modifier.fillMaxWidth(),
@@ -234,22 +236,22 @@ private fun RunningCard(
         }
         ToolMetricGrid(
             metrics = listOf(
-                ToolMetric("当前", status.latestLatencyMs?.let { "$it ms" } ?: "未收到"),
-                ToolMetric("平均", status.avgLatencyMs.latencyText()),
-                ToolMetric("最低", status.minLatencyMs?.let { "$it ms" } ?: "未收到"),
-                ToolMetric("最高", status.maxLatencyMs?.let { "$it ms" } ?: "未收到"),
-                ToolMetric("丢包", status.packetLoss.percentText()),
+                ToolMetric(stringResource(R.string.ping_current), status.latestLatencyMs?.let { "$it ms" } ?: stringResource(R.string.ping_no_reply)),
+                ToolMetric(stringResource(R.string.ping_average), status.avgLatencyMs.latencyText()),
+                ToolMetric(stringResource(R.string.ping_min), status.minLatencyMs?.let { "$it ms" } ?: stringResource(R.string.ping_no_reply)),
+                ToolMetric(stringResource(R.string.ping_max), status.maxLatencyMs?.let { "$it ms" } ?: stringResource(R.string.ping_no_reply)),
+                ToolMetric(stringResource(R.string.ping_loss), status.packetLoss.percentText()),
             ),
         )
         Text(
-            "检测过程中可随时停止。",
+            stringResource(R.string.ping_stop_hint),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         DestructiveActionButton(
             modifier = Modifier.fillMaxWidth(),
             onClick = onStop,
         ) {
-            Text("停止检测")
+            Text(stringResource(R.string.ping_stop))
         }
     }
 }
@@ -258,17 +260,17 @@ private fun RunningCard(
 private fun CancelledCard(target: String) {
     OutlinedNetworkCard {
         ToolStatusSummary(
-            title = "检测已停止",
+            title = stringResource(R.string.ping_stopped_title),
             status = StatusVisualState.CANCELLED,
-            label = "已停止",
+            label = stringResource(R.string.ping_stopped),
         )
         ToolResultRow(
-            label = "目标",
-            value = target.ifBlank { "未知" },
+            label = stringResource(R.string.ping_target),
+            value = target.ifBlank { stringResource(R.string.ping_unknown) },
             valueStyle = NetworkToolboxTextStyles.TechnicalData,
         )
         Text(
-            "本次未生成完整结果，也不会写入历史记录。",
+            stringResource(R.string.ping_cancel_note),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
@@ -283,14 +285,14 @@ private fun PingResultCard(result: PingSessionResult) {
 
     OutlinedNetworkCard {
         ToolStatusSummary(
-            title = "${result.target.ifBlank { "未知" }} · ${if (completed) "已完成" else "无法访问"}",
+            title = stringResource(R.string.ping_result_title, result.target.ifBlank { stringResource(R.string.ping_unknown) }, if (completed) stringResource(R.string.ping_completed) else stringResource(R.string.ping_unreachable)),
             status = result.qualityLevel.statusVisualState(),
             label = result.qualityLevel.statusLabel(),
         )
         ToolMetricGrid(
             metrics = listOf(
-                ToolMetric("平均延迟", result.avgLatencyMs.latencyText()),
-                ToolMetric("丢包率", result.packetLoss.percentText()),
+                ToolMetric(stringResource(R.string.ping_average_latency), result.avgLatencyMs.latencyText()),
+                ToolMetric(stringResource(R.string.ping_packet_loss), result.packetLoss.percentText()),
             ),
         )
         Text(result.localizedSummary())
@@ -299,7 +301,7 @@ private fun PingResultCard(result: PingSessionResult) {
             result.errorMessage
                 ?.takeIf { it.isNotBlank() }
                 ?.let { errorMessage ->
-                    ToolResultRow("原因", errorMessage.displayMessage())
+                    ToolResultRow(stringResource(R.string.ping_reason), errorMessage.displayMessage())
                     errorMessage.toExplanation()?.let { explanation ->
                         Text(
                             explanation,
@@ -311,27 +313,27 @@ private fun PingResultCard(result: PingSessionResult) {
         }
 
         TextButton(onClick = { advancedExpanded = !advancedExpanded }) {
-            Text(if (advancedExpanded) "收起详细信息" else "查看详细信息")
+            Text(if (advancedExpanded) stringResource(R.string.ping_collapse_details) else stringResource(R.string.ping_details))
         }
         if (advancedExpanded) {
             HorizontalDivider()
-            Text("基本信息", style = MaterialTheme.typography.labelLarge)
-            ToolResultRow("检测协议", result.protocol.displayName())
+            Text(stringResource(R.string.ping_basic), style = MaterialTheme.typography.labelLarge)
+            ToolResultRow(stringResource(R.string.ping_protocol), result.protocol.displayName())
             ToolResultRow(
-                "地址",
-                result.address ?: "未解析",
+                stringResource(R.string.ping_address),
+                result.address ?: stringResource(R.string.ping_unresolved),
                 valueStyle = NetworkToolboxTextStyles.TechnicalData,
             )
-            ToolResultRow("检测方式", result.method.displayName())
-            Text("数据包", style = MaterialTheme.typography.labelLarge)
-            ToolResultRow("发送", result.sentPackets.toString())
-            ToolResultRow("接收", result.receivedPackets.toString())
-            ToolResultRow("丢包", "${result.lostPackets}（${result.packetLoss.percentText()}）")
-            Text("延迟", style = MaterialTheme.typography.labelLarge)
-            ToolResultRow("最低延迟", result.minLatencyMs?.let { "$it ms" } ?: "未检测到")
-            ToolResultRow("平均延迟", result.avgLatencyMs.latencyText())
-            ToolResultRow("最高延迟", result.maxLatencyMs?.let { "$it ms" } ?: "未检测到")
-            ToolResultRow("抖动", result.jitterMs.latencyText())
+            ToolResultRow(stringResource(R.string.ping_method), result.method.displayName())
+            Text(stringResource(R.string.ping_packets), style = MaterialTheme.typography.labelLarge)
+            ToolResultRow(stringResource(R.string.ping_sent), result.sentPackets.toString())
+            ToolResultRow(stringResource(R.string.ping_received), result.receivedPackets.toString())
+            ToolResultRow(stringResource(R.string.ping_loss), stringResource(R.string.ping_loss_detail, result.lostPackets, result.packetLoss.percentText()))
+            Text(stringResource(R.string.ping_latency), style = MaterialTheme.typography.labelLarge)
+            ToolResultRow(stringResource(R.string.ping_min_latency), result.minLatencyMs?.let { "$it ms" } ?: stringResource(R.string.ping_not_detected))
+            ToolResultRow(stringResource(R.string.ping_average_latency), result.avgLatencyMs.latencyText())
+            ToolResultRow(stringResource(R.string.ping_max_latency), result.maxLatencyMs?.let { "$it ms" } ?: stringResource(R.string.ping_not_detected))
+            ToolResultRow(stringResource(R.string.ping_jitter), result.jitterMs.latencyText())
         }
     }
 }
@@ -348,44 +350,49 @@ private fun PingQualityLevel.statusVisualState(): StatusVisualState = when (this
     PingQualityLevel.UNKNOWN -> StatusVisualState.UNKNOWN
 }
 
+@Composable
 private fun PingQualityLevel.statusLabel(): String = when (this) {
-    PingQualityLevel.EXCELLENT -> "网络质量优秀"
-    PingQualityLevel.GOOD -> "网络质量良好"
-    PingQualityLevel.FAIR -> "网络质量一般"
-    PingQualityLevel.POOR -> "网络质量较差"
-    PingQualityLevel.UNKNOWN -> "网络质量未确定"
+    PingQualityLevel.EXCELLENT -> stringResource(R.string.ping_excellent)
+    PingQualityLevel.GOOD -> stringResource(R.string.ping_good)
+    PingQualityLevel.FAIR -> stringResource(R.string.ping_fair)
+    PingQualityLevel.POOR -> stringResource(R.string.ping_poor)
+    PingQualityLevel.UNKNOWN -> stringResource(R.string.ping_quality_unknown)
 }
 
+@Composable
 private fun PingProtocol.displayName(): String = when (this) {
-    PingProtocol.AUTO -> "自动选择"
+    PingProtocol.AUTO -> stringResource(R.string.ping_auto)
     PingProtocol.IPV4 -> "IPv4"
     PingProtocol.IPV6 -> "IPv6"
 }
 
+@Composable
 private fun PingSessionResult.localizedSummary(): String = when (qualityLevel) {
     PingQualityLevel.EXCELLENT ->
-        "网络连接稳定，未检测到明显丢包。"
+        stringResource(R.string.ping_excellent_summary)
     PingQualityLevel.GOOD ->
-        "网络连接较好，当前检测到的延迟和丢包处于较低水平。"
+        stringResource(R.string.ping_good_summary)
     PingQualityLevel.FAIR ->
-        "网络可达，但存在一定延迟波动。"
+        stringResource(R.string.ping_fair_summary)
     PingQualityLevel.POOR ->
-        "网络质量较差，存在明显延迟或丢包。"
+        stringResource(R.string.ping_poor_summary)
     PingQualityLevel.UNKNOWN ->
-        "本次未能获得有效响应，暂时无法评价网络质量。"
+        stringResource(R.string.ping_unknown_summary)
 }
 
+@Composable
 private fun PingMethod.displayName(): String = when (this) {
-    PingMethod.SYSTEM_REACHABILITY -> "系统可达性检测"
-    PingMethod.UNAVAILABLE -> "不可用"
+    PingMethod.SYSTEM_REACHABILITY -> stringResource(R.string.ping_system_reachability)
+    PingMethod.UNAVAILABLE -> stringResource(R.string.ping_unavailable)
 }
 
+@Composable
 private fun PingStatus.inputErrorMessage(): String? =
     (this as? PingStatus.Failed)?.result?.errorMessage?.let { errorMessage ->
         when (errorMessage) {
-            "Invalid target." -> "请输入有效的 IPv4 地址或域名。"
-            "Invalid count." -> "检测次数需要在 1 到 100 之间。"
-            "Invalid interval." -> "检测间隔需要在 100 到 60000 毫秒之间。"
+            "Invalid target." -> stringResource(R.string.ping_invalid_target_help)
+            "Invalid count." -> stringResource(R.string.ping_invalid_count_help)
+            "Invalid interval." -> stringResource(R.string.ping_invalid_interval_help)
             else -> null
         }
     }
@@ -399,39 +406,43 @@ private fun PingStatus.isCountInputError(): Boolean =
 private fun PingStatus.isIntervalInputError(): Boolean =
     (this as? PingStatus.Failed)?.result?.errorMessage == "Invalid interval."
 
+@Composable
 private fun String.toExplanation(): String? = when (this) {
-    "Invalid target." -> "请输入有效的 IPv4 地址或域名。"
-    "Target could not be resolved." -> "目标无法解析，请检查地址或域名。"
-    "No IPv4 address available." -> "目标没有可用的 IPv4 地址。"
-    "No IPv6 address available." -> "目标没有可用的 IPv6 地址。"
-    "Target is not reachable." -> "目标未响应本次系统可达性检测。"
-    "Timeout" -> "检测在设定时间内未收到目标响应。"
+    "Invalid target." -> stringResource(R.string.ping_invalid_target_help)
+    "Target could not be resolved." -> stringResource(R.string.ping_resolve_help)
+    "No IPv4 address available." -> stringResource(R.string.ping_no_ipv4_help)
+    "No IPv6 address available." -> stringResource(R.string.ping_no_ipv6_help)
+    "Target is not reachable." -> stringResource(R.string.ping_no_response_help)
+    "Timeout" -> stringResource(R.string.ping_timeout_help)
     "System reachability is unavailable.", "Ping unavailable." ->
-        "系统可达性检测暂时不可用。"
+        stringResource(R.string.ping_unavailable_help)
     else -> null
 }
 
+@Composable
 private fun String.displayMessage(): String = when (this) {
-    "Invalid target." -> "目标地址无效"
-    "Invalid count." -> "检测次数无效"
-    "Invalid interval." -> "检测间隔无效"
-    "Target could not be resolved." -> "目标无法解析"
-    "No IPv4 address available." -> "目标没有可用的 IPv4 地址"
-    "No IPv6 address available." -> "目标没有可用的 IPv6 地址"
-    "Target is not reachable." -> "目标无响应"
-    "Timeout" -> "检测超时"
-    "System reachability is unavailable.", "Ping unavailable." -> "系统可达性检测不可用"
-    else -> "无法完成 Ping 检测"
+    "Invalid target." -> stringResource(R.string.ping_invalid_target)
+    "Invalid count." -> stringResource(R.string.ping_invalid_count)
+    "Invalid interval." -> stringResource(R.string.ping_invalid_interval)
+    "Target could not be resolved." -> stringResource(R.string.ping_resolve_failed)
+    "No IPv4 address available." -> stringResource(R.string.ping_no_ipv4)
+    "No IPv6 address available." -> stringResource(R.string.ping_no_ipv6)
+    "Target is not reachable." -> stringResource(R.string.ping_no_response)
+    "Timeout" -> stringResource(R.string.ping_timeout)
+    "System reachability is unavailable.", "Ping unavailable." -> stringResource(R.string.ping_system_unavailable)
+    else -> stringResource(R.string.ping_failed)
 }
 
+@Composable
 private fun Double?.latencyText(): String = this?.let { value ->
     if (value == value.toLong().toDouble()) {
         "${value.toLong()} ms"
     } else {
         String.format(Locale.US, "%.1f ms", value)
     }
-} ?: "未检测到"
+} ?: stringResource(R.string.ping_not_detected)
 
-private fun Long?.latencyText(): String = this?.let { "$it ms" } ?: "未检测到"
+@Composable
+private fun Long?.latencyText(): String = this?.let { "$it ms" } ?: stringResource(R.string.ping_not_detected)
 
 private fun Double.percentText(): String = String.format(Locale.US, "%.1f%%", this)

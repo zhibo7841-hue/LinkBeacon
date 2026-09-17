@@ -19,6 +19,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
+import com.networktoolbox.feature.dns.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -60,7 +62,7 @@ fun DnsScreen(
 
     ToolScreenLayout(modifier = modifier) {
         ToolScreenHeader(
-            title = "DNS 查询",
+            title = stringResource(R.string.dns_title),
             description = null,
             icon = Icons.Outlined.Dns,
             accent = NetworkToolAccent.CYAN,
@@ -68,12 +70,12 @@ fun DnsScreen(
             backEnabled = !isLoading,
         )
 
-        ToolInputSection(title = "域名") {
+        ToolInputSection(title = stringResource(R.string.dns_domain)) {
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = uiState.domainInput,
                 onValueChange = onDomainChanged,
-                placeholder = { Text("例如 www.baidu.com") },
+                placeholder = { Text(stringResource(R.string.dns_example)) },
                 singleLine = true,
                 enabled = !isLoading,
                 isError = isInvalidInput,
@@ -87,7 +89,7 @@ fun DnsScreen(
             )
             if (isInvalidInput) {
                 Text(
-                    "域名格式不正确，请检查输入。",
+                    stringResource(R.string.dns_invalid_help),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -97,14 +99,14 @@ fun DnsScreen(
                 onClick = onLookup,
                 enabled = !isLoading,
             ) {
-                Text(if (isLoading) "正在查询 DNS…" else "查询")
+                Text(if (isLoading) stringResource(R.string.dns_loading) else stringResource(R.string.dns_query))
             }
             TextButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onAdvancedSettingsToggle,
                 enabled = !isLoading,
             ) {
-                Text(if (uiState.advancedSettingsExpanded) "收起高级设置" else "高级设置 >")
+                Text(if (uiState.advancedSettingsExpanded) stringResource(R.string.dns_collapse_advanced) else stringResource(R.string.dns_advanced))
             }
             if (uiState.advancedSettingsExpanded) {
                 AdvancedSettings(
@@ -135,7 +137,7 @@ private fun AdvancedSettings(
     onRecordTypeToggle: (DnsRecordType) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
-        Text("记录类型", style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.dns_record_type), style = MaterialTheme.typography.titleSmall)
         DnsRecordType.entries.chunked(3).forEach { types ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -150,9 +152,9 @@ private fun AdvancedSettings(
                 }
             }
         }
-        Text("DNS 服务器", style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.dns_server), style = MaterialTheme.typography.titleSmall)
         Text(
-            text = "系统 DNS",
+            text = stringResource(R.string.dns_system_dns),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -173,18 +175,18 @@ private fun DnsResultCard(
 
     ToolResultSection {
         ToolStatusSummary(
-            title = "DNS 结果",
+            title = stringResource(R.string.dns_result),
             status = result.status.statusVisualState(),
             label = result.status.headline(),
         )
         ToolResultRow(
-            "域名",
-            result.queryName.ifBlank { "未知" },
+            stringResource(R.string.dns_domain),
+            result.queryName.ifBlank { stringResource(R.string.dns_unknown) },
             valueStyle = NetworkToolboxTextStyles.TechnicalData,
         )
         ToolResultRow(
-            "查询耗时",
-            result.durationMs?.let { "$it ms" } ?: "未知",
+            stringResource(R.string.dns_elapsed),
+            result.durationMs?.let { "$it ms" } ?: stringResource(R.string.dns_unknown),
         )
         Text(
             text = result.status.description(),
@@ -216,7 +218,7 @@ private fun DnsResultCard(
         }
 
         TextButton(onClick = { showDetails = !showDetails }) {
-            Text(if (showDetails) "收起详细信息" else "查看详细信息 >")
+            Text(if (showDetails) stringResource(R.string.dns_collapse_details) else stringResource(R.string.dns_details))
         }
         if (showDetails) {
             HorizontalDivider()
@@ -235,7 +237,7 @@ private fun AddressRecordSection(
     val matchingRecords = records.filter { record -> record.type == type }
     if (matchingRecords.isEmpty()) {
         Text(
-            "无记录",
+            stringResource(R.string.dns_no_records),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -255,7 +257,7 @@ private fun RecordValue(
         Text(value, style = NetworkToolboxTextStyles.TechnicalData)
         ttlSeconds?.let {
             Text(
-                "TTL $it 秒",
+                stringResource(R.string.dns_ttl_seconds, it),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -268,7 +270,7 @@ private fun SpecialAddressNotice(classification: IpAddressClassification) {
     Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS)) {
         NetworkStatusChip(
             status = StatusVisualState.NOTICE,
-            label = "特殊用途地址",
+            label = stringResource(R.string.dns_special),
         )
         Text(
             text = classification.address,
@@ -285,25 +287,25 @@ private fun SpecialAddressNotice(classification: IpAddressClassification) {
 @Composable
 private fun DnsDetails(result: DnsLookupResult) {
     Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
-        Text("查询信息", style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.dns_query_information), style = MaterialTheme.typography.titleSmall)
         ToolResultRow(
-            "域名",
+            stringResource(R.string.dns_domain),
             result.queryName,
             valueStyle = NetworkToolboxTextStyles.TechnicalData,
         )
         ToolResultRow(
-            "查询类型",
+            stringResource(R.string.dns_query_type),
             result.requestedTypes.joinToString(" / ") { it.displayName() },
         )
-        ToolResultRow("解析方式", result.method.displayName())
-        ToolResultRow("查询耗时", result.durationMs?.let { "$it ms" } ?: "未知")
+        ToolResultRow(stringResource(R.string.dns_method), result.method.displayName())
+        ToolResultRow(stringResource(R.string.dns_elapsed), result.durationMs?.let { "$it ms" } ?: stringResource(R.string.dns_unknown))
 
-        Text("DNS 环境", style = MaterialTheme.typography.titleSmall)
-        Text("网络配置 DNS", style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.dns_environment), style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.dns_configured_dns), style = MaterialTheme.typography.bodyMedium)
         val server = result.server
         if (server?.configuredAddresses.isNullOrEmpty()) {
             Text(
-                "未知",
+                stringResource(R.string.dns_unknown),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -315,16 +317,16 @@ private fun DnsDetails(result: DnsLookupResult) {
             }
         }
         server?.privateDnsActive?.let { active ->
-            ToolResultRow("Private DNS", if (active) "已启用" else "未启用")
+            ToolResultRow("Private DNS", if (active) stringResource(R.string.dns_enabled) else stringResource(R.string.dns_disabled))
         }
         server?.privateDnsServerName?.let { name ->
-            ToolResultRow("Private DNS 名称", name)
+            ToolResultRow(stringResource(R.string.dns_private_name), name)
         }
 
-        Text("DNS 记录", style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.dns_records), style = MaterialTheme.typography.titleSmall)
         if (result.records.isEmpty()) {
             Text(
-                "无记录",
+                stringResource(R.string.dns_no_records),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -338,16 +340,16 @@ private fun DnsDetails(result: DnsLookupResult) {
 private fun DnsRecordDetails(record: DnsRecord) {
     Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS)) {
         Text(record.type.displayName(), style = MaterialTheme.typography.titleSmall)
-        ToolResultRow("名称", record.name.ifBlank { "未知" })
+        ToolResultRow(stringResource(R.string.dns_name), record.name.ifBlank { stringResource(R.string.dns_unknown) })
         ToolResultRow(
-            "值",
+            stringResource(R.string.dns_value),
             record.value,
             valueStyle = NetworkToolboxTextStyles.TechnicalData,
         )
-        record.ttlSeconds?.let { ttl -> ToolResultRow("TTL", "$ttl 秒") }
-        record.priority?.let { priority -> ToolResultRow("优先级", priority.toString()) }
+        record.ttlSeconds?.let { ttl -> ToolResultRow("TTL", stringResource(R.string.dns_seconds, ttl)) }
+        record.priority?.let { priority -> ToolResultRow(stringResource(R.string.dns_priority), priority.toString()) }
         if (record.txtSegments.size > 1) {
-            ToolResultRow("文本分段", record.txtSegments.joinToString(" | "))
+            ToolResultRow(stringResource(R.string.dns_segments), record.txtSegments.joinToString(" | "))
         }
     }
 }
@@ -356,12 +358,12 @@ private fun DnsRecordDetails(record: DnsRecord) {
 private fun LoadingMessage(domain: String) {
     ToolRunningSection {
         ToolStatusSummary(
-            title = "正在查询",
+            title = stringResource(R.string.dns_running),
             status = StatusVisualState.RUNNING,
-            label = "查询中",
+            label = stringResource(R.string.dns_querying),
         )
         Text(
-            domain.ifBlank { "请输入域名" },
+            domain.ifBlank { stringResource(R.string.dns_enter_domain) },
             style = NetworkToolboxTextStyles.TechnicalData,
         )
     }
@@ -382,43 +384,47 @@ private fun DnsLookupStatus.statusVisualState(): StatusVisualState = when (this)
     -> StatusVisualState.ERROR
 }
 
+@Composable
 private fun DnsLookupStatus.headline(): String = when (this) {
-    DnsLookupStatus.SUCCESS -> "解析成功"
-    DnsLookupStatus.PARTIAL -> "部分解析成功"
-    DnsLookupStatus.NO_RECORDS -> "查询完成，无记录"
-    DnsLookupStatus.NXDOMAIN -> "域名不存在"
-    DnsLookupStatus.TIMEOUT -> "DNS 查询超时"
-    DnsLookupStatus.NETWORK_ERROR -> "网络异常"
-    DnsLookupStatus.INVALID_QUERY -> "域名格式不正确"
-    DnsLookupStatus.INVALID_RESPONSE -> "DNS 响应无效"
-    DnsLookupStatus.FAILED -> "查询失败"
+    DnsLookupStatus.SUCCESS -> stringResource(R.string.dns_success)
+    DnsLookupStatus.PARTIAL -> stringResource(R.string.dns_partial)
+    DnsLookupStatus.NO_RECORDS -> stringResource(R.string.dns_empty)
+    DnsLookupStatus.NXDOMAIN -> stringResource(R.string.dns_nxdomain)
+    DnsLookupStatus.TIMEOUT -> stringResource(R.string.dns_timeout)
+    DnsLookupStatus.NETWORK_ERROR -> stringResource(R.string.dns_network_error)
+    DnsLookupStatus.INVALID_QUERY -> stringResource(R.string.dns_invalid)
+    DnsLookupStatus.INVALID_RESPONSE -> stringResource(R.string.dns_invalid_response)
+    DnsLookupStatus.FAILED -> stringResource(R.string.dns_failed)
 }
 
+@Composable
 private fun DnsLookupStatus.description(): String = when (this) {
-    DnsLookupStatus.SUCCESS -> "域名解析正常。"
-    DnsLookupStatus.PARTIAL -> "部分记录解析正常，其他所选记录没有返回结果。"
-    DnsLookupStatus.NO_RECORDS -> "查询完成，但没有找到所选记录。"
-    DnsLookupStatus.NXDOMAIN -> "DNS 服务器返回该域名不存在，请检查域名是否输入正确。"
-    DnsLookupStatus.TIMEOUT -> "当前 DNS 服务未在规定时间内响应。"
-    DnsLookupStatus.NETWORK_ERROR -> "当前网络无法完成 DNS 查询。"
-    DnsLookupStatus.INVALID_QUERY -> "请输入有效的域名。"
-    DnsLookupStatus.INVALID_RESPONSE -> "收到的 DNS 响应无法识别。"
-    DnsLookupStatus.FAILED -> "无法解析该域名，可能是 DNS 服务或网络暂时不可用。"
+    DnsLookupStatus.SUCCESS -> stringResource(R.string.dns_success_description)
+    DnsLookupStatus.PARTIAL -> stringResource(R.string.dns_partial_description)
+    DnsLookupStatus.NO_RECORDS -> stringResource(R.string.dns_empty_description)
+    DnsLookupStatus.NXDOMAIN -> stringResource(R.string.dns_nxdomain_description)
+    DnsLookupStatus.TIMEOUT -> stringResource(R.string.dns_timeout_description)
+    DnsLookupStatus.NETWORK_ERROR -> stringResource(R.string.dns_network_description)
+    DnsLookupStatus.INVALID_QUERY -> stringResource(R.string.dns_invalid_description)
+    DnsLookupStatus.INVALID_RESPONSE -> stringResource(R.string.dns_response_description)
+    DnsLookupStatus.FAILED -> stringResource(R.string.dns_failed_description)
 }
 
+@Composable
 private fun DnsLookupStatus.errorDescription(): String = when (this) {
-    DnsLookupStatus.NXDOMAIN -> "可能原因：域名不存在，或当前 DNS 服务报告该域名不存在。"
-    DnsLookupStatus.TIMEOUT -> "请稍后重试，并检查当前网络或 DNS 服务是否可用。"
-    DnsLookupStatus.NETWORK_ERROR -> "请检查当前网络连接。"
-    DnsLookupStatus.INVALID_RESPONSE -> "请稍后重试；当前响应可能不完整或无法识别。"
-    DnsLookupStatus.INVALID_QUERY -> "请检查域名格式。"
-    else -> "请稍后重试。"
+    DnsLookupStatus.NXDOMAIN -> stringResource(R.string.dns_nxdomain_help)
+    DnsLookupStatus.TIMEOUT -> stringResource(R.string.dns_timeout_help)
+    DnsLookupStatus.NETWORK_ERROR -> stringResource(R.string.dns_network_help)
+    DnsLookupStatus.INVALID_RESPONSE -> stringResource(R.string.dns_response_help)
+    DnsLookupStatus.INVALID_QUERY -> stringResource(R.string.dns_format_help)
+    else -> stringResource(R.string.dns_retry)
 }
 
+@Composable
 private fun DnsQueryMethod.displayName(): String = when (this) {
-    DnsQueryMethod.ANDROID_DNS_RESOLVER -> "系统 DNS"
-    DnsQueryMethod.SYSTEM_RESOLVER_ADDRESSES_ONLY -> "系统解析器（仅地址）"
-    DnsQueryMethod.UNAVAILABLE -> "不可用"
+    DnsQueryMethod.ANDROID_DNS_RESOLVER -> stringResource(R.string.dns_system_dns)
+    DnsQueryMethod.SYSTEM_RESOLVER_ADDRESSES_ONLY -> stringResource(R.string.dns_addresses_only)
+    DnsQueryMethod.UNAVAILABLE -> stringResource(R.string.dns_unavailable)
 }
 
 private fun DnsRecordType.displayName(): String = when (this) {
@@ -429,19 +435,20 @@ private fun DnsRecordType.displayName(): String = when (this) {
     DnsRecordType.TXT -> "TXT"
 }
 
+@Composable
 private fun IpAddressKind.description(): String = when (this) {
     IpAddressKind.FAKE_IP_RANGE ->
-        "该结果位于 198.18.0.0/15 地址段。此地址段常被代理软件的 Fake-IP 模式使用，因此该地址可能不是域名的真实公网地址。"
+        stringResource(R.string.dns_fake_ip)
     IpAddressKind.RFC1918_PRIVATE ->
-        "该地址属于 RFC1918 私有地址范围，通常用于本地网络。"
+        stringResource(R.string.dns_private)
     IpAddressKind.LOOPBACK ->
-        "该地址属于回环地址，仅指向本机。"
+        stringResource(R.string.dns_loopback)
     IpAddressKind.LINK_LOCAL ->
-        "该地址属于链路本地地址，通常只在本地链路有效。"
+        stringResource(R.string.dns_link_local)
     IpAddressKind.IPV6_ULA ->
-        "该地址属于 IPv6 ULA 私有地址范围，通常用于本地网络。"
+        stringResource(R.string.dns_ula)
     IpAddressKind.IPV6_LINK_LOCAL ->
-        "该地址属于 IPv6 链路本地地址，通常只在本地链路有效。"
+        stringResource(R.string.dns_ipv6_link_local)
 }
 
 private fun DnsStatus.isInvalidInput(): Boolean =
