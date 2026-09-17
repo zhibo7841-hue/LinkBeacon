@@ -1,30 +1,50 @@
 # Contributing
 
-感谢你对 LinkBeacon 的关注。请在提交贡献前阅读项目文档，确保变更符合产品边界、隐私原则和当前架构方向。
+Thank you for your interest in LinkBeacon. Contributions in English or Chinese
+are welcome.
+
+Before contributing, review the project documentation and make sure the proposed
+change respects the product boundaries, privacy principles, and current
+architecture.
 
 ## Contribution flow
 
-1. Fork repository
-2. Create branch
-3. Commit changes
-4. Open Pull Request
+1. Fork the repository.
+2. Create a focused branch for the change.
+3. Implement and test the change.
+4. Commit with a clear message.
+5. Open a Pull Request describing the purpose and verification results.
 
 ## Contribution requirements
 
-- 保持代码质量和现有 Clean Architecture 分层。
-- 为新增或修改的行为添加或更新测试。
-- 不提交密钥、API Key、账号、私人路径或真实用户数据。
-- 不引入网络数据上传、账号系统、广告或违反本地优先原则的功能。
-- 不将 LinkBeacon 扩展为自动修复工具、确定性自动诊断系统或 SSH/Telnet 客户端。
-- 变更应保持在已确认的产品范围内；新增范围请先通过项目决策记录确认。
+- Preserve the existing Clean Architecture boundaries and code quality.
+- Add or update tests for changed behavior.
+- Do not commit secrets, API keys, accounts, private paths, signing files, or
+  real user data.
+- Do not introduce network-data uploads, account requirements, advertising, or
+  behavior that conflicts with the local-first principle.
+- Do not turn LinkBeacon into an automatic repair tool, a system that claims
+  definitive diagnosis of every network fault, or an SSH/Telnet client.
+- Keep changes within the confirmed product scope. Propose new scope for review
+  before implementation.
+- Preserve technical accuracy: report what a probe actually measures and do not
+  present one protocol's result as another protocol's result.
 
 ## Before opening a pull request
 
-请运行：
+Run the relevant tests and at minimum verify:
 
 ```text
 ./gradlew test
 ./gradlew assembleDebug
 ```
 
-Pull Request 应说明变更目的、测试结果以及是否影响产品范围或隐私行为。
+On Windows, use `gradlew.bat`. A Pull Request should explain:
+
+- What changed and why.
+- Which tests or manual checks were performed.
+- Whether product scope, privacy behavior, permissions, persistence, or network
+  behavior are affected.
+
+Do not include maintainer release-signing credentials. Ordinary development and
+CI builds use the repository's standard debug workflow.

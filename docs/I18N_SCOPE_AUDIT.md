@@ -1394,3 +1394,34 @@ README change was required. GitHub bilingual documentation and a full bilingual
 release candidate remain separate follow-up work.
 
 **Android 12 runtime verification complete on real API 31 hardware.**
+
+## Task 085 - GitHub bilingual documentation (2026-09-18)
+
+The repository's public documentation now follows the confirmed English-first
+strategy:
+
+- `README.md` is the complete English primary README and links to
+  `README.zh-CN.md`; the Simplified Chinese README links back to English.
+- Both READMEs use the same section order, current-main feature scope, stable
+  v0.5.0 download links, logo, real overview screenshot, privacy facts, Android
+  requirements, build commands, and project-document links.
+- The stable v0.5.0 Release is explicitly separated from the current main branch.
+  The signed v0.5.0 APK is not presented as containing the bilingual development
+  work that currently exists only on main.
+- Language support is stated precisely as English, Simplified Chinese, and
+  Follow system. Traditional Chinese is not represented as a separately
+  localized language. Android 13+ system per-app integration and the compatible
+  Android 12 in-app path are described separately.
+- `CONTRIBUTING.md` is now English-first and welcomes contributions in English or
+  Chinese. `SECURITY.md` was already accurate English and remains unchanged.
+  Historical `CHANGELOG.md` and released v0.5.0 notes remain unchanged.
+- Repository-relative links, images, language switches, canonical clone URL, and
+  stable Release URLs were checked. No current canonical reference uses the old
+  NetworkToolbox repository URL.
+
+No Kotlin, Android resource, manifest, Gradle, dependency, permission, database,
+network, diagnostic, PDF, application ID, version, Tag, Release, or product-scope
+change is part of this documentation task. The full bilingual release candidate
+remains a separate release-stage gate.
+
+**GitHub bilingual documentation complete; full bilingual RC remains.**

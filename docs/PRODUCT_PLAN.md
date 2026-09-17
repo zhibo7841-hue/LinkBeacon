@@ -489,3 +489,11 @@ controlled user-data continuity, dynamic History and three real DocumentsUI PDF
 exports passed. No production-code, scope, version or released-APK change was
 required. GitHub bilingual documentation and the full bilingual release candidate
 remain future release work.
+
+Task 085 implementation status: GitHub bilingual documentation is complete.
+`README.md` is the English primary introduction and `README.zh-CN.md` is the
+structurally aligned Simplified Chinese counterpart. Both distinguish the stable
+v0.5.0 Release from ongoing bilingual work on main and retain this document as the
+only product-scope baseline. `CONTRIBUTING.md` is English-first and welcomes English
+or Chinese contributions. Runtime code, product scope, version, Tag and Release are
+unchanged; the full bilingual release candidate remains pending.
