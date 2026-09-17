@@ -464,7 +464,9 @@ This log records the confirmed project decisions. New scope or changes to these 
 ## Decision: Chinese / English app and English-first GitHub direction
 
 - Date: 2026-09-17
-- Status: Accepted product direction; implementation pending.
+- Status: Accepted product direction; Task 081 locale foundation and minimal
+  Shell/Settings localization implemented. Full localization remains pending;
+  Android 12 runtime verification pending.
 - Decision: One APK will support Simplified Chinese and English, defaulting to
   ongoing system-language following. Users may select System / 简体中文 /
   English and clear an explicit choice to resume following the system.

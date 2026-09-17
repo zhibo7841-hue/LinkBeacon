@@ -9,10 +9,10 @@ class AppInformationPresentationTest {
     @Test
     fun drawerContainsOnlyAppLevelDestinations() {
         assertEquals(
-            listOf("检测历史", "隐私与数据", "关于"),
+            listOf(R.string.shell_history, R.string.shell_settings, R.string.shell_privacy, R.string.shell_about),
             AppShellPresentation.drawerItemLabels(),
         )
-        assertFalse(AppShellPresentation.drawerItemLabels().contains("设置"))
+        assertTrue(AppShellPresentation.drawerItems.contains(AppShellDrawerItem.SETTINGS))
     }
 
     @Test

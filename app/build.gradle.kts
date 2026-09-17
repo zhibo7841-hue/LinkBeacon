@@ -25,6 +25,9 @@ android {
         versionCode = 5
         versionName = "0.5.0"
 
+        // Keep dependency locales from shadowing supported fallback languages.
+        resourceConfigurations += listOf("en", "b+zh+Hans")
+
         testInstrumentationRunner = "com.networktoolbox.RecreationTestRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -105,6 +108,7 @@ dependencies {
     implementation(project(":core:permission"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.activity.ktx)
     implementation(platform(libs.androidx.compose.bom))

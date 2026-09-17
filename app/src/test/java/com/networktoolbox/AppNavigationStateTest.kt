@@ -61,8 +61,8 @@ class AppNavigationStateTest {
     @Test
     fun topLevelDestinations_areHomeToolsAndDevices() {
         assertEquals(
-            listOf("首页", "工具", "设备"),
-            TopLevelDestination.entries.map(TopLevelDestination::label),
+            listOf(R.string.shell_home, R.string.shell_tools, R.string.shell_devices),
+            TopLevelDestination.entries.map(TopLevelDestination::labelRes),
         )
         assertEquals(3, TopLevelDestination.entries.size)
         assertEquals(null, TopLevelDestination.entries.find { it.name == "SETTINGS" })
@@ -75,7 +75,7 @@ class AppNavigationStateTest {
             TopLevelDestination.TOOLS,
             TopLevelDestination.DEVICES,
         ).forEach { caller ->
-            listOf(ToolScreen.HISTORY, ToolScreen.PRIVACY, ToolScreen.ABOUT).forEach { screen ->
+            listOf(ToolScreen.HISTORY, ToolScreen.SETTINGS, ToolScreen.PRIVACY, ToolScreen.ABOUT).forEach { screen ->
                 val state = AppNavigationState()
                     .selectTopLevel(caller)
                     .openSecondaryDestination(screen)
@@ -114,7 +114,7 @@ class AppNavigationStateTest {
             ),
         )
         assertEquals(
-            listOf("检测历史", "隐私与数据", "关于"),
+            listOf(R.string.shell_history, R.string.shell_settings, R.string.shell_privacy, R.string.shell_about),
             AppShellPresentation.drawerItemLabels(),
         )
     }

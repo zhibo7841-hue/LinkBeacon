@@ -15,12 +15,12 @@ internal enum class NavigationOrigin {
 }
 
 internal enum class TopLevelDestination(
-    val label: String,
+    val labelRes: Int,
     val icon: ImageVector,
 ) {
-    HOME("首页", Icons.Outlined.Home),
-    TOOLS("工具", Icons.Outlined.Build),
-    DEVICES("设备", Icons.Outlined.Lan),
+    HOME(R.string.shell_home, Icons.Outlined.Home),
+    TOOLS(R.string.shell_tools, Icons.Outlined.Build),
+    DEVICES(R.string.shell_devices, Icons.Outlined.Lan),
 }
 
 internal enum class ToolScreen {
@@ -32,6 +32,7 @@ internal enum class ToolScreen {
     TRACEROUTE,
     REPORT,
     HISTORY,
+    SETTINGS,
     PRIVACY,
     ABOUT,
     LAN_SCAN,

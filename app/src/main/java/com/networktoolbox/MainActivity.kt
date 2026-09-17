@@ -5,7 +5,8 @@ import android.content.ClipboardManager
 import android.content.Intent
 import android.content.ActivityNotFoundException
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.ActivityResultLauncher
@@ -82,7 +83,7 @@ import java.io.File
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private companion object {
         const val PDF_MIME_TYPE = "application/pdf"
     }
@@ -322,6 +323,10 @@ class MainActivity : ComponentActivity() {
 
             fun goBack() {
                 if (toolScreen == ToolScreen.NONE) return
+                if (toolScreen == ToolScreen.SETTINGS) {
+                    navigationState = navigationState.goBack()
+                    return
+                }
                 if (toolScreen == ToolScreen.DEVICE_DETAIL) {
                     navigationState = navigationState.goBack()
                     return
@@ -336,11 +341,13 @@ class MainActivity : ComponentActivity() {
 
             fun openDrawerDestination(destination: ToolScreen) {
                 closeDrawer()
-                if (reportUiState.status is ReportStatus.Running) {
-                    reportViewModel.stopCheck()
+                if (destination != ToolScreen.SETTINGS) {
+                    if (reportUiState.status is ReportStatus.Running) {
+                        reportViewModel.stopCheck()
+                    }
+                    lanScannerViewModel.stopScan()
+                    tracerouteViewModel.stop()
                 }
-                lanScannerViewModel.stopScan()
-                tracerouteViewModel.stop()
                 navigationState = navigationState.openSecondaryDestination(destination)
                 if (destination == ToolScreen.HISTORY) {
                     historyViewModel.load()
@@ -379,6 +386,7 @@ class MainActivity : ComponentActivity() {
                     drawerState = drawerState,
                     gesturesEnabled = AppShellPresentation.canShowDrawer(navigationState),
                     onOpenHistory = { openDrawerDestination(ToolScreen.HISTORY) },
+                    onOpenSettings = { openDrawerDestination(ToolScreen.SETTINGS) },
                     onOpenPrivacy = { openDrawerDestination(ToolScreen.PRIVACY) },
                     onOpenAbout = { openDrawerDestination(ToolScreen.ABOUT) },
                 ) {
@@ -398,10 +406,10 @@ class MainActivity : ComponentActivity() {
                                         icon = {
                                             Icon(
                                                 imageVector = destination.icon,
-                                                contentDescription = destination.label,
+                                                contentDescription = stringResource(destination.labelRes),
                                             )
                                         },
-                                        label = { Text(destination.label) },
+                                        label = { Text(stringResource(destination.labelRes)) },
                                     )
                                 }
                             }
@@ -459,6 +467,7 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             ToolScreen.PRIVACY -> PrivacyScreen(onBack = ::goBack)
+                            ToolScreen.SETTINGS -> LanguageSettingsScreen(onBack = ::goBack)
                             ToolScreen.ABOUT -> AboutScreen(onBack = ::goBack)
                             ToolScreen.SUBNET -> SubnetScreen(
                                 uiState = subnetUiState,

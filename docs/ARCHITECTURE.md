@@ -66,11 +66,11 @@ The current app shell has three formal top-level destinations:
   current network and the discovered device list through the existing LAN
   Scanner capability.
 
-`HISTORY`, `PRIVACY`, and `ABOUT` are app-level secondary routes, not
+`HISTORY`, `SETTINGS`, `PRIVACY`, and `ABOUT` are app-level secondary routes, not
 bottom-navigation destinations. A shared Material 3 Drawer is available from
-each top-level destination and opens those three destinations directly. There
-is no user-facing `SETTINGS` route while the product has no confirmed
-configurable settings. The Drawer does not duplicate the Tools catalog.
+each top-level destination and opens those four destinations directly. Settings
+contains only the approved language preference. The Drawer does not duplicate
+the Tools catalog.
 
 Tool routes retain their source-aware caller. A tool opened from Home or Tools
 returns to that caller, while a route opened from Devices can return to
@@ -324,9 +324,9 @@ existing favorite, custom-name, identity, scope, and observation data.
 
 ## Activity recreation state ownership (Task 080)
 
-This is a recreation-safety foundation, **not** AppCompat or language switching.
-MainActivity remains a ComponentActivity. Network engines, Room schema, report
-semantics, and released artifacts are unchanged.
+Task 080 established recreation safety on ComponentActivity. Task 081 retains
+these ownership rules on AppCompatActivity for official application locales.
+Network engines, Room schema, report semantics, and released artifacts are unchanged.
 
 - Existing Activity-scoped Hilt ViewModels retain live inputs, results, and jobs
   through same-process configuration recreation. UI attachment never starts a
@@ -375,4 +375,23 @@ is verified on Sony Xperia 1 VII / Android 16: 17/17 recreation tests and a
 separate real DocumentsUI PDF roundtrip (1/1) passed. The maintainer closed this
 recreation blocker in Task 080-B. Process death and Android 12/13 remain unverified,
 not current recreation blockers. See I18N_SCOPE_AUDIT.md for historical failures,
-executed gates and remaining compatibility work; Locale is not implemented.
+executed gates and remaining compatibility work.
+
+## Application locales (Task 081)
+
+MainActivity uses AppCompatActivity with an AppCompat DayNight NoActionBar XML
+host; the unchanged Compose Material3 theme remains the visual owner. The only
+locale preference authority is AppCompatDelegate application locales: empty for
+SYSTEM, `en` for English, `zh-Hans` for Simplified Chinese. Android resource
+matching handles the ordered system list; no country/IP/SIM inference or custom
+Configuration override exists in production. The Settings selection is a
+projection refreshed on configuration change and resume, never a persisted copy.
+
+Manual `locales_config.xml` advertises exactly en and zh-Hans. API33+ delegates
+to platform app-language storage. API31/32 uses the disabled/non-exported
+AppLocalesMetadataHolderService with autoStoreLocales=true (official small
+blocking disk I/O tradeoff). No custom preference store, Room migration, or
+permission is added. Settings preserves the existing saveable caller and leaves
+ongoing jobs alone; selecting a language does not start/stop network work.
+Only Shell/Settings resources are bilingual in this phase; diagnostic/history/
+export prose and feature pages remain outside this extraction scope.

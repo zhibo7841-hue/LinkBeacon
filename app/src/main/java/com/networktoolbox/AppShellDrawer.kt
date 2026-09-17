@@ -13,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.ui.res.stringResource
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
@@ -32,6 +34,7 @@ internal fun AppShellDrawer(
     drawerState: DrawerState,
     gesturesEnabled: Boolean,
     onOpenHistory: () -> Unit,
+    onOpenSettings: () -> Unit,
     onOpenPrivacy: () -> Unit,
     onOpenAbout: () -> Unit,
     content: @Composable () -> Unit,
@@ -43,6 +46,7 @@ internal fun AppShellDrawer(
             ModalDrawerSheet {
                 AppDrawerContent(
                     onOpenHistory = onOpenHistory,
+                    onOpenSettings = onOpenSettings,
                     onOpenPrivacy = onOpenPrivacy,
                     onOpenAbout = onOpenAbout,
                 )
@@ -55,6 +59,7 @@ internal fun AppShellDrawer(
 @Composable
 private fun AppDrawerContent(
     onOpenHistory: () -> Unit,
+    onOpenSettings: () -> Unit,
     onOpenPrivacy: () -> Unit,
     onOpenAbout: () -> Unit,
 ) {
@@ -100,11 +105,12 @@ private fun AppDrawerContent(
         HorizontalDivider()
         AppShellPresentation.drawerItems.forEach { item ->
             NavigationDrawerItem(
-                label = { Text(item.label) },
+                label = { Text(stringResource(item.labelRes)) },
                 selected = false,
                 onClick = {
                     when (item) {
                         AppShellDrawerItem.HISTORY -> onOpenHistory()
+                        AppShellDrawerItem.SETTINGS -> onOpenSettings()
                         AppShellDrawerItem.PRIVACY -> onOpenPrivacy()
                         AppShellDrawerItem.ABOUT -> onOpenAbout()
                     }
@@ -123,6 +129,7 @@ private fun AppDrawerContent(
 
 private fun AppShellDrawerItem.icon() = when (this) {
     AppShellDrawerItem.HISTORY -> Icons.Outlined.History
+    AppShellDrawerItem.SETTINGS -> Icons.Outlined.Settings
     AppShellDrawerItem.PRIVACY -> Icons.Outlined.Lock
     AppShellDrawerItem.ABOUT -> Icons.Outlined.Info
 }

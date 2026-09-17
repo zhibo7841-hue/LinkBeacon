@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 
 const val NETWORK_TOOLBOX_MENU_CONTENT_DESCRIPTION = "打开菜单"
 
@@ -28,7 +29,7 @@ fun NetworkToolboxMenuButton(
     ) {
         Icon(
             imageVector = Icons.Outlined.Menu,
-            contentDescription = NETWORK_TOOLBOX_MENU_CONTENT_DESCRIPTION,
+            contentDescription = stringResource(R.string.shell_open_menu),
         )
     }
 }

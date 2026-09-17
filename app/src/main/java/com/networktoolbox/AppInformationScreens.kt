@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.networktoolbox.core.designsystem.NetworkToolboxSpacing
 import com.networktoolbox.core.designsystem.SecondaryInformationHeader
@@ -24,7 +25,7 @@ internal fun AboutScreen(
 ) {
     ToolScreenLayout(modifier = modifier) {
         SecondaryInformationHeader(
-            title = AppInformationPresentation.aboutTitle,
+            title = stringResource(R.string.shell_about),
             onBack = onBack,
         )
 
@@ -76,7 +77,7 @@ internal fun PrivacyScreen(
 ) {
     ToolScreenLayout(modifier = modifier) {
         SecondaryInformationHeader(
-            title = AppInformationPresentation.privacyTitle,
+            title = stringResource(R.string.shell_privacy),
             onBack = onBack,
         )
 

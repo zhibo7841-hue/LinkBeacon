@@ -1027,3 +1027,88 @@ Lint: 0 errors, 32 existing warning occurrences, no newly added warnings this tu
 No Hilt/Lint missing-generated-source failure recurred in this invocation; that
 does not prove the toolchain can never race. Debug and test APK builds and
 `git diff --check` passed. No production code or published APK changed.
+
+## Task 081 — Locale foundation implementation (2026-09-17)
+
+Baseline: clean main `984f2ecb5c94658c101ada53a62424f19ee19c1b`. This section
+supersedes earlier implementation-pending recommendations, not historical evidence.
+Version stays 0.5.0 / 5; no Release build, tag or Release.
+
+### Implementation
+
+- Add stable AppCompat **1.7.1**, a minimal compatibility baseline with view-tree
+  owner interoperability fixes. No Compose/Kotlin/AGP/Hilt/Material upgrade.
+  MainActivity becomes AppCompatActivity, retaining Hilt, Compose, VM scopes,
+  ActivityResult/PDF ownership and saved navigation.
+- Day/night XML host uses Theme.AppCompat.DayNight.NoActionBar. Compose Material3
+  continues to own the visual design; existing inset handling remains intact.
+- AppCompatDelegate application locales is the only authority. SYSTEM sends empty
+  LocaleList, English en, Chinese zh-Hans. No separate preference or production
+  Configuration override. Settings refreshes its projection on resume/config change.
+- Explicit locales_config.xml contains only en / zh-Hans; verified merged APK
+  Manifest localeConfig reference. No automatic generation. Gradle resource
+  configurations retain en / b+zh+Hans so dependency languages cannot shadow a
+  later supported language in the system list.
+- API31–32: disabled/non-exported official AppLocalesMetadataHolderService with
+  autoStoreLocales=true. Accept the documented small blocking disk read/write;
+  no strict production StrictMode conflict found. API33+ uses platform per-app locales.
+- Drawer order: History, Settings, Privacy & Data, About. Settings only Language,
+  immediate single-choice dialog, no Apply. Names remain 简体中文 / English.
+  Existing secondary-route saver preserves Settings and Home/Tools/Devices caller.
+  Entering/leaving Settings skips the old drawer tool-cancellation branch.
+- No network fingerprint, engine, Room, history format or user identity changes.
+
+References: [official app languages](https://developer.android.com/guide/topics/resources/app-languages),
+[AppCompat releases](https://developer.android.com/jetpack/androidx/releases/appcompat).
+
+### Partial scope and matching
+
+English default and values-b+zh+Hans provide matching resources for bottom nav,
+drawer, Settings, Back/Cancel, shared Menu and About/Privacy titles. Tools, feature
+screens, diagnostic prose, History/PDF and About/Privacy bodies remain Chinese.
+LinkBeacon and LinkBeacon by LY are unchanged; app_name is non-translatable.
+This is **Partial localization development state**, not complete English support.
+
+Sony tests exercise the real Android resource matcher via test-only contexts:
+en-US -> English; zh-Hans-CN -> Chinese; ja -> English; ja + zh-Hans-CN -> Chinese;
+zh-Hant-TW/HK/MO -> English. Traditional Chinese is not supported. Initial test
+revealed dependency Japanese resources shadowing the second Hans locale; filtering
+packaged languages fixed this, without custom runtime locale resolution.
+
+### Verification
+
+- Full test gate: 768 independent JVM cases, zero failures/errors, Debug and Release
+  unit variants. Eleven new pure locale/saver cases. Initial full run forced tests
+  using the existing ignored verification init script.
+- test / lint / assembleDebug / assembleDebugAndroidTest passed. Initial logs retained
+  under build/: incompatible instrumentation selector API fixed; lint brand
+  MissingTranslation fixed with translatable=false. Lint not disabled. No recurrence
+  of the prior Hilt generated-source race observed.
+- Sony Xperia 1 VII / Android16: **21/21 PASS**, four new locale tests plus all 17
+  Task080 recreation regressions. Actual locale changes replace Activity, preserve
+  VM/Settings/caller and keep drawer closed. Running scan survives actual language
+  change and writes one History. Existing scan/diagnosis, device Ping/TCP, WoL,
+  pending PDF, saved report and consumed-feedback tests pass. Boundaries are fakes;
+  no real network test or new real DocumentsUI PDF save claimed in this task.
+- Manual platform-language UI: app English reflected by system; system Simplified
+  Chinese (China) reflected by app; system default reflected as Follow system/empty
+  override. Sony lists English/Simplified Chinese, regional variants and system
+  default, not French/German/Spanish/Japanese. Regional options are system UI, not
+  extra app translations.
+- Light/dark Drawer, Settings, dialog and bottom-nav screenshots inspected: no
+  ActionBar/double title, clipping or obvious visual/inset regression. System Back
+  closes dialog then returns to caller. Original night=no and empty override restored.
+  Ignored evidence: build/task081-device/{light,dark}-{drawer,settings,dialog}.png
+  and instrumentation-final.log.
+- Installed with adb install -r and matching certificate. No uninstall, data clear
+  or migration. Fixture profiles preserved; no exhaustive private database export.
+- **Android 12 runtime verification pending.** Official compatibility implementation
+  and platform-neutral tests are present; no API31/32 device/emulator available.
+  Fresh-install, API31/32 persistence after restart and OS-upgrade migration require
+  isolated runtime QA before full bilingual Release. No destructive fresh-install
+  test on the maintainer's phone.
+- Debug APK: app/build/outputs/apk/debug/app-debug.apk. SHA-256:
+  `671da68d93bede654e8f5e2f044f1f8e8887858d45b4ce29be5deb40c6e8a11a`.
+
+Locale foundation complete; localization is still partial. Ready for a separately
+authorized full UI resource-extraction task, not full bilingual release acceptance.

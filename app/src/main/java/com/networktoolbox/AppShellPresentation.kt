@@ -1,9 +1,10 @@
 package com.networktoolbox
 
-internal enum class AppShellDrawerItem(val label: String) {
-    HISTORY("检测历史"),
-    PRIVACY("隐私与数据"),
-    ABOUT("关于"),
+internal enum class AppShellDrawerItem(val labelRes: Int) {
+    HISTORY(R.string.shell_history),
+    SETTINGS(R.string.shell_settings),
+    PRIVACY(R.string.shell_privacy),
+    ABOUT(R.string.shell_about),
 }
 
 internal data class AppDrawerHeader(
@@ -28,7 +29,7 @@ internal enum class AppBackAction {
 internal object AppShellPresentation {
     val drawerItems = AppShellDrawerItem.entries.toList()
 
-    fun drawerItemLabels(): List<String> = drawerItems.map(AppShellDrawerItem::label)
+    fun drawerItemLabels(): List<Int> = drawerItems.map(AppShellDrawerItem::labelRes)
 
     fun versionLabel(versionName: String?): String = AppVersionInfo.formatVersionName(versionName)
 
