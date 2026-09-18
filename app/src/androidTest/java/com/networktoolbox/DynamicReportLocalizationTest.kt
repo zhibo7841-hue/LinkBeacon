@@ -114,18 +114,14 @@ class DynamicReportLocalizationTest {
         history.records.value = listOf(record)
 
         locale("en")
-        compose.waitUntil(timeoutMillis = 5_000) {
-            compose.onAllNodesWithText("Network Diagnosis").fetchSemanticsNodes().size >= 2
-        }
+        compose.onNodeWithText("Network Diagnosis").performScrollTo().assertExists()
         compose.onNodeWithText("网络诊断").assertDoesNotExist()
-        compose.onNodeWithText("No active network available").assertExists()
+        compose.onNodeWithText("No available network connection").assertExists()
         assertEquals(listOf(record), history.records.value)
 
         locale("zh-Hans")
-        compose.waitUntil(timeoutMillis = 5_000) {
-            compose.onAllNodesWithText("网络诊断").fetchSemanticsNodes().size >= 2
-        }
-        compose.onNodeWithText("没有可用的活动网络").assertExists()
+        compose.onNodeWithText("网络诊断").performScrollTo().assertExists()
+        compose.onNodeWithText("设备当前没有可用网络").assertExists()
         assertEquals(listOf(record), history.records.value)
         assertEquals(0, history.writes)
         assertEquals(0, fixture.diagnosticStarts)

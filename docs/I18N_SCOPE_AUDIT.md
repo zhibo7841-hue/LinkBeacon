@@ -1476,9 +1476,27 @@ version, README or product-scope change was made.
   title is Chinese, changes the real Activity locale between English and
   Simplified Chinese, and verifies localized Home title/summary, unchanged row
   ID/content/count, zero History writes and zero diagnostic/Ping/scan starts.
-  Compilation passed, but no device was attached to ADB in this task run, so this
-  new test and manual real-device English/Chinese Home acceptance remain
-  unexecuted rather than being reported as passed.
+- Connected-device acceptance passed on the maintainer-designated Sony G8142
+  (`CB512EFFY5`), Android 13 / API 33. The existing Debug APK and rebuilt test APK
+  were installed with `adb install -r` / `adb install -r -t`; no uninstall or
+  application-data clear was performed, and `firstInstallTime` remained
+  `2026-09-17 21:44:58`.
+- The first device execution exposed two instrumentation-only assumptions rather
+  than a production defect: Home contains one exact recent-record type label,
+  not two, and its card shows the diagnosis summary (`No available network
+  connection` / `设备当前没有可用网络`) rather than the finding title.
+  The regression now scrolls to the single recent-diagnosis card and asserts the
+  actual summary contract. The exact method then passed: 1 test, 0 failures.
+- In the instrumentation fixture, REPORT ID `84001` and the one-record collection
+  remained unchanged across `en` and `zh-Hans`; History writes and diagnostic,
+  Ping and scan start counters all remained zero.
+- Manual Home acceptance used the same persisted production REPORT row. English
+  displayed `Network Diagnosis` / `Basic network connectivity looks normal`;
+  Simplified Chinese displayed `网络诊断` / `基础网络连接正常`. The real Room
+  database remained at four History rows with IDs `4, 5, 6, 7`; the REPORT ID
+  stayed `4` before and after switching. No diagnostic, Ping or scan start marker
+  appeared during the language switch. The original English app locale was
+  restored after acceptance.
 
 **Known History labels now follow the active locale; user, remote and legacy
 content remains losslessly preserved.**
