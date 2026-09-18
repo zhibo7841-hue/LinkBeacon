@@ -488,3 +488,29 @@ This log records the confirmed project decisions. New scope or changes to these 
   choice, persistence mechanics, and task sequence are not fixed by this
   decision. [I18N_SCOPE_AUDIT.md](I18N_SCOPE_AUDIT.md) contains recommendations
   for separate review; this documentation task authorizes no runtime change.
+
+## Decision: LinkBeacon v0.6.0 Full Bilingual Release and feature freeze
+
+- Date: 2026-09-18
+- Status: Accepted
+- Version decision: v0.6.0 is the formal Full Bilingual Release. This is a
+  minor feature release rather than a patch because it adds English, App
+  Language Settings, dynamic localized diagnostics/reports, bilingual GitHub
+  documentation, and verified Android 12/13/16 language compatibility as
+  complete user-facing capabilities.
+- Supported language scope: one APK supports English, Simplified Chinese, and
+  Follow system. No additional language is implied by dependency resources or
+  regional variants.
+- Compatibility: Android identity remains `com.networktoolbox`, minimum SDK
+  remains API 31, and existing History, Saved Devices, Favorites, Custom Names,
+  and Wake-on-LAN configuration remain compatible. Legacy prose is preserved
+  when structured meaning is insufficient; old records are not bulk rewritten.
+- Freeze: v0.6.0 feature scope is frozen. From RC preparation until release,
+  only a confirmed release blocker, compatibility fix, or documentation fix is
+  allowed. Stable Device Identity, First Seen / Last Seen, Wi-Fi Analyzer,
+  multi-network management, and other candidate features are deferred.
+- RC artifact rule: the first candidate is one existing-signing-identity APK
+  copied without re-signing as `LinkBeacon-v0.6.0-RC1.apk`. Its checksum is the
+  artifact identity for final Android 12/13/16 regression. Any later runtime
+  code change invalidates RC1 and requires a newly built RC number. No Tag or
+  GitHub Release is created before that exact-artifact regression is accepted.

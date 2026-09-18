@@ -6,6 +6,25 @@
 
 - Updated GitHub Actions dependencies to remove deprecated Node.js 20 runtime warnings.
 
+## 0.6.0
+
+### Internationalization
+
+- English and Simplified Chinese support.
+- Follow system language and in-app language selection.
+- Android per-app language integration.
+- Core UI and dynamic diagnostics localization.
+- Localized History, text reports, PDF reports, Copy, and Share output.
+- Backward-compatible presentation of legacy History records.
+
+### Quality / Compatibility
+
+- Android 12 application-locale persistence.
+- Android 13+ system app-language integration.
+- Activity recreation hardening.
+- Report and PDF export recreation safety.
+- Final localization residual fixes for Recent Diagnosis and History.
+
 ## 0.5.0
 
 ### Branding

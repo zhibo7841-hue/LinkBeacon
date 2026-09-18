@@ -20,11 +20,11 @@ NetworkToolbox 已在 v0.5.0 更名为 LinkBeacon。Android application ID
 ## 开发状态
 
 - **最新稳定版本：** [v0.5.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.5.0)
-- **当前 main 分支：** 包含持续进行的双语本地化改进，这些改进尚未包含
-  在已签名的 v0.5.0 Release APK 中。
+- **即将发布版本：** v0.6.0 完整双语版本已冻结功能范围，当前处于 RC
+  准备阶段，尚不是正式 GitHub Release。
 
-main 分支可能包含尚未进入最新稳定版本的功能或改进。下方功能说明以
-当前 main 分支为准；下载链接始终指向正式稳定版本。
+main 分支已经包含 v0.6.0 计划发布的完整英文/简体中文范围。在同一 RC
+制品完成真机回归并正式发布前，下方下载链接继续指向稳定版 v0.5.0。
 
 ## 截图
 
@@ -70,7 +70,7 @@ LinkBeacon 展示检测事实、可能原因和排障建议。当现有证据无
 
 ## 语言支持
 
-当前 main 分支支持：
+即将发布的 v0.6.0 支持：
 
 - English。
 - 简体中文。
@@ -134,6 +134,8 @@ Windows 请使用 `gradlew.bat` 代替 `./gradlew`。Debug APK 生成在
 - [决策记录](docs/DECISIONS.md)
 - [发布计划](docs/RELEASE_PLAN.md)
 - [v0.5.0 Release Notes](docs/V0.5_RELEASE_NOTES.md)
+- [v0.6.0 Release Notes 草稿](docs/V0.6_RELEASE_NOTES.md)
+- [v0.6.0 发布就绪记录](docs/V0.6_RELEASE_READINESS.md)
 - [已发布的 v0.4.0 Release Notes](docs/releases/v0.4.0.md)
 - [开发流程](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI 设计系统](docs/UI_DESIGN_SYSTEM.md)

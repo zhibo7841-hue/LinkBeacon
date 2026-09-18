@@ -21,13 +21,12 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 ## Development status
 
 - **Latest stable release:** [v0.5.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.5.0)
-- **Current main branch:** contains ongoing bilingual localization improvements
-  that are not included in the signed v0.5.0 release APK.
+- **Upcoming release:** v0.6.0 Full Bilingual Release is feature-frozen and in
+  release-candidate preparation. It is not yet a stable GitHub Release.
 
-The main branch may contain features or improvements that have not yet been
-published in the latest stable release. The feature descriptions below reflect
-the current main branch; download information always points to the stable
-release.
+The main branch contains the completed English/Simplified-Chinese scope planned
+for v0.6.0. Download information below continues to point to the stable v0.5.0
+release until v0.6.0 completes exact-artifact RC regression and publication.
 
 ## Screenshots
 
@@ -75,7 +74,7 @@ that the target device powered on or became reachable.
 
 ## Language support
 
-The current main branch supports:
+The upcoming v0.6.0 release supports:
 
 - English.
 - Simplified Chinese.
@@ -141,6 +140,8 @@ maintainer-local and are not required for ordinary development builds.
 - [Decision log](docs/DECISIONS.md)
 - [Release plan](docs/RELEASE_PLAN.md)
 - [v0.5.0 release notes](docs/V0.5_RELEASE_NOTES.md)
+- [v0.6.0 release notes draft](docs/V0.6_RELEASE_NOTES.md)
+- [v0.6.0 release readiness](docs/V0.6_RELEASE_READINESS.md)
 - [Published v0.4.0 release notes](docs/releases/v0.4.0.md)
 - [Development workflow](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI design system](docs/UI_DESIGN_SYSTEM.md)

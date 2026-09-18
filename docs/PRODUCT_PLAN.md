@@ -431,11 +431,29 @@ This phase keeps the existing Device Center ordering, scan state, profile
 fields, and History behavior unchanged. A Quick Wake action does not mutate a
 profile, trigger another probe, or create a detection-history record.
 
-## Confirmed next-stage direction — Chinese / English internationalization
+## V0.6.0 — Full Bilingual Release
 
-Status: confirmed product direction, **not yet implemented** in the released
-v0.5.0 APK. The next release number and implementation schedule remain subject
-to maintainer confirmation; this section does not assign v0.5.1 or v0.6.0.
+Status: **Feature Scope Frozen / RC Preparation**. The released v0.5.0 APK
+remains the latest stable release until the separately authorized v0.6.0
+publication task is complete.
+
+v0.6.0 is the formal Full Bilingual Release. Its frozen product scope is:
+
+- English and Simplified Chinese in one APK.
+- Follow system language and explicit App Language Settings.
+- Android 12, Android 13, and Android 16 compatibility.
+- Core UI localization across the existing app shell and tools.
+- Dynamic diagnostic findings, explanations, and recommendations localization.
+- Localized History presentation without rewriting legacy records.
+- Localized text and PDF reports, Copy, and Share output.
+- Backward-compatible Legacy History fallback behavior.
+- English-primary and Simplified-Chinese GitHub documentation.
+
+The v0.6.0 scope is frozen. After this freeze only release blockers,
+compatibility fixes, and documentation fixes are permitted. Stable Device
+Identity, First Seen / Last Seen, Wi-Fi Analyzer, multi-network management,
+additional languages, and other candidate features are explicitly outside
+v0.6.0.
 
 - Ship one APK supporting Simplified Chinese and English. The default is
   continuously following the system language preferences, not remembering
@@ -497,3 +515,9 @@ v0.5.0 Release from ongoing bilingual work on main and retain this document as t
 only product-scope baseline. `CONTRIBUTING.md` is English-first and welcomes English
 or Chinese contributions. Runtime code, product scope, version, Tag and Release are
 unchanged; the full bilingual release candidate remains pending.
+
+Task 086 release status: the maintainer has selected v0.6.0 for the completed
+bilingual capability and frozen the feature scope above. RC preparation may
+change release metadata and documentation, but it does not authorize another
+feature, language, Tag, or GitHub Release. The exact signed RC artifact must pass
+the separately authorized full bilingual regression before publication.
