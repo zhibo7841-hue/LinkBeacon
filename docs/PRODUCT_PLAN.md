@@ -433,7 +433,7 @@ profile, trigger another probe, or create a detection-history record.
 
 ## V0.6.0 — Full Bilingual Release
 
-Status: **Feature Scope Frozen / RC Preparation**. The released v0.5.0 APK
+Status: **Feature Scope Frozen / RC1 Release Ready**. The released v0.5.0 APK
 remains the latest stable release until the separately authorized v0.6.0
 publication task is complete.
 
@@ -520,4 +520,14 @@ Task 086 release status: the maintainer has selected v0.6.0 for the completed
 bilingual capability and frozen the feature scope above. RC preparation may
 change release metadata and documentation, but it does not authorize another
 feature, language, Tag, or GitHub Release. The exact signed RC artifact must pass
-the separately authorized full bilingual regression before publication.
+the separately authorized representative-device full bilingual regression
+before publication.
+
+Task 087 release-gate status: the exact signed v0.6.0 RC1 completed the full
+bilingual regression on the selected representative physical device, Sony
+XQ-AT72 / Android 12 / API 31, including the official signed v0.5.0 in-place
+upgrade and user-data continuity. RC1 is Release Ready. Android 13 and Android
+16 retain their earlier real-device development compatibility evidence; the
+accepted release policy does not require repeating the full final-artifact RC
+matrix on every supported Android version. This changes release acceptance
+procedure only and does not alter the frozen v0.6.0 product scope.

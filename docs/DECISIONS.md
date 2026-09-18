@@ -511,6 +511,33 @@ This log records the confirmed project decisions. New scope or changes to these 
   multi-network management, and other candidate features are deferred.
 - RC artifact rule: the first candidate is one existing-signing-identity APK
   copied without re-signing as `LinkBeacon-v0.6.0-RC1.apk`. Its checksum is the
-  artifact identity for final Android 12/13/16 regression. Any later runtime
-  code change invalidates RC1 and requires a newly built RC number. No Tag or
-  GitHub Release is created before that exact-artifact regression is accepted.
+  artifact identity for final RC regression under the representative-device
+  acceptance policy below. Any later runtime code change invalidates RC1 and
+  requires a newly built RC number. No Tag or GitHub Release is created before
+  that exact-artifact regression is accepted.
+
+## Decision: Representative physical device for final RC acceptance
+
+- Date: 2026-09-18
+- Status: Accepted; supersedes only the earlier requirement to repeat the full
+  exact-artifact RC matrix on Android 12, Android 13, and Android 16.
+- Final RC gate: every formal release must run the same final signed artifact
+  through the complete release-candidate regression on at least one
+  representative physical device.
+- Supplementary compatibility: other supported Android versions use real-device
+  compatibility regression completed during development as supporting evidence.
+  That evidence must not be relabeled as exact-artifact full-RC acceptance.
+- Device selection: when a feature has Android-version-specific behavior, choose
+  the highest-risk version or the minimum supported Android version as the
+  representative device. Record the device, OS/API level, artifact identity,
+  matrix, and result.
+- Expanded coverage: a release with major Android platform, permission,
+  persistence, native, packaging, or other system-compatibility changes may
+  temporarily require full final-artifact acceptance on additional versions.
+- v0.6.0 application: Sony XQ-AT72 / Android 12 / API 31 is the Representative
+  Full RC Device and passed the exact signed RC1 upgrade and complete bilingual
+  regression. Android 13 and Android 16 remain previously verified development
+  compatibility evidence and are not final RC blockers.
+- Boundary: this decision changes release acceptance procedure only. It does
+  not alter v0.6.0 functionality, supported Android versions, runtime code,
+  version metadata, signed RC1 bytes, Tag, or GitHub Release state.
