@@ -50,6 +50,30 @@ class CoreUiResourceParityTest {
         }
     }
 
+    @Test fun structuredHistoryTypeLabelsMatchTheEnglishAndChineseContracts() {
+        val appEnglish = entries(File(root, "app/src/main/res/values"))
+        val appChinese = entries(File(root, "app/src/main/res/values-b+zh+Hans"))
+        val historyEnglish = entries(File(root, "feature/history/src/main/res/values"))
+        val historyChinese = entries(File(root, "feature/history/src/main/res/values-b+zh+Hans"))
+
+        mapOf(
+            "app_ui_type_report" to ("Network Diagnosis" to "网络诊断"),
+            "app_ui_type_dns" to ("DNS Lookup" to "DNS 查询"),
+            "app_ui_type_tcp" to ("TCP Port Check" to "TCP 端口检测"),
+        ).forEach { (key, expected) ->
+            assertEquals("app:$key English", expected.first, appEnglish[key])
+            assertEquals("app:$key Chinese", expected.second, appChinese[key])
+        }
+        mapOf(
+            "history_diagnosis" to ("Network Diagnosis" to "网络诊断"),
+            "history_dns" to ("DNS Lookup" to "DNS 查询"),
+            "history_tcp" to ("TCP Port Check" to "TCP 端口检测"),
+        ).forEach { (key, expected) ->
+            assertEquals("history:$key English", expected.first, historyEnglish[key])
+            assertEquals("history:$key Chinese", expected.second, historyChinese[key])
+        }
+    }
+
     private val format = Regex("%(?:(\\d+)\\$([.\\d]*)([sdf])|(%))")
 
     private fun signature(value: String): List<String> {

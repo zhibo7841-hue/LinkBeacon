@@ -32,20 +32,32 @@ class HomePresentationTest {
     }
 
     @Test
-    fun recentDiagnosis_usesRealRecordTitleAndSummary() {
+    fun recentDiagnosis_prefersLocalizedStableTypeAndKeepsSummary() {
         val preview = RecentHistoryPreview(
-            type = "网络诊断",
-            title = "网络状态正常",
-            summary = "网关正常 · 公网正常 · DNS正常",
+            type = "Network Diagnosis",
+            title = "网络诊断",
+            summary = "Gateway normal · Internet normal · DNS normal",
             timestamp = 1_000L,
         )
 
-        assertPresentationEquals("网络状态正常", HomePresentation.recentDiagnosticBody(preview))
-        assertPresentationEquals("网关正常 · 公网正常 · DNS正常", HomePresentation.recentDiagnosticSummary(preview))
+        assertPresentationEquals("Network Diagnosis", HomePresentation.recentDiagnosticBody(preview))
+        assertPresentationEquals("Gateway normal · Internet normal · DNS normal", HomePresentation.recentDiagnosticSummary(preview))
         assertPresentationEquals(
             RecentDiagnosticStatus.UNKNOWN,
             HomePresentation.recentDiagnosticStatus(preview),
         )
+    }
+
+    @Test
+    fun recentDiagnosis_unknownTypeFallsBackToUnchangedLegacyTitle() {
+        val preview = RecentHistoryPreview(
+            type = "",
+            title = "旧版自定义诊断",
+            summary = "Legacy summary",
+            timestamp = 1_000L,
+        )
+
+        assertPresentationEquals("旧版自定义诊断", HomePresentation.recentDiagnosticBody(preview))
     }
 
     @Test

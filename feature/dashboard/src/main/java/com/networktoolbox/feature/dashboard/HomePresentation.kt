@@ -22,8 +22,11 @@ internal object HomePresentation {
         "recent-diagnosis",
     )
 
-    fun recentDiagnosticBody(preview: RecentHistoryPreview?): UiText =
-        preview?.title?.let(::UiText) ?: UiText(R.string.home_no_recent)
+    fun recentDiagnosticBody(preview: RecentHistoryPreview?): UiText = when {
+        preview == null -> UiText(R.string.home_no_recent)
+        preview.type.isNotBlank() -> UiText(preview.type)
+        else -> UiText(preview.title)
+    }
 
     fun recentDiagnosticSummary(preview: RecentHistoryPreview?): String? =
         preview?.summary?.takeIf(String::isNotBlank)

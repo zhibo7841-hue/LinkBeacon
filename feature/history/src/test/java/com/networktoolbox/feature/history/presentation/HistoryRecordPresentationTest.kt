@@ -12,6 +12,30 @@ import java.time.ZoneId
 
 class HistoryRecordPresentationTest {
     @Test
+    fun structuredHistoryTypesUseLocalizedResourceTitles() {
+        assertPresentationEquals(
+            "网络诊断",
+            HistoryRecordPresentation.typeTitle(HistoryType.REPORT, "Legacy report title"),
+        )
+        assertPresentationEquals(
+            "DNS 查询",
+            HistoryRecordPresentation.typeTitle(HistoryType.DNS, "Legacy DNS title"),
+        )
+        assertPresentationEquals(
+            "TCP 端口检测",
+            HistoryRecordPresentation.typeTitle(HistoryType.TCP, "Legacy TCP title"),
+        )
+    }
+
+    @Test
+    fun unknownHistoryTypePreservesLegacyTitleVerbatim() {
+        assertPresentationEquals(
+            "旧版自定义名称",
+            HistoryRecordPresentation.typeTitle(HistoryType.UNKNOWN, "旧版自定义名称"),
+        )
+    }
+
+    @Test
     fun schema3NormalReportUsesStoredDiagnosisStatus() {
         val visual = HistoryRecordPresentation.status(
             report(

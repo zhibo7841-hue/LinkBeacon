@@ -106,6 +106,33 @@ class DynamicReportLocalizationTest {
         assertEquals(0, fixture.scanStarts)
     }
 
+    @Test fun recentDiagnosisUsesLocalizedStableTypeWithoutRewritingStoredRecord() {
+        val record = AutomaticDiagnosticHistorySnapshotSerializer.toHistoryRecord(snapshot()).copy(
+            id = 84_001L,
+            title = "网络诊断",
+        )
+        history.records.value = listOf(record)
+
+        locale("en")
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithText("Network Diagnosis").fetchSemanticsNodes().size >= 2
+        }
+        compose.onNodeWithText("网络诊断").assertDoesNotExist()
+        compose.onNodeWithText("No active network available").assertExists()
+        assertEquals(listOf(record), history.records.value)
+
+        locale("zh-Hans")
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithText("网络诊断").fetchSemanticsNodes().size >= 2
+        }
+        compose.onNodeWithText("没有可用的活动网络").assertExists()
+        assertEquals(listOf(record), history.records.value)
+        assertEquals(0, history.writes)
+        assertEquals(0, fixture.diagnosticStarts)
+        assertEquals(0, fixture.pingStarts)
+        assertEquals(0, fixture.scanStarts)
+    }
+
     @Test fun fiveNativePdfVariantsAndFrozenLocale() {
         val base = snapshot()
         val diagnosis = requireNotNull(base.analysis.diagnosis)

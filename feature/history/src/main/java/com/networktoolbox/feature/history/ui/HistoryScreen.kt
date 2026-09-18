@@ -165,7 +165,7 @@ private fun HistoryRecordCard(
     val networkLabel = HistoryRecordPresentation.networkLabel(record)
     val displaySummary = localizedReport?.first ?: record.structuredHistorySummary().resolve()
     val cardContent = HistoryRecordPresentation.cardContent(
-        typeTitle = record.type.displayName(),
+        typeTitle = HistoryRecordPresentation.typeTitle(record.type, record.title).resolve(),
         titleCandidate = displayTitle.takeUnless { isReport },
         summary = displaySummary,
         metadata = buildList {
@@ -215,7 +215,7 @@ private fun HistoryRecordCard(
                     onClick = { onDelete(record.id) },
                 ) {
                     NetworkToolboxDeleteIcon(
-                        contentDescription = stringResource(R.string.history_delete_type, record.type.displayName()),
+                        contentDescription = stringResource(R.string.history_delete_type, cardContent.title),
                     )
                 }
             }
@@ -398,13 +398,3 @@ private fun Double.toCompactNumber(): String =
 private fun Double.toCompactPercentage(): String = toCompactNumber()
 
 private val DNS_RECORD_TYPES = listOf("A", "AAAA", "CNAME", "MX", "TXT")
-
-@Composable
-private fun HistoryType.displayName(): String = when (this) {
-    HistoryType.PING -> "Ping"
-    HistoryType.DNS -> stringResource(R.string.history_dns)
-    HistoryType.TCP -> stringResource(R.string.history_tcp)
-    HistoryType.REPORT -> stringResource(R.string.history_diagnosis)
-    HistoryType.LAN_SCAN -> stringResource(R.string.history_lan)
-    HistoryType.UNKNOWN -> stringResource(R.string.history_other)
-}

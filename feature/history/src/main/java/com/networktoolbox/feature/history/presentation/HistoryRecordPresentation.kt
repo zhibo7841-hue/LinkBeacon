@@ -31,6 +31,17 @@ internal data class HistoryStatusVisual(
 )
 
 internal object HistoryRecordPresentation {
+    fun typeTitle(type: HistoryType, legacyTitle: String): UiText = when (type) {
+        HistoryType.PING -> UiText("Ping")
+        HistoryType.DNS -> UiText(R.string.history_dns)
+        HistoryType.TCP -> UiText(R.string.history_tcp)
+        HistoryType.REPORT -> UiText(R.string.history_diagnosis)
+        HistoryType.LAN_SCAN -> UiText(R.string.history_lan)
+        HistoryType.UNKNOWN -> legacyTitle.takeIf(String::isNotBlank)
+            ?.let(::UiText)
+            ?: UiText(R.string.history_other)
+    }
+
     fun cardContent(
         typeTitle: String,
         titleCandidate: String?,

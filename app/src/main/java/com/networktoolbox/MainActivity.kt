@@ -243,7 +243,7 @@ class MainActivity : AppCompatActivity() {
             val restoredAutomaticDiagnosticResult = (restored as? ResolvedDiagnosticHistory.Automatic)?.result
             val recentHistory = recentDiagnosisRecord?.let { record ->
                 RecentHistoryPreview(
-                    type = record.type.displayName(),
+                    type = record.type.displayName(record.title),
                     title = record.title,
                     summary = DiagnosticHistoryLocalization.text(record, ReportLocalizationContext.capture(this@MainActivity))?.first ?: record.summary,
                     timestamp = record.timestamp,
@@ -631,13 +631,14 @@ private fun LanScannerUiState.scrollNetworkContext() = when (this) {
 }
 
 @Composable
-private fun HistoryType.displayName(): String = when (this) {
+private fun HistoryType.displayName(legacyTitle: String): String = when (this) {
     HistoryType.PING -> "Ping"
     HistoryType.DNS -> stringResource(R.string.app_ui_type_dns)
     HistoryType.TCP -> stringResource(R.string.app_ui_type_tcp)
     HistoryType.REPORT -> stringResource(R.string.app_ui_type_report)
     HistoryType.LAN_SCAN -> stringResource(R.string.app_ui_type_lan)
-    HistoryType.UNKNOWN -> stringResource(R.string.app_ui_type_other)
+    HistoryType.UNKNOWN -> legacyTitle.takeIf(String::isNotBlank)
+        ?: stringResource(R.string.app_ui_type_other)
 }
 
 private fun ResolvedDiagnosticHistory.recentDiagnosticStatus(): RecentDiagnosticStatus = when (this) {

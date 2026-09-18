@@ -1425,3 +1425,60 @@ change is part of this documentation task. The full bilingual release candidate
 remains a separate release-stage gate.
 
 **GitHub bilingual documentation complete; full bilingual RC remains.**
+
+## Task 084-A - remaining History-label localization (2026-09-18)
+
+The English Home screen could show a Chinese `网络诊断` line under the correctly
+localized `Recent diagnosis` heading. The stored History row was not corrupt:
+`ObserveRecentDiagnosisUseCase` correctly selects the latest structured
+`HistoryType.REPORT`, and the localized diagnostic summary already used the
+schema-aware saved-result projection. The residual came from Home rendering the
+persisted legacy-compatible `record.title` while ignoring the localized stable
+type name already carried by `RecentHistoryPreview.type`.
+
+The display boundary is now explicit:
+
+- Known structured types use current-locale product labels: `REPORT` -> Network
+  Diagnosis / 网络诊断, `DNS` -> DNS Lookup / DNS 查询, `TCP` -> TCP Port Check /
+  TCP 端口检测, plus the existing Ping and LAN labels.
+- Home recent diagnosis renders the stable localized type first. A blank or
+  unknown type falls back to the saved title without translation.
+- History cards and their delete accessibility labels share the same type-title
+  mapper. Unknown/future records preserve their original title verbatim rather
+  than being mislabeled as a known tool.
+- Structured summaries continue to localize from saved semantic fields. Legacy
+  natural-language bodies with insufficient structure remain unchanged.
+- User names, SSIDs, host names, domains, mDNS/UPnP names, entered targets and
+  other remote or user-controlled text are not translation targets. Existing
+  English-mode device tests retain the Chinese custom name `主力机`.
+
+The production UI/Composable scan found no remaining direct Chinese literals in
+screen code. Remaining production CJK literals are structured diagnostic
+fallbacks, persisted compatibility prose, validation/domain fallbacks or data
+fixtures; replacing them wholesale would violate legacy preservation and could
+change network/diagnostic semantics. No Room migration, database rewrite,
+history re-save, analyzer run, probe, network algorithm, permission, dependency,
+version, README or product-scope change was made.
+
+### Verification record
+
+- Targeted Dashboard, History and app Debug unit tests passed after correcting
+  one compile-time call site so the delete accessibility label uses the shared
+  title mapper too. AndroidTest Kotlin compilation passed.
+- Full `test --no-daemon`: 1,582 Debug/Release testcase executions representing
+  791 module/class/name identities, zero failures, errors or skips.
+- Full `lint --no-daemon`: success, zero Error/Fatal and 50 existing warning
+  occurrences across 15 module reports; no warning suppression.
+- `assembleDebug --no-daemon`: success. APK:
+  `app/build/outputs/apk/debug/app-debug.apk`, 69,023,380 bytes, SHA-256
+  `3C8248CC89B736280C759F2FD6CE0EB8E9B5DC6FED814FA93145EA94EDBFBBAE`.
+- The new Android instrumentation regression holds one REPORT row whose stored
+  title is Chinese, changes the real Activity locale between English and
+  Simplified Chinese, and verifies localized Home title/summary, unchanged row
+  ID/content/count, zero History writes and zero diagnostic/Ping/scan starts.
+  Compilation passed, but no device was attached to ADB in this task run, so this
+  new test and manual real-device English/Chinese Home acceptance remain
+  unexecuted rather than being reported as passed.
+
+**Known History labels now follow the active locale; user, remote and legacy
+content remains losslessly preserved.**
