@@ -27,7 +27,7 @@ v0.6.0 是完整双语版本，在保持现有本地数据与 Android applicatio
 ## 截图
 
 <p align="center">
-  <img src="docs/screenshots/linkbeacon-overview.png" alt="LinkBeacon 界面概览" width="100%">
+  <img src="docs/screenshots/readme-overview-zh.png" alt="LinkBeacon 界面概览" width="100%">
 </p>
 
 ## 功能

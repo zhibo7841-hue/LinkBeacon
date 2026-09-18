@@ -29,7 +29,7 @@ application identity.
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/linkbeacon-overview.png" alt="LinkBeacon interface overview" width="100%">
+  <img src="docs/screenshots/readme-overview-en.png" alt="LinkBeacon interface overview" width="100%">
 </p>
 
 ## Features
