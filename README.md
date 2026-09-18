@@ -20,13 +20,11 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 
 ## Development status
 
-- **Latest stable release:** [v0.5.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.5.0)
-- **Upcoming release:** v0.6.0 Full Bilingual Release is feature-frozen and in
-  release-candidate preparation. It is not yet a stable GitHub Release.
+- **Latest stable release:** [v0.6.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.6.0)
 
-The main branch contains the completed English/Simplified-Chinese scope planned
-for v0.6.0. Download information below continues to point to the stable v0.5.0
-release until v0.6.0 completes exact-artifact RC regression and publication.
+v0.6.0 is the Full Bilingual Release. It adds complete English and Simplified-
+Chinese presentation while preserving the existing local data and Android
+application identity.
 
 ## Screenshots
 
@@ -74,7 +72,7 @@ that the target device powered on or became reachable.
 
 ## Language support
 
-The upcoming v0.6.0 release supports:
+v0.6.0 supports:
 
 - English.
 - Simplified Chinese.
@@ -104,14 +102,14 @@ the user. This does not mean that diagnostic results are uploaded.
 
 ## Download
 
-The latest stable release is **v0.5.0**:
+The latest stable release is **v0.6.0**:
 
-- [Download LinkBeacon-v0.5.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.5.0/LinkBeacon-v0.5.0.apk)
-- [View the v0.5.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.5.0)
+- [Download LinkBeacon-v0.6.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.6.0/LinkBeacon-v0.6.0.apk)
+- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.6.0/LinkBeacon-v0.6.0.apk.sha256)
+- [View the v0.6.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.6.0)
 
-The matching SHA-256 checksum is provided with the release assets. The v0.5.0
-APK does not include all bilingual localization work currently present on the
-main branch.
+The matching SHA-256 checksum is provided with the release assets. Existing
+v0.5.0 installations can upgrade directly without clearing local data.
 
 ## Build and development
 
@@ -140,7 +138,7 @@ maintainer-local and are not required for ordinary development builds.
 - [Decision log](docs/DECISIONS.md)
 - [Release plan](docs/RELEASE_PLAN.md)
 - [v0.5.0 release notes](docs/V0.5_RELEASE_NOTES.md)
-- [v0.6.0 release notes draft](docs/V0.6_RELEASE_NOTES.md)
+- [v0.6.0 release notes](docs/V0.6_RELEASE_NOTES.md)
 - [v0.6.0 release readiness](docs/V0.6_RELEASE_READINESS.md)
 - [Published v0.4.0 release notes](docs/releases/v0.4.0.md)
 - [Development workflow](docs/DEVELOPMENT_WORKFLOW.md)
