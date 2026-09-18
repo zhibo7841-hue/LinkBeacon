@@ -165,6 +165,7 @@ private fun HistoryRecordCard(
     val networkLabel = HistoryRecordPresentation.networkLabel(record)
     val displaySummary = localizedReport?.first ?: record.structuredHistorySummary().resolve()
     val cardContent = HistoryRecordPresentation.cardContent(
+        type = record.type,
         typeTitle = HistoryRecordPresentation.typeTitle(record.type, record.title).resolve(),
         titleCandidate = displayTitle.takeUnless { isReport },
         summary = displaySummary,
@@ -223,7 +224,9 @@ private fun HistoryRecordCard(
         cardContent.secondaryTitle?.let { title ->
             Text(title, style = MaterialTheme.typography.bodyMedium)
         }
-        Text(cardContent.summary, style = MaterialTheme.typography.bodyMedium)
+        cardContent.summary?.let { summary ->
+            Text(summary, style = MaterialTheme.typography.bodyMedium)
+        }
         cardContent.metadata?.let { metadata ->
             Text(
                 metadata,

@@ -14,7 +14,7 @@ import java.util.Locale
 internal data class HistoryCardContent(
     val title: String,
     val secondaryTitle: String?,
-    val summary: String,
+    val summary: String?,
     val metadata: String?,
 )
 
@@ -43,6 +43,7 @@ internal object HistoryRecordPresentation {
     }
 
     fun cardContent(
+        type: HistoryType,
         typeTitle: String,
         titleCandidate: String?,
         summary: String,
@@ -50,13 +51,37 @@ internal object HistoryRecordPresentation {
     ): HistoryCardContent = HistoryCardContent(
         title = typeTitle,
         secondaryTitle = titleCandidate
-            ?.takeIf { it.isNotBlank() && it != typeTitle },
-        summary = summary,
+            ?.takeIf {
+                it.isNotBlank() &&
+                    it != typeTitle &&
+                    !isGenericToolLabel(type, it, typeTitle)
+            },
+        summary = summary.takeIf {
+            it.isNotBlank() && !isGenericToolLabel(type, it, typeTitle)
+        },
         metadata = metadata
             .filter(String::isNotBlank)
             .joinToString(" · ")
             .takeIf(String::isNotBlank),
     )
+
+    private fun isGenericToolLabel(
+        type: HistoryType,
+        value: String,
+        localizedTypeTitle: String,
+    ): Boolean {
+        if (type == HistoryType.UNKNOWN) return false
+        val normalized = value.normalizedToolLabel()
+        if (normalized == localizedTypeTitle.normalizedToolLabel()) return true
+        return normalized in when (type) {
+            HistoryType.PING -> setOf("ping", "ping test", "ping check", "ping 检测", "ping检测")
+            HistoryType.DNS -> setOf("dns", "dns lookup", "dns query", "dns 查询", "dns查询")
+            HistoryType.TCP -> setOf("tcp", "tcp port check", "tcp check", "tcp 端口检测", "tcp端口检测")
+            HistoryType.REPORT -> setOf("network diagnosis", "diagnostic report", "网络诊断")
+            HistoryType.LAN_SCAN -> setOf("lan scanner", "lan scan", "局域网扫描")
+            HistoryType.UNKNOWN -> emptySet()
+        }
+    }
 
     fun timeLabel(
         timestamp: Long,
@@ -191,6 +216,10 @@ internal object HistoryRecordPresentation {
 
     private fun unknown() = HistoryStatusVisual(StatusVisualState.UNKNOWN, R.string.history_unknown)
 }
+
+private fun String.normalizedToolLabel(): String = trim()
+    .lowercase(Locale.ROOT)
+    .replace(Regex("\\s+"), " ")
 
 private fun String.readJsonBoolean(key: String): Boolean? {
     val marker = "\"$key\":"

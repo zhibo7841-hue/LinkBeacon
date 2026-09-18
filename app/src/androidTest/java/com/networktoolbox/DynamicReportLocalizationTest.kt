@@ -14,6 +14,8 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import com.networktoolbox.core.common.diagnostic.*
+import com.networktoolbox.core.common.history.HistoryRecord
+import com.networktoolbox.core.common.history.HistoryType
 import com.networktoolbox.feature.report.diagnostic.v2.AutomaticDiagnosticHistorySnapshotSerializer
 import com.networktoolbox.feature.report.diagnostic.v2.orchestration.DiagnosticRunEvidence
 import com.networktoolbox.feature.report.diagnostic.v4.DefaultDiagnosticAnalyzerV4
@@ -122,6 +124,38 @@ class DynamicReportLocalizationTest {
         locale("zh-Hans")
         compose.onNodeWithText("网络诊断").performScrollTo().assertExists()
         compose.onNodeWithText("设备当前没有可用网络").assertExists()
+        assertEquals(listOf(record), history.records.value)
+        assertEquals(0, history.writes)
+        assertEquals(0, fixture.diagnosticStarts)
+        assertEquals(0, fixture.pingStarts)
+        assertEquals(0, fixture.scanStarts)
+    }
+
+    @Test fun lanHistoryHidesLegacyToolNameAndKeepsLocalizedStructuredSummary() {
+        val record = HistoryRecord(
+            id = 84_002L,
+            timestamp = 1_789_680_240_000L,
+            type = HistoryType.LAN_SCAN,
+            title = "局域网扫描",
+            summary = "10.0.1.0/24 · 发现 10 台设备",
+            detailJson = """{"schemaVersion":1,"status":"COMPLETED","discoveredCount":10,"durationMs":18900}""",
+        )
+        history.records.value = listOf(record)
+
+        locale("en")
+        compose.onNodeWithContentDescription("Open menu").performClick()
+        click("History")
+        compose.onNodeWithText("LAN Scanner").assertExists()
+        compose.onNodeWithText("局域网扫描").assertDoesNotExist()
+        compose.onNodeWithText("10 devices found · 18.9 s").assertExists()
+        assertEquals(listOf(record), history.records.value)
+
+        locale("zh-Hans")
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithText("局域网扫描").fetchSemanticsNodes().size == 1
+        }
+        compose.onNodeWithText("LAN Scanner").assertDoesNotExist()
+        compose.onNodeWithText("发现 10 台设备 · 18.9 秒").assertExists()
         assertEquals(listOf(record), history.records.value)
         assertEquals(0, history.writes)
         assertEquals(0, fixture.diagnosticStarts)

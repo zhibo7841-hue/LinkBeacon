@@ -1500,3 +1500,51 @@ version, README or product-scope change was made.
 
 **Known History labels now follow the active locale; user, remote and legacy
 content remains losslessly preserved.**
+
+## Task 084-B - History secondary-text localization cleanup (2026-09-18)
+
+The English LAN Scanner card's residual `局域网扫描` was traced to the
+persisted legacy-compatible `record.title`, not `record.summary` and not the
+structured result projection. `HistoryRecordCard` used that title as a
+`secondaryTitle` because it differed from the current English type label, while
+the JSON payload was already producing the correct localized device-count and
+duration summary.
+
+History presentation now removes only exact generic tool-name aliases for known
+History types. This applies equally to the secondary title and summary boundary:
+
+- LAN Scanner legacy labels such as `局域网扫描` / `LAN scan` are not repeated
+  below the localized type title when structured result data is available.
+- Exact generic Ping, DNS and TCP labels are handled by the same rule. Their
+  targets, domains, ports and result-bearing summaries remain visible.
+- Meaningful legacy text such as `扫描被用户停止`, custom ranges or an
+  unclassified failure sentence remains an unchanged fallback.
+- `UNKNOWN` records retain their original title and summary. No free-form text
+  is translated, rewritten or used to infer a result.
+
+Task 084-A covered the Home recent-diagnosis REPORT projection. It did not enter
+the History list with a LAN_SCAN fixture, so it could not exercise this separate
+secondary-title path.
+
+### Verification record
+
+- Affected History Debug unit tests passed. Full `test --no-daemon` passed with
+  1,590 Debug/Release testcase executions, zero failures, errors or skips.
+- Full `lint --no-daemon` passed with zero Error/Fatal and 50 existing warning
+  occurrences across 15 module reports.
+- `assembleDebug --no-daemon` passed. The resulting APK is
+  `app/build/outputs/apk/debug/app-debug.apk`, 69,023,380 bytes, SHA-256
+  `3CF438E2BF45384BA1724702A56EBB5BB5B168B6C0688F50FFE79FA7C52CAADA`.
+- Connected-device instrumentation passed on Sony XQ-AT72, Android 12 / API 31.
+  A memory-backed structured LAN_SCAN fixture retained ID `84002` and one-record
+  count across English and Simplified Chinese. English showed `LAN Scanner` and
+  `10 devices found · 18.9 s` without `局域网扫描`; Chinese showed one
+  `局域网扫描` and `发现 10 台设备 · 18.9 秒`. History writes and
+  diagnostic, Ping and scan start counters remained zero.
+- The connected device's real Room History was empty before acceptance and
+  remained untouched; no scan was run merely to manufacture a persisted test
+  record. No database row, schema, detector, language setting, version, Tag or
+  Release was changed.
+
+**Known History cards now prefer localized structured results and suppress only
+redundant generic tool names; meaningful legacy content remains preserved.**

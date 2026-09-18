@@ -282,6 +282,7 @@ class HistoryRecordPresentationTest {
     @Test
     fun cardContentKeepsSummaryAndMetadataWithoutDuplicateTitle() {
         val content = HistoryRecordPresentation.cardContent(
+            type = HistoryType.REPORT,
             typeTitle = "网络诊断",
             titleCandidate = "网络诊断",
             summary = "发现 DNS 异常",
@@ -297,6 +298,7 @@ class HistoryRecordPresentationTest {
     @Test
     fun cardContentKeepsNonReportTargetAsSecondaryTitle() {
         val content = HistoryRecordPresentation.cardContent(
+            type = HistoryType.PING,
             typeTitle = "Ping",
             titleCandidate = "10.0.1.122",
             summary = "网络连接稳定",
@@ -305,6 +307,86 @@ class HistoryRecordPresentationTest {
 
         assertPresentationEquals("10.0.1.122", content.secondaryTitle)
         assertPresentationEquals("平均 16 ms · 丢包 0%", content.metadata)
+    }
+
+    @Test
+    fun structuredLanScanHidesLegacyToolTitleAndKeepsLocalizedResult() {
+        val english = HistoryRecordPresentation.cardContent(
+            type = HistoryType.LAN_SCAN,
+            typeTitle = "LAN Scanner",
+            titleCandidate = "局域网扫描",
+            summary = "10 devices found · 18.9 s",
+            metadata = emptyList(),
+        )
+        val chinese = HistoryRecordPresentation.cardContent(
+            type = HistoryType.LAN_SCAN,
+            typeTitle = "局域网扫描",
+            titleCandidate = "局域网扫描",
+            summary = "发现 10 台设备 · 18.9 秒",
+            metadata = emptyList(),
+        )
+
+        assertNull(english.secondaryTitle)
+        assertPresentationEquals("10 devices found · 18.9 s", english.summary)
+        assertNull(chinese.secondaryTitle)
+        assertPresentationEquals("发现 10 台设备 · 18.9 秒", chinese.summary)
+    }
+
+    @Test
+    fun meaningfulLegacySummaryIsPreserved() {
+        val content = HistoryRecordPresentation.cardContent(
+            type = HistoryType.LAN_SCAN,
+            typeTitle = "LAN Scanner",
+            titleCandidate = "局域网扫描",
+            summary = "扫描被用户停止",
+            metadata = emptyList(),
+        )
+
+        assertPresentationEquals("扫描被用户停止", content.summary)
+    }
+
+    @Test
+    fun knownToolsHideOnlyGenericLegacySummary() {
+        val cases = listOf(
+            Triple(HistoryType.PING, "Ping", "Ping 检测"),
+            Triple(HistoryType.DNS, "DNS Lookup", "DNS 查询"),
+            Triple(HistoryType.TCP, "TCP Port Check", "TCP 端口检测"),
+        )
+
+        cases.forEach { (type, typeTitle, summary) ->
+            val content = HistoryRecordPresentation.cardContent(
+                type = type,
+                typeTitle = typeTitle,
+                titleCandidate = null,
+                summary = summary,
+                metadata = emptyList(),
+            )
+            assertNull(content.summary)
+        }
+
+        val meaningful = HistoryRecordPresentation.cardContent(
+            type = HistoryType.PING,
+            typeTitle = "Ping",
+            titleCandidate = null,
+            summary = "Ping 检测失败",
+            metadata = emptyList(),
+        )
+        assertPresentationEquals("Ping 检测失败", meaningful.summary)
+    }
+
+    @Test
+    fun unknownLegacyTypeKeepsOriginalTitleAndSummary() {
+        val content = HistoryRecordPresentation.cardContent(
+            type = HistoryType.UNKNOWN,
+            typeTitle = "旧版自定义工具",
+            titleCandidate = "旧版自定义工具",
+            summary = "旧版原始摘要",
+            metadata = emptyList(),
+        )
+
+        assertNull(content.secondaryTitle)
+        assertPresentationEquals("旧版自定义工具", content.title)
+        assertPresentationEquals("旧版原始摘要", content.summary)
     }
 
     @Test
