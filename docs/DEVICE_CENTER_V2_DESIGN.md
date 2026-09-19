@@ -538,9 +538,10 @@ Use three bounded tasks in order:
    existing Device Detail/Card/Search with English and Simplified Chinese
    resources. Existing scan, Ping, TCP, Favorite, Custom Name, and Wake
    behavior remains unchanged.
-3. **Migration and Real-device Regression** — exercise v0.6 -> v0.7 upgrade,
-   identity risk scenarios, network switching, persistence, bilingual UI, and
-   all existing Device Center/LAN Scanner regressions on representative devices.
+3. **Migration and Real-device Regression — complete (Task 094)** — exercised
+   the v0.6 -> v0.7 upgrade, identity risk scenarios, network switching,
+   persistence, bilingual UI, and existing Device Center/LAN Scanner behavior
+   on a representative device.
 
 The first development task is **Identity & Data Model Foundation**. It must
 freeze the exact matcher-result API and v4 -> v5 migration before UI work.
@@ -594,9 +595,32 @@ differences and clarifications:
   identity rule, probe, History model, permission, or version changes are part
   of this task.
 
-The next bounded task is Task 094: Room v4 -> v5 runtime migration and final
-real-device regression. Task 093 compilation and unit tests are not a claim
-that the migration runtime gate has passed.
+### Task 094 migration and regression record
+
+- `MIGRATION_4_5` ran through AndroidX `MigrationTestHelper` on a Sony XQ-AT72
+  running Android 12 / API 31. Both migration instrumentation tests passed and
+  `PRAGMA integrity_check` returned `ok`.
+- A real Room-v4 LinkBeacon data set was upgraded in place with `adb install -r`
+  to the Room-v5 development APK. The stable profile ID, identity/scope, IPv4,
+  Favorite, Custom Name, Wake-on-LAN MAC/UDP port, Last Seen, and History were
+  preserved. The additive Device Type, detected type, Notes, and First Seen
+  columns remained null; migration time was not used as First Seen.
+- Device Type and Notes persisted across force-stop/reopen. Type-only and
+  notes-only profiles were retained, while removing every user-managed field
+  cleaned up the profile. A newly managed reliable observation used its real
+  observation timestamp for both initial First Seen and Last Seen.
+- Real scans confirmed that the migrated same-scope IPv4 association remains a
+  weak compatibility match: it can present the profile but does not update Last
+  Seen or learn identity data. Strong-conflict, DHCP-address-change, IP-reuse,
+  and user-over-detected precedence remain covered by deterministic matcher,
+  repository, and presentation tests.
+- Device Center type/notes editing, bilingual labels, search plus Favorites,
+  Quick Wake, light/dark presentation, caller-aware navigation, and a
+  Wi-Fi-to-cellular-to-Wi-Fi context change were regression-tested without
+  changing the LAN Scanner current-result boundary.
+
+The three bounded Device Center V2 implementation tasks are complete. This is
+a feature-complete development status, not a v0.7.0 release declaration.
 
 ## Open Questions
 

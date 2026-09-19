@@ -61,6 +61,10 @@ class DatabaseMigration4To5InstrumentedTest {
                 assertEquals(7L, cursor.getLong(0))
                 assertEquals("10.0.1.10", cursor.getString(1))
             }
+            database.query("PRAGMA integrity_check").use { cursor ->
+                org.junit.Assert.assertTrue(cursor.moveToFirst())
+                assertEquals("ok", cursor.getString(0))
+            }
         }
     }
 

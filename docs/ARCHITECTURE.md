@@ -391,6 +391,23 @@ and notes-only profiles use the same managed-profile retention and persistence
 path established by Task 092. No observation database, new detector, network
 probe, permission, or History schema is added.
 
+Task 094 closed the runtime migration gate on a Sony XQ-AT72 running Android 12
+(API 31). AndroidX `MigrationTestHelper` executed the real v4 schema fixture
+through `MIGRATION_4_5`; both instrumentation tests passed and SQLite integrity
+remained `ok`. A separate Room-v4 application baseline was then upgraded in
+place with `adb install -r`. Stable profile ID, identity/scope, IPv4, Favorite,
+Custom Name, Wake-on-LAN configuration, Last Seen, and History survived, while
+all newly nullable profile fields and First Seen remained null.
+
+Real-device retention matched the repository contract: Device Type alone and
+Notes alone each retain a profile, while clearing Favorite, Custom Name,
+Wake-on-LAN, user type, and Notes permits cleanup. A managed profile created
+from a current reliable observation initializes First Seen from that observation
+timestamp; migration, app launch, and editing never synthesize it. Only a
+reliable strong observation may refresh Last Seen. A same-scope IPv4 weak
+compatibility association continues to display the saved profile but leaves
+Last Seen and identity evidence untouched.
+
 ## Activity recreation state ownership (Task 080)
 
 Task 080 established recreation safety on ComponentActivity. Task 081 retains

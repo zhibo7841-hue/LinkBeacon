@@ -534,15 +534,17 @@ procedure only and does not alter the frozen v0.6.0 product scope.
 
 ## V0.7.0 — Device Center Enhancement
 
-Status: **Current development mainline / design approved**.
+Status: **Development complete / feature complete**.
 
-Implementation status: **Identity & Data Model Foundation and Device Profile UI
-complete**. The conservative match-result contract and additive Room v4 -> v5
-profile schema are in place. Device Type with Material icons, local Notes,
-truthful First/Last Seen and current/last-address semantics, localized search,
-and English/Simplified Chinese Device Detail presentation are implemented.
-Room migration runtime validation and final representative-device regression
-remain for Task 094; this progress update does not change v0.7.0 scope.
+Implementation status: **Device Center V2 development complete**. The
+conservative match-result contract and additive Room v4 -> v5 profile schema
+are in place. Device Type with Material icons, local Notes, truthful First/Last
+Seen and current/last-address semantics, localized search, and
+English/Simplified Chinese Device Detail presentation are implemented. Task 094
+completed real Android migration instrumentation, an in-place Room-v4-to-v5
+upgrade, profile-retention checks, and final representative-device regression
+on Sony XQ-AT72 / Android 12 / API 31. This marks the bounded v0.7 Device Center
+Enhancement feature set complete; it is not a release or version-state change.
 
 v0.7.0 strengthens the existing LAN Device Center rather than adding a broad
 set of new network tools. Its confirmed direction is:
