@@ -6,7 +6,7 @@
     <string name="info_version_support">Installed app version</string>
     <string name="info_privacy_title">Privacy &amp; Data</string>
     <string name="info_local_first_title">Local-first</string>
-    <string name="info_local_first_description">Diagnostic data and test history stay on your device.</string>
+    <string name="info_local_first_description">Diagnostic data, test history, and saved device metadata stay on your device.</string>
     <string name="info_upload_title">Data upload</string>
     <string name="info_upload_description">LinkBeacon does not upload diagnostic results or history to a server.</string>
     <string name="info_account_title">No account required</string>

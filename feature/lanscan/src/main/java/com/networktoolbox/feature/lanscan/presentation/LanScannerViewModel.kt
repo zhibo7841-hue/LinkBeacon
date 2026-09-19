@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.feature.lanscan.R
 import com.networktoolbox.core.common.favorites.DeviceDisplayNameResolver
+import com.networktoolbox.core.common.favorites.DeviceNotes
+import com.networktoolbox.core.common.favorites.DeviceType
 import com.networktoolbox.core.common.favorites.DeviceIdentityMatchResult
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteIdentityMatcher
@@ -506,6 +508,7 @@ class LanScannerViewModel @Inject constructor(
                         context = context,
                         detailKey = routeKey.orEmpty(),
                         wakeOnLanContext = context,
+                        observationStatus = unseenDeviceObservationStatus(),
                     )
                 }
             }
@@ -608,6 +611,42 @@ class LanScannerViewModel @Inject constructor(
             _customNameActionError.value = null
             runCustomNameOperation {
                 updateCustomNameByRouteKey(routeKey, null)
+            }
+        }
+    }
+
+    /** Saves or clears the explicit user type without changing inferred identity data. */
+    fun setUserDeviceTypeByRouteKey(routeKey: String?, deviceType: DeviceType?) {
+        viewModelScope.launch {
+            runDeviceProfileOperation {
+                updateManagedProfileByRouteKey(
+                    routeKey = routeKey,
+                    shouldCreate = deviceType != null,
+                    updateExisting = { id -> savedDeviceRepository.setUserDeviceType(id, deviceType) },
+                    createProfile = { profile -> profile.copy(userDeviceType = deviceType) },
+                )
+            }
+        }
+    }
+
+    /** Notes are normalized as local plain text; blank text clears the field. */
+    fun setNotesByRouteKey(routeKey: String?, rawNotes: String?) {
+        viewModelScope.launch {
+            val notes = try {
+                DeviceNotes.normalize(rawNotes)
+            } catch (_: IllegalArgumentException) {
+                emitDeviceDetailEvent(
+                    DeviceDetailEvent.ProfileSaveFailed(UiText(R.string.device_notes_invalid)),
+                )
+                return@launch
+            }
+            runDeviceProfileOperation {
+                updateManagedProfileByRouteKey(
+                    routeKey = routeKey,
+                    shouldCreate = notes != null,
+                    updateExisting = { id -> savedDeviceRepository.setNotes(id, notes) },
+                    createProfile = { profile -> profile.copy(notes = notes) },
+                )
             }
         }
     }
@@ -722,6 +761,54 @@ class LanScannerViewModel @Inject constructor(
 
     private fun emitDeviceDetailEvent(event: DeviceDetailEvent) {
         _deviceDetailEvents.tryEmit(event)
+    }
+
+    private suspend fun runDeviceProfileOperation(operation: suspend () -> Unit) {
+        try {
+            operation()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            emitDeviceDetailEvent(
+                DeviceDetailEvent.ProfileSaveFailed(UiText(R.string.device_profile_save_failed)),
+            )
+        }
+    }
+
+    private suspend fun updateManagedProfileByRouteKey(
+        routeKey: String?,
+        shouldCreate: Boolean,
+        updateExisting: suspend (Long) -> Unit,
+        createProfile: (FavoriteDevice) -> FavoriteDevice,
+    ) {
+        val parsed = LanDeviceDetailRouteKey.parse(routeKey) ?: return
+        val context = currentNetworkContext() ?: return
+        val scope = LanNetworkScope.from(context) ?: return
+        when (val target = resolveDeviceDetailActionTarget(parsed, context, scope)) {
+            is DeviceDetailActionTarget.Observed -> {
+                val candidate = LanFavoriteIdentity.candidate(target.device, target.context) ?: return
+                val existing = savedDeviceRepository.findMatching(candidate)
+                if (existing != null) {
+                    updateExisting(existing.id)
+                } else if (shouldCreate) {
+                    LanFavoriteIdentity.createSavedProfile(
+                        device = target.device,
+                        context = target.context,
+                        now = System.currentTimeMillis(),
+                    )?.copy(isFavorite = false, customName = null)
+                        ?.let(createProfile)
+                        ?.let { profile -> savedDeviceRepository.save(profile) }
+                }
+            }
+
+            is DeviceDetailActionTarget.SavedProfile -> updateExisting(target.profile.id)
+            null -> Unit
+        }
+    }
+
+    private fun unseenDeviceObservationStatus(): DeviceObservationStatus = when (_uiState.value) {
+        is LanScannerUiState.Completed -> DeviceObservationStatus.NOT_FOUND
+        else -> DeviceObservationStatus.NOT_SCANNED
     }
 
     private suspend fun runCustomNameOperation(operation: suspend () -> Unit) {

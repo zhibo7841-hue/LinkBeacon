@@ -28,4 +28,8 @@ sealed interface DeviceDetailEvent {
     data class WakeOnLanConfigurationSaveFailed(
         override val message: UiText,
     ) : DeviceDetailEvent
+
+    data class ProfileSaveFailed(
+        override val message: UiText,
+    ) : DeviceDetailEvent
 }

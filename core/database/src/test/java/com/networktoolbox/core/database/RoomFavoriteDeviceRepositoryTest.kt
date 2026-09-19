@@ -290,6 +290,34 @@ class RoomFavoriteDeviceRepositoryTest {
     }
 
     @Test
+    fun `clearing notes keeps type only profile and clearing type keeps notes only profile`() = runBlocking {
+        val repository = RoomFavoriteDeviceRepository(FakeFavoriteDeviceDao())
+        val typeOnlyId = repository.save(
+            favorite().copy(
+                isFavorite = false,
+                userDeviceType = DeviceType.SERVER,
+                notes = "Temporary",
+            ),
+        )
+        val notesOnlyId = repository.save(
+            favorite(ip = "10.0.1.22", identityValue = "10.0.1.22").copy(
+                isFavorite = false,
+                userDeviceType = DeviceType.ROUTER,
+                notes = "Keep this note",
+            ),
+        )
+
+        repository.setNotes(typeOnlyId, null)
+        repository.setUserDeviceType(notesOnlyId, null)
+
+        val remaining = repository.observeProfiles().first().associateBy { it.id }
+        assertEquals(DeviceType.SERVER, remaining.getValue(typeOnlyId).userDeviceType)
+        assertEquals(null, remaining.getValue(typeOnlyId).notes)
+        assertEquals(null, remaining.getValue(notesOnlyId).userDeviceType)
+        assertEquals("Keep this note", remaining.getValue(notesOnlyId).notes)
+    }
+
+    @Test
     fun `detected type alone does not persist an unmanaged observation`() = runBlocking {
         val repository = RoomFavoriteDeviceRepository(FakeFavoriteDeviceDao())
 

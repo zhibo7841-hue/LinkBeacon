@@ -367,8 +367,29 @@ First Seen is set only when a managed profile is created from a real current
 observation; migrated or unverified profiles do not fabricate it. There is no
 global observation database.
 
-Task 092 does not add Device Type, Notes, or timestamp UI. Those presentation
-changes remain the separately bounded Device Profile UI task.
+Task 093 completes the bounded Device Profile UI on top of this foundation.
+Device Detail reads and writes user Device Type and local Notes through
+`LanScannerViewModel -> SavedDeviceRepository`; Compose never accesses Room.
+The effective type is `userDeviceType -> detectedDeviceType -> unset`, where
+unset remains distinct from `OTHER`. A stable presentation token maps every
+type to a Material icon; icons are never identity evidence and never change
+the Custom Name display priority.
+
+Device Detail now labels observed addresses as Current address and retained
+profile addresses as Last observed address. First Seen and Last Seen display
+only persisted profile metadata and show Not recorded for null values. Current
+scan timestamps are not substituted, so a weak compatibility match cannot
+fabricate Last Seen. Scan presentation remains Found / Not found / Not scanned
+and makes no online/offline claim. Identity conflicts still keep the current
+observation and saved profile separate, without inheriting user fields.
+
+Device Center cards show only the effective type icon in addition to their
+existing name, address, role, Favorite, and Quick Wake behavior. Local search
+adds the current-locale effective type label and case-insensitive Notes while
+retaining the existing All / Found / Not found / Favorites filters. Type-only
+and notes-only profiles use the same managed-profile retention and persistence
+path established by Task 092. No observation database, new detector, network
+probe, permission, or History schema is added.
 
 ## Activity recreation state ownership (Task 080)
 

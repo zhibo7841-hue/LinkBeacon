@@ -35,7 +35,7 @@
     <string name="lan_on_mobile">Mobile network active</string>
     <string name="lan_network_unavailable">Current network unavailable</string>
     <string name="lan_vpn_detected">VPN detected</string>
-    <string name="lan_search_hint">Search name, IP, or hostname</string>
+    <string name="lan_search_hint">Search name, IP, type, or notes</string>
     <string name="lan_clear_search">Clear search</string>
     <string name="lan_filter">Filter: %1$s</string>
     <string name="lan_all">All</string>

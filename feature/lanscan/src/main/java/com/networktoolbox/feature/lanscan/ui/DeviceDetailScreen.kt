@@ -1,6 +1,7 @@
 package com.networktoolbox.feature.lanscan.ui
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,7 +9,12 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
@@ -18,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -39,12 +46,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import com.networktoolbox.core.common.favorites.DeviceDisplayNameResolver
+import com.networktoolbox.core.common.favorites.DeviceNotes
+import com.networktoolbox.core.common.favorites.DeviceType
 import com.networktoolbox.core.common.wol.MacAddress
 import com.networktoolbox.core.common.wol.WakeOnLanConfig
 import com.networktoolbox.feature.lanscan.presentation.WakeOnLanAvailability
 import com.networktoolbox.core.designsystem.NetworkToolboxSpacing
-import com.networktoolbox.core.designsystem.NetworkToolboxTextStyles
 import com.networktoolbox.core.designsystem.OutlinedNetworkCard
 import com.networktoolbox.core.designsystem.PrimaryActionButton
 import com.networktoolbox.core.designsystem.SecondaryActionButton
@@ -53,6 +62,8 @@ import com.networktoolbox.core.designsystem.ToolResultRow
 import com.networktoolbox.core.designsystem.ToolScreenLayout
 import com.networktoolbox.feature.lanscan.presentation.DeviceDetailEvent
 import com.networktoolbox.feature.lanscan.presentation.DeviceDetailPresentation
+import com.networktoolbox.feature.lanscan.presentation.DeviceCenterPresentation
+import com.networktoolbox.feature.lanscan.presentation.DeviceObservationStatus
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -66,6 +77,8 @@ fun DeviceDetailScreen(
     onToggleFavorite: () -> Unit,
     onSaveCustomName: (String) -> Unit = {},
     onRestoreAutomaticName: () -> Unit = {},
+    onSaveDeviceType: (DeviceType?) -> Unit = {},
+    onSaveNotes: (String?) -> Unit = {},
     favoriteErrorMessage: UiText? = null,
     customNameErrorMessage: UiText? = null,
     onOpenPing: (String) -> Unit = {},
@@ -91,9 +104,14 @@ fun DeviceDetailScreen(
     }
 
     var showNameDialog by rememberSaveable(detail?.detailKey) { mutableStateOf(false) }
+    var showTypeDialog by rememberSaveable(detail?.detailKey) { mutableStateOf(false) }
+    var showNotesDialog by rememberSaveable(detail?.detailKey) { mutableStateOf(false) }
     var showWakeOnLanDialog by rememberSaveable(detail?.detailKey) { mutableStateOf(false) }
     var draftName by rememberSaveable(detail?.detailKey) {
         mutableStateOf(detail?.customName.orEmpty())
+    }
+    var draftNotes by rememberSaveable(detail?.detailKey) {
+        mutableStateOf(detail?.notes.orEmpty())
     }
     var draftWakeOnLanMac by rememberSaveable(detail?.detailKey) {
         mutableStateOf(detail?.wakeOnLan?.config?.macAddress?.toString().orEmpty())
@@ -106,6 +124,9 @@ fun DeviceDetailScreen(
     }
     LaunchedEffect(detail?.detailKey, detail?.customName) {
         if (!showNameDialog) draftName = detail?.customName.orEmpty()
+    }
+    LaunchedEffect(detail?.detailKey, detail?.notes) {
+        if (!showNotesDialog) draftNotes = detail?.notes.orEmpty()
     }
     LaunchedEffect(detail?.detailKey, detail?.wakeOnLan?.config) {
         if (!showWakeOnLanDialog) {
@@ -172,9 +193,29 @@ fun DeviceDetailScreen(
         }
 
         OutlinedNetworkCard {
-            Text(detail.displayName.resolve(), style = MaterialTheme.typography.headlineSmall)
-            detail.ipAddress?.takeIf(String::isNotBlank)?.let { ip ->
-                Text(ip, style = NetworkToolboxTextStyles.TechnicalData)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
+            ) {
+                Icon(
+                    imageVector = detail.deviceTypeIcon.imageVector(),
+                    contentDescription = detail.effectiveDeviceType
+                        ?.let(DeviceCenterPresentation::deviceTypeLabel)
+                        ?.resolve()
+                        ?: stringResource(R.string.device_type_generic_icon),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp),
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(detail.displayName.resolve(), style = MaterialTheme.typography.headlineSmall)
+                    detail.effectiveDeviceType?.let { type ->
+                        Text(
+                            DeviceCenterPresentation.deviceTypeLabel(type).resolve(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
             }
             detail.role?.let { role ->
                 Text(
@@ -205,7 +246,9 @@ fun DeviceDetailScreen(
         }
 
         DeviceDetailSection(title = stringResource(R.string.lan_basic)) {
-            detail.ipAddress?.takeIf(String::isNotBlank)?.let { ToolResultRow("IPv4", it) }
+            detail.ipAddress?.takeIf(String::isNotBlank)?.let {
+                ToolResultRow(detail.addressLabel.resolve(), it)
+            }
             detail.macAddress?.takeIf(String::isNotBlank)?.let { ToolResultRow("MAC", it) }
             detail.vendor?.takeIf(String::isNotBlank)?.let { ToolResultRow(stringResource(R.string.lan_vendor), it) }
             detail.model?.takeIf(String::isNotBlank)?.let { ToolResultRow(stringResource(R.string.lan_model), it) }
@@ -223,9 +266,56 @@ fun DeviceDetailScreen(
             }
         }
 
+        DeviceDetailSection(title = stringResource(R.string.device_local_profile)) {
+            EditableProfileRow(
+                label = stringResource(R.string.device_type_label),
+                value = DeviceCenterPresentation.deviceTypeLabel(detail.effectiveDeviceType).resolve(),
+                onClick = { showTypeDialog = true },
+            )
+            if (detail.userDeviceType == null && detail.detectedDeviceType != null) {
+                Text(
+                    stringResource(
+                        R.string.device_type_detected_helper,
+                        DeviceCenterPresentation.deviceTypeLabel(detail.detectedDeviceType).resolve(),
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            EditableProfileRow(
+                label = stringResource(R.string.device_notes_label),
+                value = detail.notes ?: stringResource(R.string.device_notes_not_set),
+                onClick = { showNotesDialog = true },
+            )
+            Text(
+                stringResource(R.string.device_profile_local_only),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+
         DeviceDetailSection(title = stringResource(R.string.lan_relationship)) {
             detail.role?.let { ToolResultRow(stringResource(R.string.lan_role), it.resolve()) }
             detail.networkScope?.let { ToolResultRow(stringResource(R.string.lan_range), it.resolve()) }
+        }
+
+        DeviceDetailSection(title = stringResource(R.string.lan_observation)) {
+            ToolResultRow(
+                stringResource(R.string.device_scan_status),
+                when (detail.observationStatus) {
+                    DeviceObservationStatus.FOUND -> stringResource(R.string.lan_found)
+                    DeviceObservationStatus.NOT_FOUND -> stringResource(R.string.lan_not_found)
+                    DeviceObservationStatus.NOT_SCANNED -> stringResource(R.string.lan_not_scanned)
+                },
+            )
+            ToolResultRow(
+                stringResource(R.string.device_first_seen),
+                formatOptionalTimestamp(detail.firstSeenAt),
+            )
+            ToolResultRow(
+                stringResource(R.string.lan_last_seen),
+                formatOptionalTimestamp(detail.lastSeenAt),
+            )
         }
 
         DeviceDetailSection(title = stringResource(R.string.lan_checks)) {
@@ -320,13 +410,6 @@ fun DeviceDetailScreen(
             }
         }
 
-        DeviceDetailSection(title = stringResource(R.string.lan_observation)) {
-            ToolResultRow(stringResource(R.string.lan_this_scan), if (detail.observedThisScan) stringResource(R.string.lan_found) else stringResource(R.string.lan_not_found))
-            detail.lastSeenAt?.takeIf { it > 0L }?.let { timestamp ->
-                ToolResultRow(stringResource(R.string.lan_last_seen), formatTimestamp(timestamp))
-            }
-        }
-
         if (showNameDialog) {
             val nameValidation = DeviceDisplayNameResolver.validateCustomName(draftName)
             AlertDialog(
@@ -377,6 +460,98 @@ fun DeviceDetailScreen(
                         TextButton(onClick = { showNameDialog = false }) {
                             Text(stringResource(com.networktoolbox.feature.lanscan.R.string.device_name_cancel))
                         }
+                    }
+                },
+            )
+        }
+
+        if (showTypeDialog) {
+            AlertDialog(
+                onDismissRequest = { showTypeDialog = false },
+                title = { Text(stringResource(R.string.device_type_dialog_title)) },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .heightIn(max = 420.dp)
+                            .verticalScroll(rememberScrollState()),
+                    ) {
+                        DeviceTypeChoiceRow(
+                            label = stringResource(R.string.device_type_not_set),
+                            selected = detail.userDeviceType == null,
+                            onClick = {
+                                onSaveDeviceType(null)
+                                showTypeDialog = false
+                            },
+                        )
+                        DeviceType.entries.forEach { type ->
+                            DeviceTypeChoiceRow(
+                                label = DeviceCenterPresentation.deviceTypeLabel(type).resolve(),
+                                selected = detail.userDeviceType == type,
+                                onClick = {
+                                    onSaveDeviceType(type)
+                                    showTypeDialog = false
+                                },
+                            )
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { showTypeDialog = false }) {
+                        Text(stringResource(R.string.device_name_cancel))
+                    }
+                },
+            )
+        }
+
+        if (showNotesDialog) {
+            val notesValidation = runCatching { DeviceNotes.normalize(draftNotes) }
+            val codePointCount = draftNotes.codePointCount(0, draftNotes.length)
+            AlertDialog(
+                onDismissRequest = { showNotesDialog = false },
+                title = { Text(stringResource(R.string.device_notes_dialog_title)) },
+                text = {
+                    OutlinedTextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = draftNotes,
+                        onValueChange = { draftNotes = it },
+                        minLines = 4,
+                        maxLines = 8,
+                        label = { Text(stringResource(R.string.device_notes_label)) },
+                        supportingText = {
+                            Column {
+                                if (notesValidation.isFailure) {
+                                    Text(stringResource(R.string.device_notes_invalid))
+                                } else {
+                                    Text(stringResource(R.string.device_notes_helper))
+                                }
+                                Text(
+                                    stringResource(
+                                        R.string.device_notes_counter,
+                                        codePointCount,
+                                        DeviceNotes.MAX_CODE_POINTS,
+                                    ),
+                                )
+                            }
+                        },
+                        isError = notesValidation.isFailure,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        enabled = notesValidation.isSuccess,
+                        onClick = {
+                            onSaveNotes(notesValidation.getOrThrow())
+                            showNotesDialog = false
+                        },
+                    ) {
+                        Text(stringResource(R.string.device_name_save))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showNotesDialog = false }) {
+                        Text(stringResource(R.string.device_name_cancel))
                     }
                 },
             )
@@ -486,6 +661,53 @@ private fun DeviceDetailSection(
 private fun formatTimestamp(timestamp: Long): String = DateFormat
     .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault())
     .format(Date(timestamp))
+
+@Composable
+private fun formatOptionalTimestamp(timestamp: Long?): String = timestamp
+    ?.takeIf { it > 0L }
+    ?.let(::formatTimestamp)
+    ?: stringResource(R.string.device_not_recorded)
+
+@Composable
+private fun EditableProfileRow(
+    label: String,
+    value: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = NetworkToolboxSpacing.SM),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            value,
+            modifier = Modifier.weight(1f).padding(start = NetworkToolboxSpacing.LG),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+
+@Composable
+private fun DeviceTypeChoiceRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = NetworkToolboxSpacing.XS),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(selected = selected, onClick = onClick)
+        Text(label, modifier = Modifier.padding(start = NetworkToolboxSpacing.SM))
+    }
+}
 
 @Composable
 private fun wakeOnLanStatusMessage(availability: WakeOnLanAvailability): String? = when (availability) {

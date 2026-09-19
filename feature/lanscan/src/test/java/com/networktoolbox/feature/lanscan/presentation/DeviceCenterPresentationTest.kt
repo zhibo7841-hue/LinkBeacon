@@ -1,6 +1,9 @@
 package com.networktoolbox.feature.lanscan.presentation
 
 import com.networktoolbox.core.designsystem.UiText
+import com.networktoolbox.core.common.favorites.DeviceType
+import com.networktoolbox.core.common.favorites.FavoriteDevice
+import com.networktoolbox.core.common.favorites.FavoriteIdentityType
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.feature.lanscan.domain.LanScanRangeCalculator
@@ -11,6 +14,7 @@ import com.networktoolbox.feature.lanscan.domain.model.LanDiscoveryMethod
 import com.networktoolbox.feature.lanscan.domain.model.LanMdnsObservation
 import com.networktoolbox.feature.lanscan.domain.model.LanUpnpObservation
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DeviceCenterPresentationTest {
@@ -109,6 +113,41 @@ class DeviceCenterPresentationTest {
         assertPresentationEquals(null, DeviceCenterPresentation.deviceRole(ordinary))
         assertPresentationEquals("网关信息", DeviceCenterPresentation.deviceEvidence(gateway))
         assertPresentationEquals("当前设备", DeviceCenterPresentation.deviceEvidence(local))
+    }
+
+    @Test
+    fun `identity conflict keeps observed row separate from saved profile fields`() {
+        val context = wifiContext(address = "10.0.1.206", gateway = "10.0.1.1")
+        val observed = device("10.0.1.50").copy(macAddress = "AA:BB:CC:DD:EE:FF")
+        val saved = FavoriteDevice(
+            id = 7L,
+            identityType = FavoriteIdentityType.MAC,
+            identityValue = "11:22:33:44:55:66",
+            networkScope = com.networktoolbox.feature.lanscan.domain.LanNetworkScope.from(context)!!,
+            lastKnownIpv4 = "10.0.1.50",
+            lastKnownDisplayName = "Saved Server",
+            lastKnownHostname = null,
+            lastKnownMdnsName = null,
+            lastKnownUpnpName = null,
+            macAddress = "11:22:33:44:55:66",
+            vendor = null,
+            model = null,
+            createdAt = 1L,
+            lastSeenAt = 1L,
+            customName = "Private Name",
+            userDeviceType = DeviceType.SERVER,
+            notes = "Private note",
+        )
+
+        val items = DeviceCenterPresentation.deviceList(listOf(observed), listOf(saved), context)
+        val current = items.single { it.observedThisScan }
+        val retained = items.single { !it.observedThisScan }
+
+        assertNull(current.favorite)
+        assertPresentationEquals("未知设备", current.card.displayName)
+        assertEquals(DeviceTypeIcon.GENERIC, current.card.deviceTypeIcon)
+        assertPresentationEquals("Private Name", retained.card.displayName)
+        assertEquals(DeviceTypeIcon.SERVER, retained.card.deviceTypeIcon)
     }
 
     private fun readyRange(context: NetworkContext) =

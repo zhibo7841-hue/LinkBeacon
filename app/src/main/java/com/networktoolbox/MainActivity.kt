@@ -588,6 +588,18 @@ class MainActivity : AppCompatActivity() {
                                         navigationState.deviceDetailKey,
                                     )
                                 },
+                                onSaveDeviceType = { deviceType ->
+                                    lanScannerViewModel.setUserDeviceTypeByRouteKey(
+                                        navigationState.deviceDetailKey,
+                                        deviceType,
+                                    )
+                                },
+                                onSaveNotes = { notes ->
+                                    lanScannerViewModel.setNotesByRouteKey(
+                                        navigationState.deviceDetailKey,
+                                        notes,
+                                    )
+                                },
                                 onOpenPing = { target ->
                                     openToolFromDeviceDetail(ToolScreen.PING, target)
                                 },

@@ -3,6 +3,7 @@ package com.networktoolbox.feature.lanscan.presentation
 import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteIdentityType
+import com.networktoolbox.core.common.favorites.DeviceType
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.feature.lanscan.domain.model.LanDevice
@@ -16,6 +17,7 @@ import com.networktoolbox.core.common.wol.WakeOnLanConfig
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DeviceDetailPresentationTest {
@@ -212,6 +214,96 @@ class DeviceDetailPresentationTest {
         assertFalse(detail.isFavorite)
         assertPresentationEquals("书房打印机", detail.customName)
     }
+
+    @Test
+    fun `effective type prefers user selection then detected type and keeps null distinct from other`() {
+        val detected = profile().copy(detectedDeviceType = DeviceType.PRINTER)
+        val overridden = detected.copy(userDeviceType = DeviceType.SERVER)
+
+        assertEquals(DeviceType.PRINTER, DeviceCenterPresentation.effectiveDeviceType(detected))
+        assertEquals(DeviceType.SERVER, DeviceCenterPresentation.effectiveDeviceType(overridden))
+        assertNull(DeviceCenterPresentation.effectiveDeviceType(profile()))
+        assertEquals(DeviceType.OTHER, DeviceCenterPresentation.effectiveDeviceType(profile().copy(userDeviceType = DeviceType.OTHER)))
+    }
+
+    @Test
+    fun `every device type has a stable icon and null uses generic icon`() {
+        val expected = mapOf(
+            DeviceType.COMPUTER to DeviceTypeIcon.COMPUTER,
+            DeviceType.SERVER to DeviceTypeIcon.SERVER,
+            DeviceType.ROUTER to DeviceTypeIcon.ROUTER,
+            DeviceType.NAS to DeviceTypeIcon.NAS,
+            DeviceType.PRINTER to DeviceTypeIcon.PRINTER,
+            DeviceType.PHONE_TABLET to DeviceTypeIcon.PHONE_TABLET,
+            DeviceType.TV_MEDIA to DeviceTypeIcon.TV_MEDIA,
+            DeviceType.SMART_HOME to DeviceTypeIcon.SMART_HOME,
+            DeviceType.NETWORK_DEVICE to DeviceTypeIcon.NETWORK_DEVICE,
+            DeviceType.OTHER to DeviceTypeIcon.OTHER,
+        )
+
+        expected.forEach { (type, icon) -> assertEquals(icon, DeviceCenterPresentation.deviceTypeIcon(type)) }
+        assertEquals(DeviceTypeIcon.GENERIC, DeviceCenterPresentation.deviceTypeIcon(null))
+    }
+
+    @Test
+    fun `type icon never changes custom display name`() {
+        val saved = profile().copy(customName = "Rack Alpha", userDeviceType = DeviceType.SERVER)
+        val item = DeviceCenterPresentation.deviceList(
+            devices = listOf(device("10.0.1.50")),
+            favorites = listOf(saved),
+            context = context(),
+        ).single()
+
+        assertPresentationEquals("Rack Alpha", item.card.displayName)
+        assertEquals(DeviceTypeIcon.SERVER, item.card.deviceTypeIcon)
+    }
+
+    @Test
+    fun `observed and saved details use current and last observed address semantics`() {
+        val saved = profile().copy(firstSeenAt = 10L, lastSeenAt = 20L)
+        val observed = DeviceCenterPresentation.detail(device("10.0.1.50"), saved, context())
+        val unseen = DeviceCenterPresentation.detail(saved, context())
+
+        assertPresentationEquals("当前地址", observed.addressLabel)
+        assertPresentationEquals("最近观察地址", unseen.addressLabel)
+        assertEquals(DeviceObservationStatus.FOUND, observed.observationStatus)
+        assertEquals(DeviceObservationStatus.NOT_FOUND, unseen.observationStatus)
+        assertEquals(10L, observed.firstSeenAt)
+        assertEquals(20L, observed.lastSeenAt)
+    }
+
+    @Test
+    fun `current scan time does not fabricate saved last seen`() {
+        val saved = profile().copy(lastSeenAt = 20L)
+        val observed = device("10.0.1.50").copy(lastSeen = 999L)
+        val item = DeviceCenterPresentation.deviceList(
+            devices = listOf(observed),
+            favorites = listOf(saved),
+            context = context(),
+        ).single()
+
+        val detail = DeviceCenterPresentation.detail(observed, item.favorite, context())
+
+        assertEquals(20L, detail.lastSeenAt)
+    }
+
+    private fun profile() = FavoriteDevice(
+        id = 9L,
+        identityType = FavoriteIdentityType.NETWORK_IP,
+        identityValue = "10.0.1.50",
+        networkScope = LanNetworkScope.from(context())!!,
+        lastKnownIpv4 = "10.0.1.50",
+        lastKnownDisplayName = "server.local",
+        lastKnownHostname = "server.local",
+        lastKnownMdnsName = null,
+        lastKnownUpnpName = null,
+        macAddress = null,
+        vendor = null,
+        model = null,
+        createdAt = 1L,
+        lastSeenAt = 1L,
+        isFavorite = true,
+    )
 
     private fun context() = NetworkContext(
         connectionType = ConnectionType.WIFI,

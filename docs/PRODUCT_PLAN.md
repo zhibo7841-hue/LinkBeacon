@@ -536,10 +536,13 @@ procedure only and does not alter the frozen v0.6.0 product scope.
 
 Status: **Current development mainline / design approved**.
 
-Implementation status: **Identity & Data Model Foundation complete**. The
-conservative match-result contract and additive Room v4 -> v5 profile schema
-are in place. Device Type, Notes, First/Last Seen, and address-semantics UI
-remain for the next bounded Device Profile UI task.
+Implementation status: **Identity & Data Model Foundation and Device Profile UI
+complete**. The conservative match-result contract and additive Room v4 -> v5
+profile schema are in place. Device Type with Material icons, local Notes,
+truthful First/Last Seen and current/last-address semantics, localized search,
+and English/Simplified Chinese Device Detail presentation are implemented.
+Room migration runtime validation and final representative-device regression
+remain for Task 094; this progress update does not change v0.7.0 scope.
 
 v0.7.0 strengthens the existing LAN Device Center rather than adding a broad
 set of new network tools. Its confirmed direction is:

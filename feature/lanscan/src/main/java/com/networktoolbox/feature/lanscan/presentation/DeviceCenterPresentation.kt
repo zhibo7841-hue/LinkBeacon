@@ -5,6 +5,7 @@ import com.networktoolbox.feature.lanscan.R
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.core.common.favorites.DeviceDisplayNameResolver
+import com.networktoolbox.core.common.favorites.DeviceType
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteIdentityMatcher
 import com.networktoolbox.core.common.favorites.associatedProfileOrNull
@@ -44,7 +45,30 @@ data class LanDeviceCardPresentation(
     val macAddress: String? = null,
     val isFavorite: Boolean = false,
     val quickWake: QuickWakePresentation? = null,
+    val deviceType: DeviceType? = null,
+    val deviceTypeIcon: DeviceTypeIcon = DeviceTypeIcon.GENERIC,
 )
+
+/** Stable presentation tokens; Compose maps these to Material icons. */
+enum class DeviceTypeIcon {
+    COMPUTER,
+    SERVER,
+    ROUTER,
+    NAS,
+    PRINTER,
+    PHONE_TABLET,
+    TV_MEDIA,
+    SMART_HOME,
+    NETWORK_DEVICE,
+    OTHER,
+    GENERIC,
+}
+
+enum class DeviceObservationStatus {
+    FOUND,
+    NOT_FOUND,
+    NOT_SCANNED,
+}
 
 /** A compact, accessible action shown only for an eligible saved profile. */
 data class QuickWakePresentation(
@@ -87,6 +111,14 @@ data class DeviceDetailPresentation(
     /** User-facing label only; opaque scope fingerprints are never displayed. */
     val networkScope: UiText?,
     val observedThisScan: Boolean,
+    val observationStatus: DeviceObservationStatus,
+    val addressLabel: UiText,
+    val userDeviceType: DeviceType?,
+    val detectedDeviceType: DeviceType?,
+    val effectiveDeviceType: DeviceType?,
+    val deviceTypeIcon: DeviceTypeIcon,
+    val notes: String?,
+    val firstSeenAt: Long?,
     val lastSeenAt: Long?,
     val customName: String? = null,
     val isFavorite: Boolean,
@@ -142,17 +174,51 @@ object DeviceCenterPresentation {
         items: List<DeviceCenterDeviceItem>,
         query: String,
         filter: DeviceCenterFilter,
+        localizedTypeNames: Map<DeviceType, String> = emptyMap(),
     ): List<DeviceCenterDeviceItem> {
         val normalizedQuery = query.trim().lowercase(Locale.ROOT)
         return items.filter { item ->
             matchesFilter(item, filter) && (
                 normalizedQuery.isEmpty() ||
-                    searchableValues(item).any { value ->
+                    searchableValues(item, localizedTypeNames).any { value ->
                         value.lowercase(Locale.ROOT).contains(normalizedQuery)
                     }
                 )
         }
     }
+
+    fun effectiveDeviceType(profile: FavoriteDevice?): DeviceType? =
+        profile?.userDeviceType ?: profile?.detectedDeviceType
+
+    fun deviceTypeIcon(type: DeviceType?): DeviceTypeIcon = when (type) {
+        DeviceType.COMPUTER -> DeviceTypeIcon.COMPUTER
+        DeviceType.SERVER -> DeviceTypeIcon.SERVER
+        DeviceType.ROUTER -> DeviceTypeIcon.ROUTER
+        DeviceType.NAS -> DeviceTypeIcon.NAS
+        DeviceType.PRINTER -> DeviceTypeIcon.PRINTER
+        DeviceType.PHONE_TABLET -> DeviceTypeIcon.PHONE_TABLET
+        DeviceType.TV_MEDIA -> DeviceTypeIcon.TV_MEDIA
+        DeviceType.SMART_HOME -> DeviceTypeIcon.SMART_HOME
+        DeviceType.NETWORK_DEVICE -> DeviceTypeIcon.NETWORK_DEVICE
+        DeviceType.OTHER -> DeviceTypeIcon.OTHER
+        null -> DeviceTypeIcon.GENERIC
+    }
+
+    fun deviceTypeLabel(type: DeviceType?): UiText = UiText(
+        when (type) {
+            DeviceType.COMPUTER -> R.string.device_type_computer
+            DeviceType.SERVER -> R.string.device_type_server
+            DeviceType.ROUTER -> R.string.device_type_router
+            DeviceType.NAS -> R.string.device_type_nas
+            DeviceType.PRINTER -> R.string.device_type_printer
+            DeviceType.PHONE_TABLET -> R.string.device_type_phone_tablet
+            DeviceType.TV_MEDIA -> R.string.device_type_tv_media
+            DeviceType.SMART_HOME -> R.string.device_type_smart_home
+            DeviceType.NETWORK_DEVICE -> R.string.device_type_network_device
+            DeviceType.OTHER -> R.string.device_type_other
+            null -> R.string.device_type_not_set
+        },
+    )
 
     fun wakeOnLan(
         config: WakeOnLanConfig?,
@@ -364,7 +430,17 @@ object DeviceCenterPresentation {
             role = role,
             networkScope = LanNetworkScope.from(context)?.let { UiText(R.string.lan_current_lan) },
             observedThisScan = observedThisScan,
-            lastSeenAt = device.lastSeen,
+            observationStatus = DeviceObservationStatus.FOUND,
+            addressLabel = UiText(R.string.device_current_address),
+            userDeviceType = favorite?.userDeviceType,
+            detectedDeviceType = favorite?.detectedDeviceType,
+            effectiveDeviceType = effectiveDeviceType(favorite),
+            deviceTypeIcon = deviceTypeIcon(effectiveDeviceType(favorite)),
+            notes = favorite?.notes,
+            firstSeenAt = favorite?.firstSeenAt,
+            // Observation metadata belongs to the saved profile. A weak
+            // compatibility match must not promote the current scan time.
+            lastSeenAt = favorite?.lastSeenAt,
             customName = favorite?.customName,
             isFavorite = favorite?.isFavorite == true,
             canToggleFavorite = LanNetworkScope.from(context) != null,
@@ -381,6 +457,7 @@ object DeviceCenterPresentation {
         context: NetworkContext,
         detailKey: String = LanDeviceDetailRouteKey.forFavorite(favorite),
         wakeOnLanContext: NetworkContext? = null,
+        observationStatus: DeviceObservationStatus = DeviceObservationStatus.NOT_FOUND,
     ): DeviceDetailPresentation = DeviceDetailPresentation(
         detailKey = detailKey,
         displayName = LanScannerPresentation.displayName(
@@ -399,6 +476,14 @@ object DeviceCenterPresentation {
         role = favoriteRole(favorite),
         networkScope = LanNetworkScope.from(context)?.let { UiText(R.string.lan_current_lan) },
         observedThisScan = false,
+        observationStatus = observationStatus,
+        addressLabel = UiText(R.string.device_last_observed_address),
+        userDeviceType = favorite.userDeviceType,
+        detectedDeviceType = favorite.detectedDeviceType,
+        effectiveDeviceType = effectiveDeviceType(favorite),
+        deviceTypeIcon = deviceTypeIcon(effectiveDeviceType(favorite)),
+        notes = favorite.notes,
+        firstSeenAt = favorite.firstSeenAt,
         lastSeenAt = favorite.lastSeenAt,
         customName = favorite.customName,
         isFavorite = favorite.isFavorite,
@@ -419,6 +504,8 @@ object DeviceCenterPresentation {
             role = deviceRole(device),
             macAddress = device.macAddress,
             isFavorite = favorite?.isFavorite == true,
+            deviceType = effectiveDeviceType(favorite),
+            deviceTypeIcon = deviceTypeIcon(effectiveDeviceType(favorite)),
         )
 
     private fun card(
@@ -442,6 +529,8 @@ object DeviceCenterPresentation {
             role = favoriteRole(favorite),
             macAddress = favorite.macAddress,
             isFavorite = favorite.isFavorite,
+            deviceType = effectiveDeviceType(favorite),
+            deviceTypeIcon = deviceTypeIcon(effectiveDeviceType(favorite)),
             quickWake = favorite.wolConfig
                 ?.takeIf {
                     wakeOnLan(
@@ -480,7 +569,10 @@ object DeviceCenterPresentation {
         DeviceCenterFilter.FAVORITES -> item.isFavorite
     }
 
-    private fun searchableValues(item: DeviceCenterDeviceItem): List<String> = buildList {
+    private fun searchableValues(
+        item: DeviceCenterDeviceItem,
+        localizedTypeNames: Map<DeviceType, String>,
+    ): List<String> = buildList {
         fun addValue(value: String?) {
             value?.trim()?.takeIf(String::isNotBlank)?.let(::add)
         }
@@ -507,6 +599,10 @@ object DeviceCenterPresentation {
             addValue(favorite.lastKnownUpnpName)
             addValue(favorite.vendor)
             addValue(favorite.model)
+            addValue(favorite.notes)
+            effectiveDeviceType(favorite)?.let { type ->
+                addValue(localizedTypeNames[type])
+            }
         }
     }
 

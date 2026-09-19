@@ -43,6 +43,7 @@ import com.networktoolbox.core.designsystem.NetworkToolboxTopLevelHeader
 import com.networktoolbox.core.designsystem.OutlinedNetworkCard
 import com.networktoolbox.core.designsystem.ToolScreenLazyLayout
 import com.networktoolbox.core.common.favorites.FavoriteDevice
+import com.networktoolbox.core.common.favorites.DeviceType
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.feature.lanscan.R
 import com.networktoolbox.feature.lanscan.domain.LanScanRangeResult
@@ -94,6 +95,7 @@ fun LanDeviceCenterScreen(
         waitingProfileEvidence = waitingProfileEvidence,
         notFoundProfileEvidence = notFoundProfileEvidence,
         unfinishedProfileEvidence = unfinishedProfileEvidence,
+        localizedTypeNames = localizedDeviceTypeNames(),
     )
     val hasSearchOrFilter = searchState.query.trim().isNotEmpty() ||
         searchState.filter != DeviceCenterFilter.ALL
@@ -336,6 +338,7 @@ private fun deviceCenterVisibleItems(
     waitingProfileEvidence: String,
     notFoundProfileEvidence: String,
     unfinishedProfileEvidence: String,
+    localizedTypeNames: Map<DeviceType, String>,
 ): DeviceCenterVisibleItems? {
     val baseItems: List<DeviceCenterDeviceItem>
     val notDiscoveredAvailable: Boolean
@@ -407,6 +410,7 @@ private fun deviceCenterVisibleItems(
         items = baseItems,
         query = searchState.query,
         filter = searchState.filter,
+        localizedTypeNames = localizedTypeNames,
     ).let { items ->
         if (searchState.filter == DeviceCenterFilter.NOT_DISCOVERED && !notDiscoveredAvailable) {
             emptyList()
@@ -419,6 +423,20 @@ private fun deviceCenterVisibleItems(
         notDiscovered = filteredItems.filterNot(DeviceCenterDeviceItem::observedThisScan),
     )
 }
+
+@Composable
+private fun localizedDeviceTypeNames(): Map<DeviceType, String> = mapOf(
+    DeviceType.COMPUTER to stringResource(R.string.device_type_computer),
+    DeviceType.SERVER to stringResource(R.string.device_type_server),
+    DeviceType.ROUTER to stringResource(R.string.device_type_router),
+    DeviceType.NAS to stringResource(R.string.device_type_nas),
+    DeviceType.PRINTER to stringResource(R.string.device_type_printer),
+    DeviceType.PHONE_TABLET to stringResource(R.string.device_type_phone_tablet),
+    DeviceType.TV_MEDIA to stringResource(R.string.device_type_tv_media),
+    DeviceType.SMART_HOME to stringResource(R.string.device_type_smart_home),
+    DeviceType.NETWORK_DEVICE to stringResource(R.string.device_type_network_device),
+    DeviceType.OTHER to stringResource(R.string.device_type_other),
+)
 
 @Composable
 private fun DeviceCenterSearchControls(

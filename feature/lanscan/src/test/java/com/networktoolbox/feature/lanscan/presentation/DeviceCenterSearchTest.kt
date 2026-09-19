@@ -3,6 +3,7 @@ package com.networktoolbox.feature.lanscan.presentation
 import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteIdentityType
+import com.networktoolbox.core.common.favorites.DeviceType
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.feature.lanscan.domain.model.LanDevice
@@ -276,6 +277,67 @@ class DeviceCenterSearchTest {
         assertPresentationEquals(listOf(saved), result)
     }
 
+    @Test
+    fun `effective type is searchable in current locale`() {
+        val server = item(
+            ipAddress = "10.0.1.60",
+            displayName = "Rack Alpha",
+            hostName = "rack-alpha",
+            observedThisScan = false,
+            deviceType = DeviceType.SERVER,
+        )
+        val labels = mapOf(DeviceType.SERVER to "Server")
+
+        val result = DeviceCenterPresentation.filterDeviceItems(
+            items = listOf(server),
+            query = "server",
+            filter = DeviceCenterFilter.ALL,
+            localizedTypeNames = labels,
+        )
+
+        assertPresentationEquals(listOf(server), result)
+    }
+
+    @Test
+    fun `simplified chinese type label is searchable`() {
+        val server = item(
+            ipAddress = "10.0.1.61",
+            displayName = "Rack Beta",
+            hostName = "rack-beta",
+            observedThisScan = false,
+            deviceType = DeviceType.SERVER,
+        )
+
+        val result = DeviceCenterPresentation.filterDeviceItems(
+            items = listOf(server),
+            query = "服务器",
+            filter = DeviceCenterFilter.ALL,
+            localizedTypeNames = mapOf(DeviceType.SERVER to "服务器"),
+        )
+
+        assertPresentationEquals(listOf(server), result)
+    }
+
+    @Test
+    fun `notes search is case insensitive and combines with favorites filter`() {
+        val notedFavorite = item(
+            ipAddress = "10.0.1.62",
+            displayName = "Rack Gamma",
+            hostName = "rack-gamma",
+            observedThisScan = false,
+            notes = "Basement BACKUP node",
+            isFavorite = true,
+        )
+
+        val result = DeviceCenterPresentation.filterDeviceItems(
+            items = listOf(notedFavorite),
+            query = "backup",
+            filter = DeviceCenterFilter.FAVORITES,
+        )
+
+        assertPresentationEquals(listOf(notedFavorite), result)
+    }
+
     private fun filter(filter: DeviceCenterFilter): List<DeviceCenterDeviceItem> =
         DeviceCenterPresentation.filterDeviceItems(
             items = allItems,
@@ -307,6 +369,8 @@ class DeviceCenterSearchTest {
         customName: String? = null,
         isFavorite: Boolean = false,
         hasProbeEvidence: Boolean = true,
+        deviceType: DeviceType? = null,
+        notes: String? = null,
     ): DeviceCenterDeviceItem {
         val device = LanDevice(
             ipAddress = ipAddress,
@@ -327,7 +391,7 @@ class DeviceCenterSearchTest {
             lastSeen = 1L,
             upnpDisplayNameCandidate = displayName,
         )
-        val favorite = if (observedThisScan || customName != null) {
+        val favorite = if (observedThisScan || customName != null || deviceType != null || notes != null || isFavorite) {
             FavoriteDevice(
                 identityType = FavoriteIdentityType.NETWORK_IP,
                 identityValue = ipAddress,
@@ -344,6 +408,8 @@ class DeviceCenterSearchTest {
                 lastSeenAt = 1L,
                 customName = customName,
                 isFavorite = isFavorite,
+                userDeviceType = deviceType,
+                notes = notes,
             )
         } else {
             null
@@ -360,6 +426,8 @@ class DeviceCenterSearchTest {
                 identitySummary = "$vendor · $model",
                 evidence = UiText("可达性检测"),
                 isFavorite = isFavorite,
+                deviceType = deviceType,
+                deviceTypeIcon = DeviceCenterPresentation.deviceTypeIcon(deviceType),
             ),
         )
     }

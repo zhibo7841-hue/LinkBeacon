@@ -35,7 +35,7 @@
     <string name="lan_on_mobile">当前为移动网络</string>
     <string name="lan_network_unavailable">当前网络不可用</string>
     <string name="lan_vpn_detected">当前检测到 VPN 网络</string>
-    <string name="lan_search_hint">搜索设备名称、IP、主机名</string>
+    <string name="lan_search_hint">搜索名称、IP、类型或备注</string>
     <string name="lan_clear_search">清除搜索</string>
     <string name="lan_filter">筛选：%1$s</string>
     <string name="lan_all">全部</string>

@@ -60,6 +60,7 @@ fun LanDeviceCard(
         ),
         modifier = modifier,
         showMac = showMac,
+        showDeviceTypeIcon = false,
         onClick = onClick,
     )
 }
@@ -69,6 +70,7 @@ fun LanDeviceCard(
     presentation: LanDeviceCardPresentation,
     modifier: Modifier = Modifier,
     showMac: Boolean = false,
+    showDeviceTypeIcon: Boolean = true,
     onClick: (() -> Unit)? = null,
     onQuickWake: (() -> Unit)? = null,
 ) {
@@ -102,6 +104,19 @@ fun LanDeviceCard(
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
         ) {
+            if (showDeviceTypeIcon) {
+                Icon(
+                    imageVector = presentation.deviceTypeIcon.imageVector(),
+                    contentDescription = presentation.deviceType
+                        ?.let(DeviceCenterPresentation::deviceTypeLabel)
+                        ?.resolve()
+                        ?: stringResource(R.string.device_type_generic_icon),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(top = 2.dp)
+                        .size(24.dp),
+                )
+            }
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS),

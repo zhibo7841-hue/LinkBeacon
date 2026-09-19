@@ -6,7 +6,7 @@
     <string name="info_version_support">当前应用版本</string>
     <string name="info_privacy_title">隐私与数据</string>
     <string name="info_local_first_title">本地优先</string>
-    <string name="info_local_first_description">诊断数据和检测历史仅保存在设备本地。</string>
+    <string name="info_local_first_description">诊断数据、检测历史和已保存的设备资料仅保存在设备本地。</string>
     <string name="info_upload_title">数据上传</string>
     <string name="info_upload_description">LinkBeacon 不会将诊断结果和历史记录上传到服务器。</string>
     <string name="info_account_title">无需账号</string>

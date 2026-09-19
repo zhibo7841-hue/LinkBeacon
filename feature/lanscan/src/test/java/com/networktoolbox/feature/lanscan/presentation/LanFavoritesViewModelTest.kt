@@ -6,6 +6,7 @@ import com.networktoolbox.core.common.favorites.FavoriteDeviceCandidate
 import com.networktoolbox.core.common.favorites.FavoriteDeviceObservation
 import com.networktoolbox.core.common.favorites.FavoriteDeviceRepository
 import com.networktoolbox.core.common.favorites.DeviceIdentityMatchResult
+import com.networktoolbox.core.common.favorites.DeviceNotes
 import com.networktoolbox.core.common.favorites.DeviceType
 import com.networktoolbox.core.common.favorites.FavoriteIdentityMatcher
 import com.networktoolbox.core.common.favorites.SavedDeviceRepository
@@ -146,6 +147,94 @@ class LanFavoritesViewModelTest {
         assertTrue(detail.observedThisScan)
         assertPresentationEquals("已收藏", detail.favoriteStatusLabel)
         assertPresentationEquals("取消收藏", detail.favoriteToggleContentDescription)
+    }
+
+    @Test
+    fun `server type survives view model recreation and clearing falls back to detected type`() = runTest {
+        val context = context()
+        val observed = device("10.0.1.28")
+        val initial = LanFavoriteIdentity.createSavedProfile(observed, context, now = 1L)!!
+            .copy(
+                id = 1L,
+                isFavorite = true,
+                detectedDeviceType = DeviceType.PRINTER,
+                userDeviceType = DeviceType.SERVER,
+            )
+        val repository = FakeFavoriteDeviceRepository(listOf(initial))
+        val first = viewModel(context, observed, repository)
+        advanceUntilIdle()
+        first.startScan()
+        advanceUntilIdle()
+
+        val recreated = viewModel(context, observed, repository)
+        advanceUntilIdle()
+        recreated.startScan()
+        advanceUntilIdle()
+        val route = recreated.detailRouteKey(observed)
+        assertEquals(DeviceType.SERVER, recreated.resolveDeviceDetail(route, recreated.savedProfiles.value)?.effectiveDeviceType)
+
+        recreated.setUserDeviceTypeByRouteKey(route, null)
+        advanceUntilIdle()
+
+        val detail = recreated.resolveDeviceDetail(route, recreated.savedProfiles.value)
+        assertEquals(DeviceType.PRINTER, detail?.effectiveDeviceType)
+        assertEquals(null, detail?.userDeviceType)
+    }
+
+    @Test
+    fun `notes and type independently retain a nonfavorite profile`() = runTest {
+        val context = context()
+        val observed = device("10.0.1.29")
+        val repository = FakeFavoriteDeviceRepository()
+        val viewModel = viewModel(context, observed, repository)
+        advanceUntilIdle()
+        viewModel.startScan()
+        advanceUntilIdle()
+        val route = viewModel.detailRouteKey(observed)
+
+        viewModel.setNotesByRouteKey(route, "  Basement node  ")
+        advanceUntilIdle()
+        assertEquals("Basement node", repository.observeProfiles().first().single().notes)
+        assertTrue(repository.observeProfiles().first().single().isFavorite.not())
+
+        viewModel.setUserDeviceTypeByRouteKey(route, DeviceType.SERVER)
+        advanceUntilIdle()
+        viewModel.setNotesByRouteKey(route, "")
+        advanceUntilIdle()
+        assertEquals(DeviceType.SERVER, repository.observeProfiles().first().single().userDeviceType)
+        assertEquals(null, repository.observeProfiles().first().single().notes)
+
+        viewModel.setNotesByRouteKey(route, "Keep me")
+        advanceUntilIdle()
+        viewModel.setUserDeviceTypeByRouteKey(route, null)
+        advanceUntilIdle()
+        assertEquals("Keep me", repository.observeProfiles().first().single().notes)
+        assertEquals(null, repository.observeProfiles().first().single().userDeviceType)
+    }
+
+    @Test
+    fun `notes accept 500 unicode code points and reject 501`() = runTest {
+        val context = context()
+        val observed = device("10.0.1.30")
+        val repository = FakeFavoriteDeviceRepository()
+        val viewModel = viewModel(context, observed, repository)
+        advanceUntilIdle()
+        viewModel.startScan()
+        advanceUntilIdle()
+        val route = viewModel.detailRouteKey(observed)
+        val accepted = "😀".repeat(DeviceNotes.MAX_CODE_POINTS)
+
+        viewModel.setNotesByRouteKey(route, accepted)
+        advanceUntilIdle()
+        assertEquals(accepted, repository.observeProfiles().first().single().notes)
+
+        val event = async { viewModel.deviceDetailEvents.first() }
+        runCurrent()
+        viewModel.setNotesByRouteKey(route, "😀".repeat(DeviceNotes.MAX_CODE_POINTS + 1))
+        advanceUntilIdle()
+
+        assertTrue(event.await() is DeviceDetailEvent.ProfileSaveFailed)
+        assertEquals(accepted, repository.observeProfiles().first().single().notes)
     }
 
     @Test
@@ -765,6 +854,7 @@ private class FakeFavoriteDeviceRepository(
     }
 
     override suspend fun setUserDeviceType(id: Long, deviceType: DeviceType?) {
+        if (failWrites) error("write failed")
         val existing = state.value.firstOrNull { it.id == id } ?: return
         if (deviceType == null && !existing.isFavorite && existing.customName == null && existing.wolConfig == null && existing.notes == null) {
             delete(id)
@@ -776,12 +866,14 @@ private class FakeFavoriteDeviceRepository(
     }
 
     override suspend fun setNotes(id: Long, notes: String?) {
+        if (failWrites) error("write failed")
+        val normalized = DeviceNotes.normalize(notes)
         val existing = state.value.firstOrNull { it.id == id } ?: return
-        if (notes == null && !existing.isFavorite && existing.customName == null && existing.wolConfig == null && existing.userDeviceType == null) {
+        if (normalized == null && !existing.isFavorite && existing.customName == null && existing.wolConfig == null && existing.userDeviceType == null) {
             delete(id)
         } else {
             state.value = state.value.map { profile ->
-                if (profile.id == id) profile.copy(notes = notes) else profile
+                if (profile.id == id) profile.copy(notes = normalized) else profile
             }
         }
     }

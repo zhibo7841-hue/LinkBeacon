@@ -533,10 +533,11 @@ Use three bounded tasks in order:
    implement conflict/ambiguity/weak-only behavior, extend
    `SavedDeviceProfile`, add the additive Room migration, update retention and
    repository APIs, and add unit/migration tests. No Device Center redesign.
-2. **Device Profile UI** — add Device Type, Notes, First/Last Seen and
-   current/last-address presentation to existing Device Detail/Card/Search,
-   with English and Simplified Chinese resources. Keep existing scan, Ping,
-   TCP, and Wake behavior.
+2. **Device Profile UI — complete (Task 093)** — Device Type, Notes,
+   First/Last Seen and current/last-address presentation are integrated into
+   existing Device Detail/Card/Search with English and Simplified Chinese
+   resources. Existing scan, Ping, TCP, Favorite, Custom Name, and Wake
+   behavior remains unchanged.
 3. **Migration and Real-device Regression** — exercise v0.6 -> v0.7 upgrade,
    identity risk scenarios, network switching, persistence, bilingual UI, and
    all existing Device Center/LAN Scanner regressions on representative devices.
@@ -571,8 +572,31 @@ differences and clarifications:
   production path. Tests use explicit fake observations for strong-MAC risk
   scenarios; runtime data is not fabricated.
 
-The Device Profile UI remains unimplemented and is still the next bounded
-task.
+### Task 093 implementation record
+
+- Device Detail adds a local-profile section with immediate single-choice
+  Device Type editing and a 500-Unicode-code-point plain-text Notes editor.
+  Empty Notes clear the field; clearing user type falls back to detected type
+  when a retained profile has one. `null` and `OTHER` remain separate states.
+- The effective type precedence is user -> detected -> unset. Each type has a
+  stable Material icon token, while Custom Name remains the display-name
+  priority and icons never participate in matching.
+- Observed details label the live value Current address. Retained profiles use
+  Last observed address. First Seen and Last Seen come only from saved profile
+  metadata; null is shown as Not recorded and weak matches do not synthesize a
+  newer Last Seen.
+- Device Center cards add only the type icon. Search adds localized effective
+  type labels and case-insensitive Notes while existing filters remain intact.
+- Conflict presentation continues to keep a current observation and saved
+  profile separate. Match reasons remain internal and no user profile fields
+  cross a conflict.
+- Privacy copy now includes saved device metadata as local-only. No Room schema,
+  identity rule, probe, History model, permission, or version changes are part
+  of this task.
+
+The next bounded task is Task 094: Room v4 -> v5 runtime migration and final
+real-device regression. Task 093 compilation and unit tests are not a claim
+that the migration runtime gate has passed.
 
 ## Open Questions
 
