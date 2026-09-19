@@ -1,0 +1,245 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 5,
+    "identityHash": "716a47fb6c573733f27d318f2452cc88",
+    "entities": [
+      {
+        "tableName": "history_records",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `type` TEXT NOT NULL, `title` TEXT NOT NULL, `summary` TEXT NOT NULL, `detail_json` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "summary",
+            "columnName": "summary",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "detailJson",
+            "columnName": "detail_json",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_history_records_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_history_records_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          }
+        ]
+      },
+      {
+        "tableName": "favorite_devices",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `identity_type` TEXT NOT NULL, `identity_value` TEXT NOT NULL, `network_scope` TEXT NOT NULL, `last_known_ipv4` TEXT, `last_known_display_name` TEXT, `last_known_hostname` TEXT, `last_known_mdns_name` TEXT, `last_known_upnp_name` TEXT, `mac_address` TEXT, `vendor` TEXT, `model` TEXT, `created_at` INTEGER NOT NULL, `last_seen_at` INTEGER, `is_gateway` INTEGER NOT NULL, `is_local_device` INTEGER NOT NULL, `custom_name` TEXT, `is_favorite` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `wol_mac_address` TEXT, `wol_udp_port` INTEGER, `protocol_identity` TEXT, `user_device_type` TEXT, `detected_device_type` TEXT, `notes` TEXT, `first_seen_at` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identityType",
+            "columnName": "identity_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identityValue",
+            "columnName": "identity_value",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "networkScope",
+            "columnName": "network_scope",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastKnownIpv4",
+            "columnName": "last_known_ipv4",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastKnownDisplayName",
+            "columnName": "last_known_display_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastKnownHostname",
+            "columnName": "last_known_hostname",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastKnownMdnsName",
+            "columnName": "last_known_mdns_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastKnownUpnpName",
+            "columnName": "last_known_upnp_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "macAddress",
+            "columnName": "mac_address",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "vendor",
+            "columnName": "vendor",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "model",
+            "columnName": "model",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSeenAt",
+            "columnName": "last_seen_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isGateway",
+            "columnName": "is_gateway",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isLocalDevice",
+            "columnName": "is_local_device",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "customName",
+            "columnName": "custom_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "isFavorite",
+            "columnName": "is_favorite",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wolMacAddress",
+            "columnName": "wol_mac_address",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "wolUdpPort",
+            "columnName": "wol_udp_port",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "protocolIdentity",
+            "columnName": "protocol_identity",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "userDeviceType",
+            "columnName": "user_device_type",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "detectedDeviceType",
+            "columnName": "detected_device_type",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "firstSeenAt",
+            "columnName": "first_seen_at",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_favorite_devices_identity_type_identity_value_network_scope",
+            "unique": true,
+            "columnNames": [
+              "identity_type",
+              "identity_value",
+              "network_scope"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_favorite_devices_identity_type_identity_value_network_scope` ON `${TABLE_NAME}` (`identity_type`, `identity_value`, `network_scope`)"
+          },
+          {
+            "name": "index_favorite_devices_network_scope",
+            "unique": false,
+            "columnNames": [
+              "network_scope"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_favorite_devices_network_scope` ON `${TABLE_NAME}` (`network_scope`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '716a47fb6c573733f27d318f2452cc88')"
+    ]
+  }
+}

@@ -9,6 +9,27 @@ enum class FavoriteIdentityType {
     NETWORK_IP,
 }
 
+/** Stable, language-independent categories owned by a managed device profile. */
+enum class DeviceType {
+    COMPUTER,
+    SERVER,
+    ROUTER,
+    NAS,
+    PRINTER,
+    PHONE_TABLET,
+    TV_MEDIA,
+    SMART_HOME,
+    NETWORK_DEVICE,
+    OTHER;
+
+    companion object {
+        fun fromStoredValue(value: String?): DeviceType? {
+            val normalized = value?.trim()?.takeIf(String::isNotBlank) ?: return null
+            return entries.firstOrNull { it.name == normalized } ?: OTHER
+        }
+    }
+}
+
 data class FavoriteDeviceIdentity(
     val type: FavoriteIdentityType,
     val value: String,
@@ -48,6 +69,8 @@ data class FavoriteDeviceObservation(
     val lastSeenAt: Long,
     val isGateway: Boolean,
     val isLocalDevice: Boolean,
+    val protocolIdentity: String? = null,
+    val detectedDeviceType: DeviceType? = null,
 )
 
 /**
@@ -78,6 +101,11 @@ data class SavedDeviceProfile(
     val isFavorite: Boolean = true,
     val updatedAt: Long = createdAt,
     val wolConfig: WakeOnLanConfig? = null,
+    val protocolIdentity: String? = null,
+    val userDeviceType: DeviceType? = null,
+    val detectedDeviceType: DeviceType? = null,
+    val notes: String? = null,
+    val firstSeenAt: Long? = null,
 ) {
     init {
         require(identityValue.isNotBlank()) { "Favorite identity value must not be blank." }
@@ -86,6 +114,13 @@ data class SavedDeviceProfile(
 
     val identity: FavoriteDeviceIdentity
         get() = FavoriteDeviceIdentity(identityType, identityValue)
+
+    val hasUserManagedState: Boolean
+        get() = isFavorite ||
+            customName != null ||
+            wolConfig != null ||
+            userDeviceType != null ||
+            notes != null
 }
 
 /** Source-compatible name retained for existing LAN Scanner integrations. */

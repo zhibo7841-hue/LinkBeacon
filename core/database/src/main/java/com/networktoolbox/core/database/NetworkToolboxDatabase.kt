@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [HistoryEntity::class, FavoriteDeviceEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class NetworkToolboxDatabase : RoomDatabase() {

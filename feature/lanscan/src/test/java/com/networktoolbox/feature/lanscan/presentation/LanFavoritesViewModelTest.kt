@@ -5,6 +5,9 @@ import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteDeviceCandidate
 import com.networktoolbox.core.common.favorites.FavoriteDeviceObservation
 import com.networktoolbox.core.common.favorites.FavoriteDeviceRepository
+import com.networktoolbox.core.common.favorites.DeviceIdentityMatchResult
+import com.networktoolbox.core.common.favorites.DeviceType
+import com.networktoolbox.core.common.favorites.FavoriteIdentityMatcher
 import com.networktoolbox.core.common.favorites.SavedDeviceRepository
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
@@ -43,6 +46,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -59,6 +63,57 @@ class LanFavoritesViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `weak compatibility match keeps presentation continuity without updating last seen`() = runTest {
+        val context = context()
+        val observed = device("10.0.1.20")
+        val profile = LanFavoriteIdentity.createSavedProfile(observed, context, now = 1L)!!
+            .copy(id = 1L, lastSeenAt = 1L)
+        val repository = FakeFavoriteDeviceRepository(listOf(profile))
+        val viewModel = viewModel(context, observed, repository)
+
+        advanceUntilIdle()
+        viewModel.startScan()
+        advanceUntilIdle()
+
+        assertEquals(0, repository.updateLastObservedCalls)
+        assertEquals(1L, repository.observeProfiles().first().single().lastSeenAt)
+        assertTrue(viewModel.detailRouteKey(observed).startsWith("favorite:"))
+    }
+
+    @Test
+    fun `strong mac match updates last seen without changing user fields`() = runTest {
+        val context = context()
+        val observed = device("10.0.1.99", macAddress = "AA:BB:CC:DD:EE:FF")
+        val original = LanFavoriteIdentity.createSavedProfile(
+            device = device("10.0.1.20", macAddress = "AA:BB:CC:DD:EE:FF"),
+            context = context,
+            now = 1L,
+        )!!.copy(id = 1L, customName = "Server", lastSeenAt = 1L)
+        val repository = FakeFavoriteDeviceRepository(listOf(original))
+        val viewModel = viewModel(context, observed, repository)
+
+        advanceUntilIdle()
+        viewModel.startScan()
+        advanceUntilIdle()
+
+        val updated = repository.observeProfiles().first().single()
+        assertEquals(1, repository.updateLastObservedCalls)
+        assertEquals(42L, updated.lastSeenAt)
+        assertEquals("10.0.1.99", updated.lastKnownIpv4)
+        assertEquals("Server", updated.customName)
+    }
+
+    @Test
+    fun `new managed profile records first seen from current observation`() {
+        val observed = device("10.0.1.20")
+
+        val profile = LanFavoriteIdentity.createSavedProfile(observed, context(), now = 100L)!!
+
+        assertEquals(42L, profile.firstSeenAt)
+        assertEquals(100L, profile.createdAt)
     }
 
     @Test
@@ -642,8 +697,9 @@ class LanFavoritesViewModelTest {
         interfaceName = "wlan0",
     )
 
-    private fun device(ip: String) = LanDevice(
+    private fun device(ip: String, macAddress: String? = null) = LanDevice(
         ipAddress = ip,
+        macAddress = macAddress,
         isLocalDevice = false,
         isGateway = false,
         latencyMs = 14L,
@@ -659,6 +715,8 @@ private class FakeFavoriteDeviceRepository(
 ) : FavoriteDeviceRepository, SavedDeviceRepository {
     private val state = MutableStateFlow(initialFavorites)
     private var nextId = 1L
+    var updateLastObservedCalls: Int = 0
+        private set
 
     override fun observeFavorites(): Flow<List<FavoriteDevice>> = state
 
@@ -706,6 +764,28 @@ private class FakeFavoriteDeviceRepository(
         }
     }
 
+    override suspend fun setUserDeviceType(id: Long, deviceType: DeviceType?) {
+        val existing = state.value.firstOrNull { it.id == id } ?: return
+        if (deviceType == null && !existing.isFavorite && existing.customName == null && existing.wolConfig == null && existing.notes == null) {
+            delete(id)
+        } else {
+            state.value = state.value.map { profile ->
+                if (profile.id == id) profile.copy(userDeviceType = deviceType) else profile
+            }
+        }
+    }
+
+    override suspend fun setNotes(id: Long, notes: String?) {
+        val existing = state.value.firstOrNull { it.id == id } ?: return
+        if (notes == null && !existing.isFavorite && existing.customName == null && existing.wolConfig == null && existing.userDeviceType == null) {
+            delete(id)
+        } else {
+            state.value = state.value.map { profile ->
+                if (profile.id == id) profile.copy(notes = notes) else profile
+            }
+        }
+    }
+
     override suspend fun setWakeOnLanConfig(id: Long, config: WakeOnLanConfig?) {
         if (failWrites) error("write failed")
         val existing = state.value.firstOrNull { it.id == id } ?: return
@@ -727,6 +807,7 @@ private class FakeFavoriteDeviceRepository(
     }
 
     override suspend fun updateLastObserved(id: Long, observation: FavoriteDeviceObservation) {
+        updateLastObservedCalls += 1
         state.value = state.value.map { favorite ->
             if (favorite.id != id) favorite else favorite.copy(
                 lastKnownIpv4 = observation.lastKnownIpv4,
@@ -744,8 +825,15 @@ private class FakeFavoriteDeviceRepository(
         }
     }
 
+    override suspend fun findIdentityMatch(candidate: FavoriteDeviceCandidate): DeviceIdentityMatchResult =
+        FavoriteIdentityMatcher.match(state.value, candidate)
+
     override suspend fun findMatching(candidate: FavoriteDeviceCandidate): FavoriteDevice? =
-        state.value.firstOrNull { favorite ->
-            com.networktoolbox.core.common.favorites.FavoriteIdentityMatcher.matches(favorite, candidate)
+        when (val result = findIdentityMatch(candidate)) {
+            is DeviceIdentityMatchResult.StrongMatch -> result.profile
+            is DeviceIdentityMatchResult.WeakCompatibilityMatch -> result.profile
+            is DeviceIdentityMatchResult.Conflict,
+            is DeviceIdentityMatchResult.NoMatch,
+            -> null
         }
 }

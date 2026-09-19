@@ -5,6 +5,9 @@ import com.networktoolbox.core.common.favorites.FavoriteDeviceCandidate
 import com.networktoolbox.core.common.favorites.FavoriteDeviceObservation
 import com.networktoolbox.core.common.favorites.FavoriteDeviceRepository
 import com.networktoolbox.core.common.favorites.FavoriteIdentityType
+import com.networktoolbox.core.common.favorites.DeviceIdentityMatchResult
+import com.networktoolbox.core.common.favorites.DeviceNotes
+import com.networktoolbox.core.common.favorites.DeviceType
 import com.networktoolbox.core.common.favorites.SavedDeviceRepository
 import com.networktoolbox.core.common.wol.MacAddress
 import com.networktoolbox.core.common.wol.WakeOnLanConfig
@@ -249,6 +252,105 @@ class RoomFavoriteDeviceRepositoryTest {
         assertTrue(remaining.all { it.wolConfig == null })
     }
 
+    @Test
+    fun `user device type is persisted and retains a profile by itself`() = runBlocking {
+        val repository = RoomFavoriteDeviceRepository(FakeFavoriteDeviceDao())
+        val id = repository.save(favorite().copy(isFavorite = false, userDeviceType = DeviceType.SERVER))
+
+        assertEquals(DeviceType.SERVER, repository.observeProfiles().first().single().userDeviceType)
+
+        repository.setUserDeviceType(id, null)
+        assertTrue(repository.observeProfiles().first().isEmpty())
+    }
+
+    @Test
+    fun `notes are normalized persisted and retain a profile by themselves`() = runBlocking {
+        val repository = RoomFavoriteDeviceRepository(FakeFavoriteDeviceDao())
+        val id = repository.save(favorite().copy(isFavorite = false, notes = "  Rack\r\nSwitch  "))
+
+        assertEquals("Rack\nSwitch", repository.observeProfiles().first().single().notes)
+
+        repository.setNotes(id, "  ")
+        assertTrue(repository.observeProfiles().first().isEmpty())
+    }
+
+    @Test
+    fun `notes enforce unicode code point limit in repository`() = runBlocking {
+        val repository = RoomFavoriteDeviceRepository(FakeFavoriteDeviceDao())
+        val id = repository.save(favorite())
+        val accepted = "😀".repeat(DeviceNotes.MAX_CODE_POINTS)
+
+        repository.setNotes(id, accepted)
+        assertEquals(accepted, repository.observeProfiles().first().single().notes)
+
+        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+            runBlocking { repository.setNotes(id, "😀".repeat(DeviceNotes.MAX_CODE_POINTS + 1)) }
+        }
+        Unit
+    }
+
+    @Test
+    fun `detected type alone does not persist an unmanaged observation`() = runBlocking {
+        val repository = RoomFavoriteDeviceRepository(FakeFavoriteDeviceDao())
+
+        val id = repository.save(
+            favorite().copy(
+                isFavorite = false,
+                detectedDeviceType = DeviceType.PRINTER,
+            ),
+        )
+
+        assertEquals(0L, id)
+        assertTrue(repository.observeProfiles().first().isEmpty())
+    }
+
+    @Test
+    fun `managed profile persists detected type and first seen without changing profile id`() = runBlocking {
+        val repository = RoomFavoriteDeviceRepository(FakeFavoriteDeviceDao())
+
+        val id = repository.save(
+            favorite().copy(
+                detectedDeviceType = DeviceType.ROUTER,
+                firstSeenAt = 123L,
+            ),
+        )
+        val saved = repository.observeProfiles().first().single()
+
+        assertEquals(id, saved.id)
+        assertEquals(DeviceType.ROUTER, saved.detectedDeviceType)
+        assertEquals(123L, saved.firstSeenAt)
+    }
+
+    @Test
+    fun `unknown persisted device type degrades to other without dropping profile`() {
+        val profile = favorite().toEntity().copy(userDeviceType = "FUTURE_TYPE").toSavedDeviceProfile()
+
+        assertNotNull(profile)
+        assertEquals(DeviceType.OTHER, profile?.userDeviceType)
+    }
+
+    @Test
+    fun `repository exposes strong weak and conflict match results`() = runBlocking {
+        val repository = RoomFavoriteDeviceRepository(FakeFavoriteDeviceDao())
+        repository.save(favorite())
+
+        assertTrue(
+            repository.findIdentityMatch(
+                FavoriteDeviceCandidate("scope-a", "10.0.1.99", "AA:BB:CC:DD:EE:FF"),
+            ) is DeviceIdentityMatchResult.StrongMatch,
+        )
+        assertTrue(
+            repository.findIdentityMatch(
+                FavoriteDeviceCandidate("scope-a", "10.0.1.20", macAddress = null),
+            ) is DeviceIdentityMatchResult.WeakCompatibilityMatch,
+        )
+        assertTrue(
+            repository.findIdentityMatch(
+                FavoriteDeviceCandidate("scope-a", "10.0.1.20", "11:22:33:44:55:66"),
+            ) is DeviceIdentityMatchResult.Conflict,
+        )
+    }
+
     private fun favorite(
         ip: String = "10.0.1.20",
         identityValue: String = "AA:BB:CC:DD:EE:FF",
@@ -314,6 +416,8 @@ private class FakeFavoriteDeviceDao : FavoriteDeviceDao {
         lastKnownMdnsName: String?,
         lastKnownUpnpName: String?,
         macAddress: String?,
+        protocolIdentity: String?,
+        detectedDeviceType: String?,
         vendor: String?,
         model: String?,
         lastSeenAt: Long,
@@ -330,7 +434,9 @@ private class FakeFavoriteDeviceDao : FavoriteDeviceDao {
             lastKnownHostname = lastKnownHostname,
             lastKnownMdnsName = lastKnownMdnsName,
             lastKnownUpnpName = lastKnownUpnpName,
-            macAddress = macAddress,
+            macAddress = macAddress ?: existing.macAddress,
+            protocolIdentity = protocolIdentity ?: existing.protocolIdentity,
+            detectedDeviceType = detectedDeviceType ?: existing.detectedDeviceType,
             vendor = vendor,
             model = model,
             lastSeenAt = lastSeenAt,
@@ -356,6 +462,26 @@ private class FakeFavoriteDeviceDao : FavoriteDeviceDao {
         if (index < 0) return
         entities[index] = entities[index].copy(
             customName = customName,
+            updatedAt = updatedAt,
+        )
+        publish()
+    }
+
+    override suspend fun updateUserDeviceType(id: Long, deviceType: String?, updatedAt: Long) {
+        val index = entities.indexOfFirst { it.id == id }
+        if (index < 0) return
+        entities[index] = entities[index].copy(
+            userDeviceType = deviceType,
+            updatedAt = updatedAt,
+        )
+        publish()
+    }
+
+    override suspend fun updateNotes(id: Long, notes: String?, updatedAt: Long) {
+        val index = entities.indexOfFirst { it.id == id }
+        if (index < 0) return
+        entities[index] = entities[index].copy(
+            notes = notes,
             updatedAt = updatedAt,
         )
         publish()

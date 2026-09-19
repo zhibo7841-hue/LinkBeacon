@@ -64,6 +64,8 @@ object LanFavoriteIdentity {
             lastSeenAt = device.lastSeen,
             isGateway = device.isGateway,
             isLocalDevice = device.isLocalDevice,
+            protocolIdentity = candidate.protocolIdentity,
+            firstSeenAt = device.lastSeen,
         )
     }
 
@@ -102,6 +104,11 @@ object LanFavoriteIdentity {
             lastSeenAt = device.lastSeen,
             isGateway = device.isGateway,
             isLocalDevice = device.isLocalDevice,
+            protocolIdentity = device.upnpObservations
+                .asSequence()
+                .mapNotNull { it.udn }
+                .mapNotNull(FavoriteIdentityMatcher::normalizeProtocol)
+                .firstOrNull(),
         )
     }
 }

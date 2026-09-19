@@ -59,3 +59,18 @@ val MIGRATION_3_4: Migration = object : Migration(3, 4) {
         db.execSQL("ALTER TABLE favorite_devices ADD COLUMN wol_udp_port INTEGER")
     }
 }
+
+/** Adds v0.7 managed-profile metadata without inventing historical observations. */
+val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE favorite_devices ADD COLUMN protocol_identity TEXT")
+        db.execSQL("ALTER TABLE favorite_devices ADD COLUMN user_device_type TEXT")
+        db.execSQL("ALTER TABLE favorite_devices ADD COLUMN detected_device_type TEXT")
+        db.execSQL("ALTER TABLE favorite_devices ADD COLUMN notes TEXT")
+        db.execSQL("ALTER TABLE favorite_devices ADD COLUMN first_seen_at INTEGER")
+        db.execSQL(
+            "UPDATE favorite_devices SET protocol_identity = LOWER(TRIM(identity_value)) " +
+                "WHERE identity_type = 'PROTOCOL'",
+        )
+    }
+}

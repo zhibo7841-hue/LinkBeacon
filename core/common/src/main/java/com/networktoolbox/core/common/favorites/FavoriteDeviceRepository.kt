@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.emptyFlow
  *
  * Profile existence is deliberately separate from [SavedDeviceProfile.isFavorite].
  * Implementations own orphan cleanup when a profile has neither a favorite
- * flag, a custom name, nor a Wake-on-LAN configuration.
+ * flag, a custom name, a user device type, notes, or a Wake-on-LAN
+ * configuration.
  */
 interface SavedDeviceRepository {
     fun observeProfiles(): Flow<List<SavedDeviceProfile>>
@@ -22,6 +23,10 @@ interface SavedDeviceRepository {
 
     suspend fun setCustomName(id: Long, customName: String?)
 
+    suspend fun setUserDeviceType(id: Long, deviceType: DeviceType?)
+
+    suspend fun setNotes(id: Long, notes: String?)
+
     /** Saves or removes only the local Wake-on-LAN configuration. */
     suspend fun setWakeOnLanConfig(
         id: Long,
@@ -29,6 +34,11 @@ interface SavedDeviceRepository {
     )
 
     suspend fun updateLastObserved(id: Long, observation: FavoriteDeviceObservation)
+
+    suspend fun findIdentityMatch(candidate: FavoriteDeviceCandidate): DeviceIdentityMatchResult =
+        findMatching(candidate)?.let { profile ->
+            FavoriteIdentityMatcher.match(listOf(profile), candidate)
+        } ?: DeviceIdentityMatchResult.NoMatch()
 
     suspend fun findMatching(candidate: FavoriteDeviceCandidate): SavedDeviceProfile?
 }
@@ -59,6 +69,10 @@ object NoOpSavedDeviceRepository : SavedDeviceRepository {
     override suspend fun setFavorite(id: Long, isFavorite: Boolean) = Unit
 
     override suspend fun setCustomName(id: Long, customName: String?) = Unit
+
+    override suspend fun setUserDeviceType(id: Long, deviceType: DeviceType?) = Unit
+
+    override suspend fun setNotes(id: Long, notes: String?) = Unit
 
     override suspend fun setWakeOnLanConfig(
         id: Long,

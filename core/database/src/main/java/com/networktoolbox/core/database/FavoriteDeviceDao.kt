@@ -39,7 +39,9 @@ interface FavoriteDeviceDao {
             "last_known_hostname = :lastKnownHostname, " +
             "last_known_mdns_name = :lastKnownMdnsName, " +
             "last_known_upnp_name = :lastKnownUpnpName, " +
-            "mac_address = :macAddress, " +
+            "mac_address = COALESCE(:macAddress, mac_address), " +
+            "protocol_identity = COALESCE(:protocolIdentity, protocol_identity), " +
+            "detected_device_type = COALESCE(:detectedDeviceType, detected_device_type), " +
             "vendor = :vendor, " +
             "model = :model, " +
         "last_seen_at = :lastSeenAt, " +
@@ -56,6 +58,8 @@ interface FavoriteDeviceDao {
         lastKnownMdnsName: String?,
         lastKnownUpnpName: String?,
         macAddress: String?,
+        protocolIdentity: String?,
+        detectedDeviceType: String?,
         vendor: String?,
         model: String?,
         lastSeenAt: Long,
@@ -69,6 +73,12 @@ interface FavoriteDeviceDao {
 
     @Query("UPDATE favorite_devices SET custom_name = :customName, updated_at = :updatedAt WHERE id = :id")
     suspend fun updateCustomName(id: Long, customName: String?, updatedAt: Long)
+
+    @Query("UPDATE favorite_devices SET user_device_type = :deviceType, updated_at = :updatedAt WHERE id = :id")
+    suspend fun updateUserDeviceType(id: Long, deviceType: String?, updatedAt: Long)
+
+    @Query("UPDATE favorite_devices SET notes = :notes, updated_at = :updatedAt WHERE id = :id")
+    suspend fun updateNotes(id: Long, notes: String?, updatedAt: Long)
 
     @Query(
         "UPDATE favorite_devices SET " +

@@ -6,6 +6,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteIdentityType
+import com.networktoolbox.core.common.favorites.DeviceType
 import com.networktoolbox.core.common.favorites.SavedDeviceProfile
 import com.networktoolbox.core.common.wol.MacAddress
 import com.networktoolbox.core.common.wol.WakeOnLanConfig
@@ -61,6 +62,15 @@ data class FavoriteDeviceEntity(
     val wolMacAddress: String? = null,
     @ColumnInfo(name = "wol_udp_port")
     val wolUdpPort: Int? = null,
+    @ColumnInfo(name = "protocol_identity")
+    val protocolIdentity: String? = null,
+    @ColumnInfo(name = "user_device_type")
+    val userDeviceType: String? = null,
+    @ColumnInfo(name = "detected_device_type")
+    val detectedDeviceType: String? = null,
+    val notes: String? = null,
+    @ColumnInfo(name = "first_seen_at")
+    val firstSeenAt: Long? = null,
 )
 
 fun FavoriteDevice.toEntity(): FavoriteDeviceEntity = FavoriteDeviceEntity(
@@ -85,6 +95,11 @@ fun FavoriteDevice.toEntity(): FavoriteDeviceEntity = FavoriteDeviceEntity(
     updatedAt = updatedAt,
     wolMacAddress = wolConfig?.macAddress?.toString(),
     wolUdpPort = wolConfig?.udpPort,
+    protocolIdentity = protocolIdentity,
+    userDeviceType = userDeviceType?.name,
+    detectedDeviceType = detectedDeviceType?.name,
+    notes = notes,
+    firstSeenAt = firstSeenAt,
 )
 
 fun FavoriteDeviceEntity.toSavedDeviceProfile(): SavedDeviceProfile? = runCatching {
@@ -111,6 +126,11 @@ fun FavoriteDeviceEntity.toSavedDeviceProfile(): SavedDeviceProfile? = runCatchi
         // A malformed optional WoL value must not make an otherwise valid
         // saved profile disappear. It is treated as an absent configuration.
         wolConfig = wolConfigOrNull(),
+        protocolIdentity = protocolIdentity,
+        userDeviceType = DeviceType.fromStoredValue(userDeviceType),
+        detectedDeviceType = DeviceType.fromStoredValue(detectedDeviceType),
+        notes = notes,
+        firstSeenAt = firstSeenAt,
     )
 }.getOrNull()
 

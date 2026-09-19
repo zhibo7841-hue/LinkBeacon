@@ -7,6 +7,7 @@ import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.core.common.favorites.DeviceDisplayNameResolver
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteIdentityMatcher
+import com.networktoolbox.core.common.favorites.associatedProfileOrNull
 import com.networktoolbox.feature.lanscan.domain.model.LanDevice
 import com.networktoolbox.feature.lanscan.domain.model.LanScanRange
 import com.networktoolbox.feature.lanscan.domain.LanFavoriteIdentity
@@ -245,9 +246,7 @@ object DeviceCenterPresentation {
         val observedItems = devices.mapNotNull { device ->
             val candidate = LanFavoriteIdentity.candidate(device, context)
             val favorite = candidate?.let { current ->
-                scopedFavorites.firstOrNull { saved ->
-                    FavoriteIdentityMatcher.matches(saved, current)
-                }
+                FavoriteIdentityMatcher.match(scopedFavorites, current).associatedProfileOrNull()
             }
             val detailKey = favorite
                 ?.takeIf { it.isFavorite }
@@ -265,7 +264,7 @@ object DeviceCenterPresentation {
         val observedFavoriteKeys = observedItems.mapNotNull { it.favorite?.let(::favoriteKey) }.toSet()
         val unseenItems = if (includeUnseenFavorites) {
             scopedFavorites
-                .filter { it.isFavorite || it.customName != null || it.wolConfig != null }
+                .filter(FavoriteDevice::hasUserManagedState)
                 .filterNot { favorite -> favoriteKey(favorite) in observedFavoriteKeys }
                 .map { favorite ->
                     DeviceCenterDeviceItem(

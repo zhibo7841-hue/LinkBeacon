@@ -80,6 +80,32 @@ class DatabaseMigrationsTest {
     }
 
     @Test
+    fun `device center v2 migration adds nullable profile fields without inventing first seen`() {
+        val statements = mutableListOf<String>()
+        val database = Proxy.newProxyInstance(
+            SupportSQLiteDatabase::class.java.classLoader,
+            arrayOf(SupportSQLiteDatabase::class.java),
+        ) { _, method, args ->
+            if (method.name == "execSQL") statements += args?.firstOrNull()?.toString().orEmpty()
+            defaultValue(method.returnType)
+        } as SupportSQLiteDatabase
+
+        assertEquals(4, MIGRATION_4_5.startVersion)
+        assertEquals(5, MIGRATION_4_5.endVersion)
+        MIGRATION_4_5.migrate(database)
+
+        assertEquals(6, statements.size)
+        assertTrue(statements.any { it.contains("ADD COLUMN protocol_identity TEXT") })
+        assertTrue(statements.any { it.contains("ADD COLUMN user_device_type TEXT") })
+        assertTrue(statements.any { it.contains("ADD COLUMN detected_device_type TEXT") })
+        assertTrue(statements.any { it.contains("ADD COLUMN notes TEXT") })
+        assertTrue(statements.any { it.contains("ADD COLUMN first_seen_at INTEGER") })
+        assertTrue(statements.any { it.contains("identity_type = 'PROTOCOL'") })
+        assertFalse(statements.any { it.contains("DROP", ignoreCase = true) })
+        assertFalse(statements.any { it.contains("first_seen_at =", ignoreCase = true) })
+    }
+
+    @Test
     fun `legacy v2 favorite rows map to profiles without changing history mapping`() {
         val legacyRows = listOf(
             legacyFavorite(id = 1L, ip = "10.0.1.10", createdAt = 10L),
@@ -108,6 +134,9 @@ class DatabaseMigrationsTest {
         assertEquals("10.0.1.10", historyRecord.title)
         assertEquals("{}", historyRecord.detailJson)
         assertNull(profiles.first().customName)
+        assertNull(profiles.first().firstSeenAt)
+        assertNull(profiles.first().userDeviceType)
+        assertNull(profiles.first().notes)
     }
 
     @Test

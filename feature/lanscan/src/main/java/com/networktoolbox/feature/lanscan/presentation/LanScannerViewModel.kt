@@ -6,10 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.feature.lanscan.R
 import com.networktoolbox.core.common.favorites.DeviceDisplayNameResolver
+import com.networktoolbox.core.common.favorites.DeviceIdentityMatchResult
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.core.common.favorites.FavoriteIdentityMatcher
 import com.networktoolbox.core.common.favorites.NoOpSavedDeviceRepository
 import com.networktoolbox.core.common.favorites.SavedDeviceRepository
+import com.networktoolbox.core.common.favorites.associatedProfileOrNull
 import com.networktoolbox.core.common.wol.MacAddress
 import com.networktoolbox.core.common.wol.WakeOnLanConfig
 import com.networktoolbox.core.common.wol.WakeOnLanFailureReason
@@ -430,11 +432,7 @@ class LanScannerViewModel @Inject constructor(
     fun detailRouteKey(device: com.networktoolbox.feature.lanscan.domain.model.LanDevice): String {
         val context = currentNetworkContext()
         val candidate = context?.let { LanFavoriteIdentity.candidate(device, it) }
-        val favorite = candidate?.let { current ->
-            _savedProfiles.value.firstOrNull { saved ->
-                FavoriteIdentityMatcher.matches(saved, current)
-            }
-        }
+        val favorite = candidate?.let { current -> associatedSavedProfile(_savedProfiles.value, current) }
         return favorite
             ?.takeIf { it.isFavorite }
             ?.let(LanDeviceDetailRouteKey::forFavorite)
@@ -460,11 +458,7 @@ class LanScannerViewModel @Inject constructor(
                     FavoriteIdentityMatcher.normalizeIpv4(current.ipAddress) == parsed.ipv4Address
                 } ?: return null
                 val candidate = LanFavoriteIdentity.candidate(device, context)
-                val favorite = candidate?.let { current ->
-                    favorites.firstOrNull { saved ->
-                        FavoriteIdentityMatcher.matches(saved, current)
-                    }
-                }
+                val favorite = candidate?.let { current -> associatedSavedProfile(favorites, current) }
                 DeviceCenterPresentation.detail(
                     device = device,
                     favorite = favorite,
@@ -1010,11 +1004,13 @@ class LanScannerViewModel @Inject constructor(
     private fun syncFavoriteObservation(context: NetworkContext, device: com.networktoolbox.feature.lanscan.domain.model.LanDevice) {
         viewModelScope.launch {
             val candidate = LanFavoriteIdentity.candidate(device, context) ?: return@launch
-            val profile = savedDeviceRepository.findMatching(candidate) ?: return@launch
-            savedDeviceRepository.updateLastObserved(
-                id = profile.id,
-                observation = LanFavoriteIdentity.observedMetadata(device),
-            )
+            val match = savedDeviceRepository.findIdentityMatch(candidate)
+            if (match is DeviceIdentityMatchResult.StrongMatch) {
+                savedDeviceRepository.updateLastObserved(
+                    id = match.profile.id,
+                    observation = LanFavoriteIdentity.observedMetadata(device),
+                )
+            }
         }
     }
 
@@ -1024,11 +1020,13 @@ class LanScannerViewModel @Inject constructor(
     ) {
         devices.forEach { device ->
             val candidate = LanFavoriteIdentity.candidate(device, context) ?: return@forEach
-            val profile = savedDeviceRepository.findMatching(candidate) ?: return@forEach
-            savedDeviceRepository.updateLastObserved(
-                id = profile.id,
-                observation = LanFavoriteIdentity.observedMetadata(device),
-            )
+            val match = savedDeviceRepository.findIdentityMatch(candidate)
+            if (match is DeviceIdentityMatchResult.StrongMatch) {
+                savedDeviceRepository.updateLastObserved(
+                    id = match.profile.id,
+                    observation = LanFavoriteIdentity.observedMetadata(device),
+                )
+            }
         }
     }
 
@@ -1188,6 +1186,11 @@ private fun LanScannerUiState.canRefreshReadiness(): Boolean = when (this) {
 
 private const val MAX_MDNS_OBSERVATIONS_PER_DEVICE = 16
 private const val MAX_UPNP_OBSERVATIONS_PER_DEVICE = 8
+
+private fun associatedSavedProfile(
+    profiles: List<FavoriteDevice>,
+    candidate: com.networktoolbox.core.common.favorites.FavoriteDeviceCandidate,
+): FavoriteDevice? = FavoriteIdentityMatcher.match(profiles, candidate).associatedProfileOrNull()
 
 private fun WakeOnLanFailureReason.toUserMessage(): UiText = when (this) {
     WakeOnLanFailureReason.NOT_CONFIGURED -> UiText(R.string.lan_error_configure_mac)

@@ -5,9 +5,13 @@ import com.networktoolbox.core.common.favorites.FavoriteDeviceObservation
 import com.networktoolbox.core.common.favorites.FavoriteDeviceCandidate
 import com.networktoolbox.core.common.favorites.FavoriteDeviceRepository
 import com.networktoolbox.core.common.favorites.DeviceDisplayNameResolver
+import com.networktoolbox.core.common.favorites.DeviceIdentityMatchResult
+import com.networktoolbox.core.common.favorites.DeviceNotes
+import com.networktoolbox.core.common.favorites.DeviceType
 import com.networktoolbox.core.common.favorites.FavoriteIdentityMatcher
 import com.networktoolbox.core.common.favorites.SavedDeviceProfile
 import com.networktoolbox.core.common.favorites.SavedDeviceRepository
+import com.networktoolbox.core.common.favorites.associatedProfileOrNull
 import javax.inject.Inject
 import com.networktoolbox.core.common.wol.WakeOnLanConfig
 import kotlinx.coroutines.flow.Flow
@@ -22,13 +26,19 @@ class RoomFavoriteDeviceRepository @Inject constructor(
         }
 
     override suspend fun save(profile: SavedDeviceProfile): Long {
-        val insertedId = favoriteDeviceDao.insert(profile.toEntity())
+        val normalized = profile.copy(
+            protocolIdentity = FavoriteIdentityMatcher.normalizeProtocol(profile.protocolIdentity),
+            notes = DeviceNotes.normalize(profile.notes),
+        )
+        if (!normalized.hasUserManagedState) return 0L
+
+        val insertedId = favoriteDeviceDao.insert(normalized.toEntity())
         if (insertedId != -1L) return insertedId
 
         return favoriteDeviceDao.findByIdentity(
-            identityType = profile.identityType.name,
-            identityValue = profile.identityValue,
-            networkScope = profile.networkScope,
+            identityType = normalized.identityType.name,
+            identityValue = normalized.identityValue,
+            networkScope = normalized.networkScope,
         )?.id ?: 0L
     }
 
@@ -39,7 +49,7 @@ class RoomFavoriteDeviceRepository @Inject constructor(
     override suspend fun setFavorite(id: Long, isFavorite: Boolean) {
         val existing = favoriteDeviceDao.findById(id) ?: return
         val now = System.currentTimeMillis()
-        if (!isFavorite && existing.customName.isNullOrBlank() && existing.wolMacAddress == null) {
+        if (!isFavorite && !existing.hasManagedStateBesidesFavorite()) {
             favoriteDeviceDao.deleteById(id)
         } else {
             favoriteDeviceDao.updateFavorite(
@@ -55,7 +65,7 @@ class RoomFavoriteDeviceRepository @Inject constructor(
             DeviceDisplayNameResolver.validateCustomName(it).getOrElse { error -> throw error }
         }
         val existing = favoriteDeviceDao.findById(id) ?: return
-        if (normalized == null && existing.isFavorite == 0 && existing.wolMacAddress == null) {
+        if (normalized == null && !existing.hasManagedStateBesidesCustomName()) {
             favoriteDeviceDao.deleteById(id)
         } else {
             favoriteDeviceDao.updateCustomName(
@@ -66,9 +76,36 @@ class RoomFavoriteDeviceRepository @Inject constructor(
         }
     }
 
+    override suspend fun setUserDeviceType(id: Long, deviceType: DeviceType?) {
+        val existing = favoriteDeviceDao.findById(id) ?: return
+        if (deviceType == null && !existing.hasManagedStateBesidesUserDeviceType()) {
+            favoriteDeviceDao.deleteById(id)
+        } else {
+            favoriteDeviceDao.updateUserDeviceType(
+                id = id,
+                deviceType = deviceType?.name,
+                updatedAt = System.currentTimeMillis(),
+            )
+        }
+    }
+
+    override suspend fun setNotes(id: Long, notes: String?) {
+        val normalized = DeviceNotes.normalize(notes)
+        val existing = favoriteDeviceDao.findById(id) ?: return
+        if (normalized == null && !existing.hasManagedStateBesidesNotes()) {
+            favoriteDeviceDao.deleteById(id)
+        } else {
+            favoriteDeviceDao.updateNotes(
+                id = id,
+                notes = normalized,
+                updatedAt = System.currentTimeMillis(),
+            )
+        }
+    }
+
     override suspend fun setWakeOnLanConfig(id: Long, config: WakeOnLanConfig?) {
         val existing = favoriteDeviceDao.findById(id) ?: return
-        if (config == null && existing.isFavorite == 0 && existing.customName.isNullOrBlank()) {
+        if (config == null && !existing.hasManagedStateBesidesWakeOnLan()) {
             favoriteDeviceDao.deleteById(id)
         } else {
             favoriteDeviceDao.updateWakeOnLan(
@@ -89,6 +126,8 @@ class RoomFavoriteDeviceRepository @Inject constructor(
             lastKnownMdnsName = observation.lastKnownMdnsName,
             lastKnownUpnpName = observation.lastKnownUpnpName,
             macAddress = FavoriteIdentityMatcher.normalizeMac(observation.macAddress),
+            protocolIdentity = FavoriteIdentityMatcher.normalizeProtocol(observation.protocolIdentity),
+            detectedDeviceType = observation.detectedDeviceType?.name,
             vendor = observation.vendor,
             model = observation.model,
             lastSeenAt = observation.lastSeenAt,
@@ -98,10 +137,16 @@ class RoomFavoriteDeviceRepository @Inject constructor(
         )
     }
 
+    override suspend fun findIdentityMatch(
+        candidate: FavoriteDeviceCandidate,
+    ): DeviceIdentityMatchResult = FavoriteIdentityMatcher.match(
+        savedProfiles = favoriteDeviceDao.getAll()
+            .mapNotNull(FavoriteDeviceEntity::toSavedDeviceProfile),
+        candidate = candidate,
+    )
+
     override suspend fun findMatching(candidate: FavoriteDeviceCandidate): SavedDeviceProfile? =
-        favoriteDeviceDao.getAll()
-            .mapNotNull(FavoriteDeviceEntity::toSavedDeviceProfile)
-            .firstOrNull { profile -> FavoriteIdentityMatcher.matches(profile, candidate) }
+        findIdentityMatch(candidate).associatedProfileOrNull()
 
     // Legacy FavoriteDeviceRepository facade. It intentionally exposes only
     // explicitly favorited profiles to old callers.
@@ -116,3 +161,18 @@ class RoomFavoriteDeviceRepository @Inject constructor(
     }
 
 }
+
+private fun FavoriteDeviceEntity.hasManagedStateBesidesFavorite(): Boolean =
+    !customName.isNullOrBlank() || wolMacAddress != null || userDeviceType != null || notes != null
+
+private fun FavoriteDeviceEntity.hasManagedStateBesidesCustomName(): Boolean =
+    isFavorite != 0 || wolMacAddress != null || userDeviceType != null || notes != null
+
+private fun FavoriteDeviceEntity.hasManagedStateBesidesUserDeviceType(): Boolean =
+    isFavorite != 0 || !customName.isNullOrBlank() || wolMacAddress != null || notes != null
+
+private fun FavoriteDeviceEntity.hasManagedStateBesidesNotes(): Boolean =
+    isFavorite != 0 || !customName.isNullOrBlank() || wolMacAddress != null || userDeviceType != null
+
+private fun FavoriteDeviceEntity.hasManagedStateBesidesWakeOnLan(): Boolean =
+    isFavorite != 0 || !customName.isNullOrBlank() || userDeviceType != null || notes != null

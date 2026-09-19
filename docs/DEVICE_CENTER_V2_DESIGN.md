@@ -544,6 +544,36 @@ Use three bounded tasks in order:
 The first development task is **Identity & Data Model Foundation**. It must
 freeze the exact matcher-result API and v4 -> v5 migration before UI work.
 
+### Task 092 implementation record
+
+The Identity & Data Model Foundation is implemented with the following audited
+differences and clarifications:
+
+- Runtime results are named `StrongMatch`, `WeakCompatibilityMatch`,
+  `Conflict`, and `NoMatch`, each with a machine-readable reason.
+- Scoped IPv4 remains available as a compatibility presentation association.
+  It does not update Last Seen or any observed identity/metadata. This narrower
+  behavior preserves existing v0.6 cards without treating IP equality as a
+  reliable identity confirmation.
+- Room moved from version 4 to 5. The implemented nullable columns are
+  `protocol_identity`, `user_device_type`, `detected_device_type`, `notes`, and
+  `first_seen_at`. `detectedDeviceTypeRaw` was not persisted because no current
+  reliable type-inference output requires it.
+- Existing `identity_type = PROTOCOL` rows backfill normalized
+  `protocol_identity`; migration does not invent MAC, type, Notes, or First
+  Seen values.
+- The current UPnP raw `deviceType` remains observed presentation evidence.
+  Task 092 adds the optional detected enum contract but no new inference
+  engine.
+- Managed-state retention now includes user Device Type and Notes. Detected
+  type, First Seen, and Last Seen alone do not retain a profile.
+- The existing LAN Scanner does not reliably populate MAC on the audited
+  production path. Tests use explicit fake observations for strong-MAC risk
+  scenarios; runtime data is not fabricated.
+
+The Device Profile UI remains unimplemented and is still the next bounded
+task.
+
 ## Open Questions
 
 There is no product blocker for the three-task plan. Implementation Task A must

@@ -322,6 +322,54 @@ new permissions, or a separate device-action repository. `SavedDeviceProfile`
 remains the sole persistence owner; the additive Room migration preserves all
 existing favorite, custom-name, identity, scope, and observation data.
 
+## Device Center v2 identity and data foundation (v0.7 Task 092)
+
+The v0.7 identity foundation replaces repository-order-dependent Boolean
+matching with a structured `DeviceIdentityMatchResult`. Matching remains bound
+to the current opaque network scope and evaluates all in-scope profiles before
+returning one of four outcomes:
+
+- `StrongMatch` — one unique exact observed MAC or normalized UPnP UDN;
+- `WeakCompatibilityMatch` — one same-scope, same-IPv4 profile with no strong
+  conflict and no stronger match elsewhere;
+- `Conflict` — conflicting or ambiguous strong evidence, or ambiguous weak
+  candidates;
+- `NoMatch` — no safe association.
+
+Every outcome carries a machine-readable `DeviceIdentityMatchReason`. A MAC or
+UPnP UDN conflict blocks IPv4 fallback. When MAC and UDN point to different
+profiles, neither profile is selected. Hostname, vendor, model, Custom Name,
+Device Type, Notes, and user-entered Wake-on-LAN MAC remain non-identity data.
+
+The weak IPv4 outcome is retained only as a v0.6 compatibility presentation
+bridge because Android LAN observations do not currently provide MAC reliably.
+It may keep a saved card, Favorite, Custom Name, or Wake configuration visible,
+but it does not refresh `lastSeenAt`, learn MAC/UDN, update detected metadata,
+or raise identity confidence. Only `StrongMatch` drives automatic observation
+synchronization. Opening detail, editing profile data, Favorite changes, and
+Wake actions do not update Last Seen.
+
+`SavedDeviceProfile.id` remains the sole stable local profile key. Room moves
+additively from version 4 to 5 and adds nullable `protocol_identity`,
+`user_device_type`, `detected_device_type`, `notes`, and `first_seen_at`
+columns. Existing protocol-canonical rows backfill only their normalized UDN;
+all migrated First Seen values remain null. IDs, identity/scope, Favorite,
+Custom Name, Wake-on-LAN, observation metadata, Last Seen, and History remain
+unchanged. No destructive migration or parallel stable-ID system is used.
+
+Device Type uses a language-independent enum. `userDeviceType` is user-owned;
+`detectedDeviceType` is optional and has no new inference engine in Task 092.
+Notes are local plain text, normalized to nullable values, and limited to 500
+Unicode code points in the domain/repository layer. A profile is retained by
+Favorite, Custom Name, Wake configuration, user Device Type, or Notes. Detected
+type and observation timestamps alone do not persist unknown scan results.
+First Seen is set only when a managed profile is created from a real current
+observation; migrated or unverified profiles do not fabricate it. There is no
+global observation database.
+
+Task 092 does not add Device Type, Notes, or timestamp UI. Those presentation
+changes remain the separately bounded Device Profile UI task.
+
 ## Activity recreation state ownership (Task 080)
 
 Task 080 established recreation safety on ComponentActivity. Task 081 retains
