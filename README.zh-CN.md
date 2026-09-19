@@ -19,14 +19,11 @@ NetworkToolbox 已在 v0.5.0 更名为 LinkBeacon。Android application ID
 
 ## 开发状态
 
-- **最新稳定版本：** [v0.6.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.6.0)
-- **即将验收的候选版本：** v0.7.0 设备中心增强（尚未发布）
+- **最新稳定版本：** [v0.7.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.0)
 
-v0.6.0 是完整双语版本，在保持现有本地数据与 Android application ID
-不变的基础上，提供完整英文和简体中文界面。
-
-v0.7.0 当前处于 Release Candidate 准备阶段。在签名候选 APK 完成最终代表性
-真机回归并获得明确发布授权前，最新稳定下载仍为 v0.6.0。
+v0.7.0 增强设备中心，加入设备类型与图标、本地设备备注、首次与最近发现
+信息、更安全的已保存设备关联、更清晰的当前/最近观察地址语义，以及设备
+类型与备注搜索，并继续保留 v0.6.0 引入的完整英文和简体中文体验。
 
 ## 截图
 
@@ -75,7 +72,7 @@ LinkBeacon 展示检测事实、可能原因和排障建议。当现有证据无
 
 ## 语言支持
 
-v0.6.0 支持：
+v0.7.0 支持：
 
 - English。
 - 简体中文。
@@ -104,13 +101,13 @@ LinkBeacon 只会为了执行用户主动选择的检测而访问网络。这不
 
 ## 下载
 
-最新稳定版本为 **v0.6.0**：
+最新稳定版本为 **v0.7.0**：
 
-- [下载 LinkBeacon-v0.6.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.6.0/LinkBeacon-v0.6.0.apk)
-- [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.6.0/LinkBeacon-v0.6.0.apk.sha256)
-- [查看 v0.6.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.6.0)
+- [下载 LinkBeacon-v0.7.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.0/LinkBeacon-v0.7.0.apk)
+- [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.0/LinkBeacon-v0.7.0.apk.sha256)
+- [查看 v0.7.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.0)
 
-对应 SHA-256 校验文件与 Release 附件一同提供。现有 v0.5.0 安装可以直接
+对应 SHA-256 校验文件与 Release 附件一同提供。现有 v0.6.0 安装可以直接
 升级，无需清除本地数据。
 
 ## 构建与开发

@@ -20,16 +20,13 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 
 ## Development status
 
-- **Latest stable release:** [v0.6.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.6.0)
-- **Upcoming release candidate:** v0.7.0 Device Center Enhancement (not yet published)
+- **Latest stable release:** [v0.7.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.0)
 
-v0.6.0 is the Full Bilingual Release. It adds complete English and Simplified-
-Chinese presentation while preserving the existing local data and Android
-application identity.
-
-v0.7.0 is currently in release-candidate preparation. The latest stable
-download remains v0.6.0 until the signed v0.7.0 candidate completes its final
-representative-device regression and is explicitly released.
+v0.7.0 enhances Device Center with device types and icons, local notes, first
+and last observed information, safer saved-device association, clearer current
+and last observed address semantics, and search by device type or notes. It
+retains the complete English and Simplified-Chinese experience introduced in
+v0.6.0.
 
 ## Screenshots
 
@@ -81,7 +78,7 @@ that the target device powered on or became reachable.
 
 ## Language support
 
-v0.6.0 supports:
+v0.7.0 supports:
 
 - English.
 - Simplified Chinese.
@@ -111,14 +108,14 @@ the user. This does not mean that diagnostic results are uploaded.
 
 ## Download
 
-The latest stable release is **v0.6.0**:
+The latest stable release is **v0.7.0**:
 
-- [Download LinkBeacon-v0.6.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.6.0/LinkBeacon-v0.6.0.apk)
-- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.6.0/LinkBeacon-v0.6.0.apk.sha256)
-- [View the v0.6.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.6.0)
+- [Download LinkBeacon-v0.7.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.0/LinkBeacon-v0.7.0.apk)
+- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.0/LinkBeacon-v0.7.0.apk.sha256)
+- [View the v0.7.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.0)
 
 The matching SHA-256 checksum is provided with the release assets. Existing
-v0.5.0 installations can upgrade directly without clearing local data.
+v0.6.0 installations can upgrade directly without clearing local data.
 
 ## Build and development
 
