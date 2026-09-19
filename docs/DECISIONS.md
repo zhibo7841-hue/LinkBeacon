@@ -604,3 +604,32 @@ This log records the confirmed project decisions. New scope or changes to these 
 - Deferred scope: SSL/TLS and Website Access Diagnostics, Wi-Fi Analyzer,
   multi-network management, background monitoring, a new identity system, and
   unrelated network tools remain outside v0.7.0.
+
+## Decision: Post-v0.7 Device Edit and Port Scan direction
+
+- Date: 2026-09-19
+- Status: Accepted product direction; implementation not started
+- Sequence: after the frozen v0.7.0 Device Center Enhancement, the next
+  development mainline is Device Edit Polish + Port Scan. SSL/TLS and Website
+  Access Diagnostics follow, and Wi-Fi Analyzer remains later. Port Scan may
+  become the first step toward Host & Service Diagnostics, but none of this is
+  retroactively part of v0.7.0.
+- Device profile editing: one `Edit Device Profile` entry will manage Custom
+  Name, Device Type, and Notes. Device Detail's Local Profile remains primarily
+  informational. Favorite remains independent, Wake-on-LAN keeps its separate
+  configuration, and Ping / Port Check / Port Scan stay under Network Checks.
+- Port Scan Phase 1: use ordinary TCP Connect scanning with Quick Scan and a
+  custom inclusive Start/End Port range within `1..65535`. Quick Scan's actual
+  port set must be audited before implementation and is not fixed here. Full
+  `1..65535` is not the default.
+- Resource safety: concurrency must be bounded and scanning must support
+  cancellation/stop. The final concurrency value is implementation evidence,
+  not a fixed product commitment; never create one unrestricted socket task
+  for every port.
+- Results: emphasize open ports and summarize closed/no-response counts instead
+  of displaying every result by default. A port-number-based common-service
+  label is explicitly a hint, never proof of protocol, service, or device type.
+- Boundaries: no raw SYN scan, complex service fingerprinting, device inference,
+  or one History row per port. Before implementation, choose either one
+  scan-level History record or no Phase 1 History. Port Scan uses an independent
+  page reached from Device Detail and does not become profile identity evidence.

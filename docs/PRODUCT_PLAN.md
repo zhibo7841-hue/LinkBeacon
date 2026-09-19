@@ -580,3 +580,37 @@ unrelated network tool. The first signed candidate must be kept byte-for-byte
 frozen for representative-device full RC regression. Any later runtime code,
 Android resource, manifest, runtime Gradle, dependency, or native change
 invalidates that candidate and requires a newly built RC number.
+
+## Confirmed direction after v0.7.0
+
+The next development mainline is **Device Edit Polish + Port Scan**. It is a
+post-v0.7 direction and does not change the frozen v0.7.0 scope.
+
+Device Edit Polish will provide one `Edit Device Profile` entry for the three
+user-owned profile fields: Custom Name, Device Type, and Notes. Device Detail's
+Local Profile section remains primarily informational. Favorite stays an
+independent preference, Wake-on-LAN stays an independent configuration, and
+Ping, Port Check, and Port Scan remain Network Checks rather than profile-edit
+fields.
+
+Port Scan Phase 1 is planned as a bounded TCP Connect scan launched from Device
+Detail into its own page. The candidate scope is:
+
+- Quick Scan based on a future audited set of common service ports; this plan
+  does not freeze or publish that port list.
+- A custom inclusive Start Port / End Port range within `1..65535`; full-range
+  scanning is not the default.
+- Bounded concurrency with cancellation/stop. The final concurrency value is
+  determined by implementation review and real-device testing, not a product
+  promise.
+- Open ports shown first, with closed/no-response outcomes summarized rather
+  than rendering tens of thousands of rows by default.
+- Optional common-service hints derived from port numbers. A hint is not
+  protocol confirmation or device identification.
+- No raw SYN scan, complex service fingerprinting, or per-port TCP History.
+  Phase 1 will either store at most one scan-level History record or no History;
+  that choice remains an implementation prerequisite.
+
+Port Scan may later lead into **SSL/TLS + Website Access Diagnostics** as a
+broader Host & Service Diagnostics direction. **Wi-Fi Analyzer** remains after
+that mainline. None of these future capabilities is part of v0.7.0.
