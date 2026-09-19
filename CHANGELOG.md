@@ -6,6 +6,36 @@
 
 - Updated GitHub Actions dependencies to remove deprecated Node.js 20 runtime warnings.
 
+## 0.7.0
+
+### Device Center
+
+- Added user-selected Device Types with consistent Material-style icons.
+- Added local Device Notes with bilingual editing and search presentation.
+- Added truthful First Seen / Last Seen and Current / Last observed address semantics.
+- Added local search by localized Device Type and Device Notes.
+- Improved saved-device identity handling with structured strong, weak,
+  conflict, and no-match outcomes.
+
+### Reliability
+
+- Prevented conflicting or ambiguous identity evidence from silently
+  transferring Favorites, Custom Names, Wake-on-LAN settings, Device Types, or
+  Notes to the wrong profile.
+- Kept weak same-network IPv4 compatibility presentation from mutating strong
+  identity evidence or Last Seen.
+- Improved safety around DHCP address reuse by preventing strong identity
+  conflicts from falling back to address-only profile inheritance.
+- Preserved managed profiles when Device Type or Notes is the retained user data.
+
+### Compatibility
+
+- Added the backward-compatible Room v4-to-v5 migration for Device Center
+  profile metadata.
+- Preserved existing profile IDs, identity and scope, Favorites, Custom Names,
+  Wake-on-LAN configuration, observation metadata, Last Seen, and History.
+- Verified the migration and in-place upgrade path on Android 12 / API 31.
+
 ## 0.6.0
 
 ### Internationalization

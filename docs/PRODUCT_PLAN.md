@@ -534,7 +534,7 @@ procedure only and does not alter the frozen v0.6.0 product scope.
 
 ## V0.7.0 — Device Center Enhancement
 
-Status: **Development complete / feature complete**.
+Status: **Feature Scope Frozen / RC1 Prepared / Representative RC Pending**.
 
 Implementation status: **Device Center V2 development complete**. The
 conservative match-result contract and additive Room v4 -> v5 profile schema
@@ -544,7 +544,9 @@ English/Simplified Chinese Device Detail presentation are implemented. Task 094
 completed real Android migration instrumentation, an in-place Room-v4-to-v5
 upgrade, profile-retention checks, and final representative-device regression
 on Sony XQ-AT72 / Android 12 / API 31. This marks the bounded v0.7 Device Center
-Enhancement feature set complete; it is not a release or version-state change.
+Enhancement feature set complete. The release-candidate preparation may change
+version metadata and release documentation, but it does not authorize another
+runtime feature or a public Release.
 
 v0.7.0 strengthens the existing LAN Device Center rather than adding a broad
 set of new network tools. Its confirmed direction is:
@@ -569,3 +571,12 @@ Merge/Split workflow. Detailed design and audit findings are recorded in
 The planned product direction after v0.7.0 is **SSL/TLS and Website Access
 Diagnostics**, followed later by **Wi-Fi Analyzer**. These are later mainlines,
 not part of the v0.7.0 feature scope.
+
+The v0.7.0 release scope is frozen to the Device Center Enhancement described
+above. It does not include SSL/TLS or Website Diagnostics, Wi-Fi Analyzer,
+multi-network management, background presence monitoring, another identity
+system, a presence timeline, a Merge/Split UI, a Device Type filter, or any
+unrelated network tool. The first signed candidate must be kept byte-for-byte
+frozen for representative-device full RC regression. Any later runtime code,
+Android resource, manifest, runtime Gradle, dependency, or native change
+invalidates that candidate and requires a newly built RC number.

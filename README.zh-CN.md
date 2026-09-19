@@ -20,9 +20,13 @@ NetworkToolbox 已在 v0.5.0 更名为 LinkBeacon。Android application ID
 ## 开发状态
 
 - **最新稳定版本：** [v0.6.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.6.0)
+- **即将验收的候选版本：** v0.7.0 设备中心增强（尚未发布）
 
 v0.6.0 是完整双语版本，在保持现有本地数据与 Android application ID
 不变的基础上，提供完整英文和简体中文界面。
+
+v0.7.0 当前处于 Release Candidate 准备阶段。在签名候选 APK 完成最终代表性
+真机回归并获得明确发布授权前，最新稳定下载仍为 v0.6.0。
 
 ## 截图
 
@@ -55,6 +59,9 @@ LinkBeacon 展示检测事实、可能原因和排障建议。当现有证据无
 - 当前网络设备发现与设备详情。
 - 仅在本机保存的设备与收藏。
 - 不随 App 语言变化的自定义设备名称。
+- 带一致图标的用户设备类型，以及仅保存在本机的设备备注。
+- 如实区分首次发现、最近发现、当前地址和最近观测地址。
+- 更保守的已保存设备关联：身份依据冲突或不明确时，不转移用户数据。
 - 针对当前设备与已保存设备的搜索和筛选。
 - 在设备提供信息时，通过 Reverse DNS、mDNS / Bonjour 和 SSDP / UPnP
   证据进行本地设备识别。
@@ -135,6 +142,8 @@ Windows 请使用 `gradlew.bat` 代替 `./gradlew`。Debug APK 生成在
 - [v0.5.0 Release Notes](docs/V0.5_RELEASE_NOTES.md)
 - [v0.6.0 Release Notes](docs/V0.6_RELEASE_NOTES.md)
 - [v0.6.0 发布就绪记录](docs/V0.6_RELEASE_READINESS.md)
+- [v0.7.0 Release Notes](docs/V0.7_RELEASE_NOTES.md)
+- [v0.7.0 发布就绪记录](docs/V0.7_RELEASE_READINESS.md)
 - [已发布的 v0.4.0 Release Notes](docs/releases/v0.4.0.md)
 - [开发流程](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI 设计系统](docs/UI_DESIGN_SYSTEM.md)

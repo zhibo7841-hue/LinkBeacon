@@ -578,3 +578,29 @@ This log records the confirmed project decisions. New scope or changes to these 
   Names, Wake-on-LAN settings, History, and Android application identity. No
   Android 17 local-network permission is requested before a separate target-37
   compatibility decision.
+
+## Decision: LinkBeacon v0.7.0 feature freeze and RC artifact
+
+- Date: 2026-09-19
+- Status: Accepted
+- Freeze: v0.7.0 is frozen to the completed Device Center Enhancement: safer
+  conservative profile association, user Device Type, local Notes, truthful
+  First/Last Seen and current/last-observed address semantics, localized search,
+  and the additive Room v4-to-v5 migration. No additional product capability is
+  authorized during RC preparation.
+- Compatibility: Android identity remains `com.networktoolbox`; Room remains
+  version 5 with the registered additive `MIGRATION_4_5`. Existing profile IDs,
+  Favorites, Custom Names, Wake-on-LAN settings, Last Seen, and History must
+  survive an in-place v0.6.0-to-v0.7.0 upgrade.
+- RC artifact rule: RC1 is one APK built with the existing release signing
+  identity and copied without re-signing as `LinkBeacon-v0.7.0-RC1.apk`. Its
+  SHA-256 is the artifact identity for final acceptance. Any Kotlin, Android
+  resource, manifest, runtime Gradle/dependency, or native change after RC1 is
+  generated invalidates RC1 and requires a newly built RC number and checksum.
+- Acceptance: the exact signed RC1 must complete the separately authorized
+  representative-device full regression before Tag or GitHub Release creation.
+  The accepted representative-device policy remains unchanged; this decision
+  does not pre-approve the final v0.7.0 Release.
+- Deferred scope: SSL/TLS and Website Access Diagnostics, Wi-Fi Analyzer,
+  multi-network management, background monitoring, a new identity system, and
+  unrelated network tools remain outside v0.7.0.

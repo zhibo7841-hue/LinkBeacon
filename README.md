@@ -21,10 +21,15 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 ## Development status
 
 - **Latest stable release:** [v0.6.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.6.0)
+- **Upcoming release candidate:** v0.7.0 Device Center Enhancement (not yet published)
 
 v0.6.0 is the Full Bilingual Release. It adds complete English and Simplified-
 Chinese presentation while preserving the existing local data and Android
 application identity.
+
+v0.7.0 is currently in release-candidate preparation. The latest stable
+download remains v0.6.0 until the signed v0.7.0 candidate completes its final
+representative-device regression and is explicitly released.
 
 ## Screenshots
 
@@ -58,6 +63,10 @@ infrastructure when the available evidence cannot prove a single cause.
 - Current-network device discovery and Device Details.
 - Saved Devices and Favorites stored locally.
 - Custom Device Names that remain unchanged across app languages.
+- User-selected Device Types with consistent icons, plus local Device Notes.
+- Truthful First Seen / Last Seen and Current / Last observed address labels.
+- More conservative saved-device association that avoids transferring user
+  data when available identity evidence is conflicting or ambiguous.
 - Search and filters for current and saved devices.
 - Local device identification using available Reverse DNS, mDNS / Bonjour, and
   SSDP / UPnP evidence.
@@ -140,6 +149,8 @@ maintainer-local and are not required for ordinary development builds.
 - [v0.5.0 release notes](docs/V0.5_RELEASE_NOTES.md)
 - [v0.6.0 release notes](docs/V0.6_RELEASE_NOTES.md)
 - [v0.6.0 release readiness](docs/V0.6_RELEASE_READINESS.md)
+- [v0.7.0 release notes](docs/V0.7_RELEASE_NOTES.md)
+- [v0.7.0 release readiness](docs/V0.7_RELEASE_READINESS.md)
 - [Published v0.4.0 release notes](docs/releases/v0.4.0.md)
 - [Development workflow](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI design system](docs/UI_DESIGN_SYSTEM.md)
