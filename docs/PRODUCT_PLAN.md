@@ -534,7 +534,9 @@ procedure only and does not alter the frozen v0.6.0 product scope.
 
 ## V0.7.0 — Device Center Enhancement
 
-Status: **Feature Scope Frozen / RC1 Prepared / Representative RC Pending**.
+Status: **Released**. The published v0.7.0 artifact is byte-for-byte identical
+to the signed RC1 that passed representative full regression on Sony XQ-AT72 /
+Android 12 / API 31. Release status does not expand the frozen feature scope.
 
 Implementation status: **Device Center V2 development complete**. The
 conservative match-result contract and additive Room v4 -> v5 profile schema
