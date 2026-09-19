@@ -1,7 +1,6 @@
 package com.networktoolbox.feature.lanscan.ui
 
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,12 +8,9 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
@@ -24,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -47,9 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.networktoolbox.core.common.favorites.DeviceDisplayNameResolver
-import com.networktoolbox.core.common.favorites.DeviceNotes
-import com.networktoolbox.core.common.favorites.DeviceType
 import com.networktoolbox.core.common.wol.MacAddress
 import com.networktoolbox.core.common.wol.WakeOnLanConfig
 import com.networktoolbox.feature.lanscan.presentation.WakeOnLanAvailability
@@ -75,12 +67,8 @@ fun DeviceDetailScreen(
     detail: DeviceDetailPresentation?,
     onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
-    onSaveCustomName: (String) -> Unit = {},
-    onRestoreAutomaticName: () -> Unit = {},
-    onSaveDeviceType: (DeviceType?) -> Unit = {},
-    onSaveNotes: (String?) -> Unit = {},
+    onEditProfile: () -> Unit = {},
     favoriteErrorMessage: UiText? = null,
-    customNameErrorMessage: UiText? = null,
     onOpenPing: (String) -> Unit = {},
     onOpenTcp: (String) -> Unit = {},
     onSaveWakeOnLan: (String, String) -> Unit = { _, _ -> },
@@ -103,16 +91,7 @@ fun DeviceDetailScreen(
         }
     }
 
-    var showNameDialog by rememberSaveable(detail?.detailKey) { mutableStateOf(false) }
-    var showTypeDialog by rememberSaveable(detail?.detailKey) { mutableStateOf(false) }
-    var showNotesDialog by rememberSaveable(detail?.detailKey) { mutableStateOf(false) }
     var showWakeOnLanDialog by rememberSaveable(detail?.detailKey) { mutableStateOf(false) }
-    var draftName by rememberSaveable(detail?.detailKey) {
-        mutableStateOf(detail?.customName.orEmpty())
-    }
-    var draftNotes by rememberSaveable(detail?.detailKey) {
-        mutableStateOf(detail?.notes.orEmpty())
-    }
     var draftWakeOnLanMac by rememberSaveable(detail?.detailKey) {
         mutableStateOf(detail?.wakeOnLan?.config?.macAddress?.toString().orEmpty())
     }
@@ -121,12 +100,6 @@ fun DeviceDetailScreen(
             detail?.wakeOnLan?.config?.udpPort?.toString()
                 ?: WakeOnLanConfig.DEFAULT_UDP_PORT.toString(),
         )
-    }
-    LaunchedEffect(detail?.detailKey, detail?.customName) {
-        if (!showNameDialog) draftName = detail?.customName.orEmpty()
-    }
-    LaunchedEffect(detail?.detailKey, detail?.notes) {
-        if (!showNotesDialog) draftNotes = detail?.notes.orEmpty()
     }
     LaunchedEffect(detail?.detailKey, detail?.wakeOnLan?.config) {
         if (!showWakeOnLanDialog) {
@@ -147,7 +120,7 @@ fun DeviceDetailScreen(
             trailingContent = {
                 if (detail != null) {
                     Row {
-                        IconButton(onClick = { showNameDialog = true }) {
+                        IconButton(onClick = onEditProfile) {
                             Icon(
                                 imageVector = Icons.Filled.Edit,
                                 contentDescription = stringResource(
@@ -236,13 +209,6 @@ fun DeviceDetailScreen(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
-            customNameErrorMessage?.let { message ->
-                Text(
-                    message.resolve(),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
         }
 
         DeviceDetailSection(title = stringResource(R.string.lan_basic)) {
@@ -266,11 +232,18 @@ fun DeviceDetailScreen(
             }
         }
 
-        DeviceDetailSection(title = stringResource(R.string.device_local_profile)) {
-            EditableProfileRow(
-                label = stringResource(R.string.device_type_label),
-                value = DeviceCenterPresentation.deviceTypeLabel(detail.effectiveDeviceType).resolve(),
-                onClick = { showTypeDialog = true },
+        DeviceDetailSection(
+            title = stringResource(R.string.device_local_profile),
+            actionLabel = stringResource(R.string.device_profile_edit_action),
+            onAction = onEditProfile,
+        ) {
+            ToolResultRow(
+                stringResource(R.string.device_name_title),
+                detail.customName ?: stringResource(R.string.device_profile_automatic),
+            )
+            ToolResultRow(
+                stringResource(R.string.device_type_label),
+                DeviceCenterPresentation.deviceTypeLabel(detail.effectiveDeviceType).resolve(),
             )
             if (detail.userDeviceType == null && detail.detectedDeviceType != null) {
                 Text(
@@ -282,10 +255,9 @@ fun DeviceDetailScreen(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
-            EditableProfileRow(
-                label = stringResource(R.string.device_notes_label),
-                value = detail.notes ?: stringResource(R.string.device_notes_not_set),
-                onClick = { showNotesDialog = true },
+            ToolResultRow(
+                stringResource(R.string.device_notes_label),
+                detail.notes ?: stringResource(R.string.device_notes_not_set),
             )
             Text(
                 stringResource(R.string.device_profile_local_only),
@@ -410,153 +382,6 @@ fun DeviceDetailScreen(
             }
         }
 
-        if (showNameDialog) {
-            val nameValidation = DeviceDisplayNameResolver.validateCustomName(draftName)
-            AlertDialog(
-                onDismissRequest = { showNameDialog = false },
-                title = { Text(stringResource(com.networktoolbox.feature.lanscan.R.string.device_name_title)) },
-                text = {
-                    OutlinedTextField(
-                        value = draftName,
-                        onValueChange = { draftName = it },
-                        placeholder = {
-                            Text(stringResource(com.networktoolbox.feature.lanscan.R.string.device_name_placeholder))
-                        },
-                        supportingText = {
-                            if (draftName.isNotEmpty() && nameValidation.isFailure) {
-                                Text(stringResource(com.networktoolbox.feature.lanscan.R.string.device_name_invalid))
-                            } else {
-                                Text(stringResource(com.networktoolbox.feature.lanscan.R.string.device_name_helper))
-                            }
-                        },
-                        isError = draftName.isNotEmpty() && nameValidation.isFailure,
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        enabled = nameValidation.isSuccess,
-                        onClick = {
-                            onSaveCustomName(nameValidation.getOrThrow())
-                            showNameDialog = false
-                        },
-                    ) {
-                        Text(stringResource(com.networktoolbox.feature.lanscan.R.string.device_name_save))
-                    }
-                },
-                dismissButton = {
-                    Row {
-                        if (detail.customName != null) {
-                            TextButton(
-                                onClick = {
-                                    onRestoreAutomaticName()
-                                    showNameDialog = false
-                                },
-                            ) {
-                                Text(stringResource(com.networktoolbox.feature.lanscan.R.string.device_name_restore))
-                            }
-                        }
-                        TextButton(onClick = { showNameDialog = false }) {
-                            Text(stringResource(com.networktoolbox.feature.lanscan.R.string.device_name_cancel))
-                        }
-                    }
-                },
-            )
-        }
-
-        if (showTypeDialog) {
-            AlertDialog(
-                onDismissRequest = { showTypeDialog = false },
-                title = { Text(stringResource(R.string.device_type_dialog_title)) },
-                text = {
-                    Column(
-                        modifier = Modifier
-                            .heightIn(max = 420.dp)
-                            .verticalScroll(rememberScrollState()),
-                    ) {
-                        DeviceTypeChoiceRow(
-                            label = stringResource(R.string.device_type_not_set),
-                            selected = detail.userDeviceType == null,
-                            onClick = {
-                                onSaveDeviceType(null)
-                                showTypeDialog = false
-                            },
-                        )
-                        DeviceType.entries.forEach { type ->
-                            DeviceTypeChoiceRow(
-                                label = DeviceCenterPresentation.deviceTypeLabel(type).resolve(),
-                                selected = detail.userDeviceType == type,
-                                onClick = {
-                                    onSaveDeviceType(type)
-                                    showTypeDialog = false
-                                },
-                            )
-                        }
-                    }
-                },
-                confirmButton = {},
-                dismissButton = {
-                    TextButton(onClick = { showTypeDialog = false }) {
-                        Text(stringResource(R.string.device_name_cancel))
-                    }
-                },
-            )
-        }
-
-        if (showNotesDialog) {
-            val notesValidation = runCatching { DeviceNotes.normalize(draftNotes) }
-            val codePointCount = draftNotes.codePointCount(0, draftNotes.length)
-            AlertDialog(
-                onDismissRequest = { showNotesDialog = false },
-                title = { Text(stringResource(R.string.device_notes_dialog_title)) },
-                text = {
-                    OutlinedTextField(
-                        modifier = Modifier.fillMaxWidth(),
-                        value = draftNotes,
-                        onValueChange = { draftNotes = it },
-                        minLines = 4,
-                        maxLines = 8,
-                        label = { Text(stringResource(R.string.device_notes_label)) },
-                        supportingText = {
-                            Column {
-                                if (notesValidation.isFailure) {
-                                    Text(stringResource(R.string.device_notes_invalid))
-                                } else {
-                                    Text(stringResource(R.string.device_notes_helper))
-                                }
-                                Text(
-                                    stringResource(
-                                        R.string.device_notes_counter,
-                                        codePointCount,
-                                        DeviceNotes.MAX_CODE_POINTS,
-                                    ),
-                                )
-                            }
-                        },
-                        isError = notesValidation.isFailure,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        enabled = notesValidation.isSuccess,
-                        onClick = {
-                            onSaveNotes(notesValidation.getOrThrow())
-                            showNotesDialog = false
-                        },
-                    ) {
-                        Text(stringResource(R.string.device_name_save))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showNotesDialog = false }) {
-                        Text(stringResource(R.string.device_name_cancel))
-                    }
-                },
-            )
-        }
-
         if (showWakeOnLanDialog) {
             val macValidation = MacAddress.parse(draftWakeOnLanMac)
             val port = draftWakeOnLanPort.trim().toIntOrNull()
@@ -647,10 +472,26 @@ fun DeviceDetailScreen(
 @Composable
 private fun DeviceDetailSection(
     title: String,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     OutlinedNetworkCard {
-        Text(title, style = MaterialTheme.typography.titleMedium)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                title,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            if (actionLabel != null && onAction != null) {
+                TextButton(onClick = onAction) {
+                    Text(actionLabel)
+                }
+            }
+        }
         Column(
             verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
             content = content,
@@ -667,47 +508,6 @@ private fun formatOptionalTimestamp(timestamp: Long?): String = timestamp
     ?.takeIf { it > 0L }
     ?.let(::formatTimestamp)
     ?: stringResource(R.string.device_not_recorded)
-
-@Composable
-private fun EditableProfileRow(
-    label: String,
-    value: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = NetworkToolboxSpacing.SM),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(
-            value,
-            modifier = Modifier.weight(1f).padding(start = NetworkToolboxSpacing.LG),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-    }
-}
-
-@Composable
-private fun DeviceTypeChoiceRow(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = NetworkToolboxSpacing.XS),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = onClick)
-        Text(label, modifier = Modifier.padding(start = NetworkToolboxSpacing.SM))
-    }
-}
 
 @Composable
 private fun wakeOnLanStatusMessage(availability: WakeOnLanAvailability): String? = when (availability) {

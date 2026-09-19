@@ -216,13 +216,15 @@ device identities and duplicate names are allowed. UI localization remains in
 resources; the resolver is pure Kotlin and does not depend on Compose or
 Android Context.
 
-Device Detail owns the edit interaction through `LanScannerViewModel` and the
-repository. The dialog saves immediately, updates the current detail and
-matching list through the observed profile flow, and provides Restore
-Automatic Name without changing favorite state. Tools -> LAN Scanner may
-render a safely matched custom name, but it remains a discovery surface with
-no management actions. No notes, device type inference, quick actions,
-background scan, new permission, or Wake-on-LAN implementation is introduced.
+Device Detail owns profile editing through `LanScannerViewModel` and the
+repository. The dedicated Edit device profile route stages Custom Name, user
+Device Type, and Notes in one ViewModel draft, validates them, and commits all
+three fields through one atomic repository update. Blank Custom Name restores
+the automatic display-name pipeline. Device Detail's Local Profile card is a
+read-only summary with one explicit Edit action; Favorite and Wake-on-LAN stay
+independent. The observed profile flow refreshes Device Detail, Device Center,
+and search without a rescan. Tools -> LAN Scanner may render a safely matched
+custom name, but it remains a discovery surface with no management actions.
 
 ## LAN Device Center Phase 2C — Scan Session Boundary
 
@@ -374,6 +376,17 @@ The effective type is `userDeviceType -> detectedDeviceType -> unset`, where
 unset remains distinct from `OTHER`. A stable presentation token maps every
 type to a Material icon; icons are never identity evidence and never change
 the Custom Name display priority.
+
+Task 100 consolidates those previously separate field dialogs into a dedicated
+secondary editor route. `DeviceProfileEditUiState` owns draft values, dirty
+tracking, Unicode-aware validation, save progress/failure, and discard
+confirmation across recomposition and configuration change. The
+`SavedDeviceRepository.setEditableProfile` contract updates only Custom Name,
+user Device Type, Notes, and `updated_at` in one SQL statement (or deletes a
+true orphan); it cannot mutate Favorite, Wake-on-LAN, identity evidence,
+First Seen, or Last Seen. The existing Device Detail route key and parent-owned
+scroll state are retained while the editor is open, so Save/Cancel returns to
+the same detail position.
 
 Device Detail now labels observed addresses as Current address and retained
 profile addresses as Last observed address. First Seen and Last Seen display

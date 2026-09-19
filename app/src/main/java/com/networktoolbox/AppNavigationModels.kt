@@ -37,6 +37,7 @@ internal enum class ToolScreen {
     ABOUT,
     LAN_SCAN,
     DEVICE_DETAIL,
+    DEVICE_PROFILE_EDIT,
 }
 
 internal fun TopLevelDestination.navigationOrigin(): NavigationOrigin = when (this) {
@@ -100,6 +101,15 @@ internal data class AppNavigationState(
         toolOrigin = NavigationOrigin.DEVICES,
         toolBackDestination = ToolScreen.NONE,
         deviceDetailKey = key,
+        toolInitialTarget = null,
+        reportHistoryId = null,
+    )
+
+    fun openDeviceProfileEdit(): AppNavigationState = copy(
+        topLevelDestination = TopLevelDestination.DEVICES,
+        toolScreen = ToolScreen.DEVICE_PROFILE_EDIT,
+        toolOrigin = NavigationOrigin.DEVICES,
+        toolBackDestination = ToolScreen.DEVICE_DETAIL,
         toolInitialTarget = null,
         reportHistoryId = null,
     )

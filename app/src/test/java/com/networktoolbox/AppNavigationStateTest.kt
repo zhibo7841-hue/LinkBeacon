@@ -186,6 +186,23 @@ class AppNavigationStateTest {
     }
 
     @Test
+    fun deviceProfileEdit_returnsToTheSameDeviceDetail() {
+        val detailKey = "favorite:scope:type:value"
+        val edit = AppNavigationState()
+            .openDeviceDetail(detailKey)
+            .openDeviceProfileEdit()
+
+        assertEquals(TopLevelDestination.DEVICES, edit.topLevelDestination)
+        assertEquals(ToolScreen.DEVICE_PROFILE_EDIT, edit.toolScreen)
+        assertEquals(ToolScreen.DEVICE_DETAIL, edit.toolBackDestination)
+        assertEquals(detailKey, edit.deviceDetailKey)
+
+        val returned = edit.goBack()
+        assertEquals(ToolScreen.DEVICE_DETAIL, returned.toolScreen)
+        assertEquals(detailKey, returned.deviceDetailKey)
+    }
+
+    @Test
     fun existingToolsOpenedFromDeviceDetail_returnToTheSameDetail() {
         listOf(ToolScreen.PING, ToolScreen.TCP).forEach { tool ->
             val detailKey = "favorite:scope:type:value"

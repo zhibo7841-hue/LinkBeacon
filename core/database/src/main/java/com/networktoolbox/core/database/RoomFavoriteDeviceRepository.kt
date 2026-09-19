@@ -28,6 +28,9 @@ class RoomFavoriteDeviceRepository @Inject constructor(
     override suspend fun save(profile: SavedDeviceProfile): Long {
         val normalized = profile.copy(
             protocolIdentity = FavoriteIdentityMatcher.normalizeProtocol(profile.protocolIdentity),
+            customName = profile.customName?.let {
+                DeviceDisplayNameResolver.validateCustomName(it).getOrElse { error -> throw error }
+            },
             notes = DeviceNotes.normalize(profile.notes),
         )
         if (!normalized.hasUserManagedState) return 0L
@@ -98,6 +101,36 @@ class RoomFavoriteDeviceRepository @Inject constructor(
             favoriteDeviceDao.updateNotes(
                 id = id,
                 notes = normalized,
+                updatedAt = System.currentTimeMillis(),
+            )
+        }
+    }
+
+    override suspend fun setEditableProfile(
+        id: Long,
+        customName: String?,
+        deviceType: DeviceType?,
+        notes: String?,
+    ) {
+        val normalizedName = customName?.let {
+            DeviceDisplayNameResolver.validateCustomName(it).getOrElse { error -> throw error }
+        }
+        val normalizedNotes = DeviceNotes.normalize(notes)
+        val existing = favoriteDeviceDao.findById(id)
+            ?: error("Saved device profile not found.")
+        val keepsProfile = existing.isFavorite != 0 ||
+            existing.wolMacAddress != null ||
+            normalizedName != null ||
+            deviceType != null ||
+            normalizedNotes != null
+        if (!keepsProfile) {
+            favoriteDeviceDao.deleteById(id)
+        } else {
+            favoriteDeviceDao.updateEditableProfile(
+                id = id,
+                customName = normalizedName,
+                deviceType = deviceType?.name,
+                notes = normalizedNotes,
                 updatedAt = System.currentTimeMillis(),
             )
         }

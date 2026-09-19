@@ -47,6 +47,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -733,6 +734,134 @@ class LanFavoritesViewModelTest {
         )
     }
 
+    @Test
+    fun `unified profile save updates all editable fields and preserves managed metadata`() = runTest {
+        val context = context()
+        val observed = device("10.0.1.20", macAddress = "AA:BB:CC:DD:EE:FF")
+        val wol = WakeOnLanConfig(MacAddress.parse("AA:BB:CC:DD:EE:FF")!!)
+        val original = LanFavoriteIdentity.createSavedProfile(observed, context, now = 10L)!!
+            .copy(
+                id = 41L,
+                isFavorite = true,
+                customName = "Old name",
+                userDeviceType = DeviceType.ROUTER,
+                detectedDeviceType = DeviceType.PRINTER,
+                notes = "Old note",
+                wolConfig = wol,
+                firstSeenAt = 7L,
+                lastSeenAt = 9L,
+            )
+        val repository = FakeFavoriteDeviceRepository(listOf(original))
+        val viewModel = viewModel(context, observed, repository)
+        advanceUntilIdle()
+        val route = LanDeviceDetailRouteKey.forFavorite(original)
+
+        assertTrue(viewModel.beginDeviceProfileEdit(route))
+        assertEquals("Old name", viewModel.deviceProfileEditState.value?.customNameInput)
+        assertEquals(DeviceType.ROUTER, viewModel.deviceProfileEditState.value?.selectedDeviceType)
+        assertEquals("Old note", viewModel.deviceProfileEditState.value?.notesInput)
+
+        viewModel.onDeviceProfileNameChanged("  Rack server  ")
+        viewModel.onDeviceProfileTypeChanged(DeviceType.SERVER)
+        viewModel.onDeviceProfileNotesChanged("  Docker\r\nNavidrome  ")
+        viewModel.saveDeviceProfileEdit()
+        advanceUntilIdle()
+
+        assertEquals(
+            DeviceProfileEditSaveStatus.SAVED,
+            viewModel.deviceProfileEditState.value?.saveStatus,
+        )
+        val saved = viewModel.savedProfiles.value.single()
+        assertEquals(41L, saved.id)
+        assertEquals("Rack server", saved.customName)
+        assertEquals(DeviceType.SERVER, saved.userDeviceType)
+        assertEquals("Docker\nNavidrome", saved.notes)
+        assertTrue(saved.isFavorite)
+        assertEquals(wol, saved.wolConfig)
+        assertEquals(original.identity, saved.identity)
+        assertEquals(7L, saved.firstSeenAt)
+        assertEquals(9L, saved.lastSeenAt)
+    }
+
+    @Test
+    fun `clearing unified profile fields restores detected type without clearing favorite`() = runTest {
+        val context = context()
+        val observed = device("10.0.1.20")
+        val original = LanFavoriteIdentity.createSavedProfile(observed, context, now = 10L)!!
+            .copy(
+                id = 42L,
+                isFavorite = true,
+                customName = "Printer",
+                userDeviceType = DeviceType.SERVER,
+                detectedDeviceType = DeviceType.PRINTER,
+                notes = "Office",
+            )
+        val repository = FakeFavoriteDeviceRepository(listOf(original))
+        val viewModel = viewModel(context, observed, repository)
+        advanceUntilIdle()
+        val route = LanDeviceDetailRouteKey.forFavorite(original)
+
+        assertTrue(viewModel.beginDeviceProfileEdit(route))
+        viewModel.onDeviceProfileNameChanged("  ")
+        viewModel.onDeviceProfileTypeChanged(null)
+        viewModel.onDeviceProfileNotesChanged("\n")
+        viewModel.saveDeviceProfileEdit()
+        advanceUntilIdle()
+
+        val saved = viewModel.savedProfiles.value.single()
+        assertNull(saved.customName)
+        assertNull(saved.userDeviceType)
+        assertNull(saved.notes)
+        assertTrue(saved.isFavorite)
+        assertEquals(
+            DeviceType.PRINTER,
+            viewModel.resolveDeviceDetail(route)?.effectiveDeviceType,
+        )
+    }
+
+    @Test
+    fun `failed unified profile save keeps draft and editor open`() = runTest {
+        val context = context()
+        val observed = device("10.0.1.20")
+        val original = LanFavoriteIdentity.createSavedProfile(observed, context, now = 10L)!!
+            .copy(id = 43L, customName = "Original")
+        val repository = FakeFavoriteDeviceRepository(listOf(original), failWrites = true)
+        val viewModel = viewModel(context, observed, repository)
+        advanceUntilIdle()
+        val route = LanDeviceDetailRouteKey.forFavorite(original)
+
+        assertTrue(viewModel.beginDeviceProfileEdit(route))
+        viewModel.onDeviceProfileNameChanged("Unsaved")
+        viewModel.saveDeviceProfileEdit()
+        advanceUntilIdle()
+
+        assertEquals(DeviceProfileEditSaveStatus.ERROR, viewModel.deviceProfileEditState.value?.saveStatus)
+        assertEquals("Unsaved", viewModel.deviceProfileEditState.value?.customNameInput)
+        assertEquals("Original", viewModel.savedProfiles.value.single().customName)
+    }
+
+    @Test
+    fun `dirty close asks for confirmation and discard does not save`() = runTest {
+        val context = context()
+        val observed = device("10.0.1.20")
+        val original = LanFavoriteIdentity.createSavedProfile(observed, context, now = 10L)!!
+            .copy(id = 44L, customName = "Original")
+        val repository = FakeFavoriteDeviceRepository(listOf(original))
+        val viewModel = viewModel(context, observed, repository)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.beginDeviceProfileEdit(LanDeviceDetailRouteKey.forFavorite(original)))
+        viewModel.onDeviceProfileNameChanged("Draft")
+
+        assertTrue(!viewModel.requestDeviceProfileEditClose())
+        assertTrue(viewModel.deviceProfileEditState.value?.discardConfirmationVisible == true)
+        viewModel.keepEditingDeviceProfile()
+        assertTrue(viewModel.deviceProfileEditState.value?.discardConfirmationVisible == false)
+        viewModel.discardDeviceProfileEdit()
+        assertNull(viewModel.deviceProfileEditState.value)
+        assertEquals("Original", viewModel.savedProfiles.value.single().customName)
+    }
+
     private fun viewModel(
         context: NetworkContext,
         device: LanDevice,
@@ -874,6 +1003,34 @@ private class FakeFavoriteDeviceRepository(
         } else {
             state.value = state.value.map { profile ->
                 if (profile.id == id) profile.copy(notes = normalized) else profile
+            }
+        }
+    }
+
+    override suspend fun setEditableProfile(
+        id: Long,
+        customName: String?,
+        deviceType: DeviceType?,
+        notes: String?,
+    ) {
+        if (failWrites) error("write failed")
+        val normalizedNotes = DeviceNotes.normalize(notes)
+        val existing = state.value.firstOrNull { it.id == id } ?: return
+        if (!existing.isFavorite && existing.wolConfig == null &&
+            customName == null && deviceType == null && normalizedNotes == null
+        ) {
+            delete(id)
+        } else {
+            state.value = state.value.map { profile ->
+                if (profile.id == id) {
+                    profile.copy(
+                        customName = customName,
+                        userDeviceType = deviceType,
+                        notes = normalizedNotes,
+                    )
+                } else {
+                    profile
+                }
             }
         }
     }

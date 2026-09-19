@@ -82,6 +82,22 @@ interface FavoriteDeviceDao {
 
     @Query(
         "UPDATE favorite_devices SET " +
+            "custom_name = :customName, " +
+            "user_device_type = :deviceType, " +
+            "notes = :notes, " +
+            "updated_at = :updatedAt " +
+            "WHERE id = :id",
+    )
+    suspend fun updateEditableProfile(
+        id: Long,
+        customName: String?,
+        deviceType: String?,
+        notes: String?,
+        updatedAt: Long,
+    )
+
+    @Query(
+        "UPDATE favorite_devices SET " +
             "wol_mac_address = :wolMacAddress, " +
             "wol_udp_port = :wolUdpPort, " +
             "updated_at = :updatedAt " +

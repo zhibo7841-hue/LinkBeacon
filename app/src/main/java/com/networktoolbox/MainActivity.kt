@@ -60,11 +60,13 @@ import com.networktoolbox.feature.history.presentation.HistoryUiState
 import com.networktoolbox.feature.history.presentation.HistoryViewModel
 import com.networktoolbox.feature.history.ui.HistoryScreen
 import com.networktoolbox.feature.lanscan.presentation.LanScannerViewModel
+import com.networktoolbox.feature.lanscan.presentation.DeviceProfileEditSaveStatus
 import com.networktoolbox.feature.lanscan.presentation.LanScanRangeMode
 import com.networktoolbox.feature.lanscan.presentation.LanScannerUiState
 import com.networktoolbox.feature.lanscan.domain.LanNetworkFingerprint
 import com.networktoolbox.feature.lanscan.ui.LanDeviceCenterScreen
 import com.networktoolbox.feature.lanscan.ui.DeviceDetailScreen
+import com.networktoolbox.feature.lanscan.ui.DeviceProfileEditScreen
 import com.networktoolbox.feature.lanscan.ui.LanScannerScreen
 import com.networktoolbox.feature.ping.presentation.PingViewModel
 import com.networktoolbox.feature.ping.ui.PingScreen
@@ -207,9 +209,9 @@ class MainActivity : AppCompatActivity() {
             val subnetUiState by subnetViewModel.uiState.collectAsState()
             val lanScannerUiState by lanScannerViewModel.uiState.collectAsState()
             val savedDeviceProfiles by lanScannerViewModel.savedProfiles.collectAsState()
+            val deviceProfileEditState by lanScannerViewModel.deviceProfileEditState.collectAsState()
             val deviceCenterSearchState by lanScannerViewModel.deviceCenterSearchState.collectAsState()
             val favoriteActionError by lanScannerViewModel.favoriteActionError.collectAsState()
-            val customNameActionError by lanScannerViewModel.customNameActionError.collectAsState()
             val tracerouteUiState by tracerouteViewModel.uiState.collectAsState()
             var navigationState by rememberSaveable(stateSaver = AppNavigationState.Saver) {
                 mutableStateOf(AppNavigationState())
@@ -327,6 +329,12 @@ class MainActivity : AppCompatActivity() {
 
             fun goBack() {
                 if (toolScreen == ToolScreen.NONE) return
+                if (toolScreen == ToolScreen.DEVICE_PROFILE_EDIT) {
+                    if (lanScannerViewModel.requestDeviceProfileEditClose()) {
+                        navigationState = navigationState.goBack()
+                    }
+                    return
+                }
                 if (toolScreen == ToolScreen.SETTINGS) {
                     navigationState = navigationState.goBack()
                     return
@@ -341,6 +349,15 @@ class MainActivity : AppCompatActivity() {
                 lanScannerViewModel.stopScan()
                 tracerouteViewModel.stop()
                 navigationState = navigationState.goBack()
+            }
+
+            LaunchedEffect(deviceProfileEditState?.saveStatus, toolScreen) {
+                if (toolScreen == ToolScreen.DEVICE_PROFILE_EDIT &&
+                    deviceProfileEditState?.saveStatus == DeviceProfileEditSaveStatus.SAVED
+                ) {
+                    lanScannerViewModel.completeDeviceProfileEdit()
+                    navigationState = navigationState.goBack()
+                }
             }
 
             fun openDrawerDestination(destination: ToolScreen) {
@@ -570,35 +587,19 @@ class MainActivity : AppCompatActivity() {
                                 ),
                                 scrollState = deviceDetailScrollState,
                                 favoriteErrorMessage = favoriteActionError,
-                                customNameErrorMessage = customNameActionError,
                                 onBack = ::goBack,
                                 onToggleFavorite = {
                                     lanScannerViewModel.toggleFavoriteByRouteKey(
                                         navigationState.deviceDetailKey,
                                     )
                                 },
-                                onSaveCustomName = { name ->
-                                    lanScannerViewModel.setCustomNameByRouteKey(
-                                        navigationState.deviceDetailKey,
-                                        name,
-                                    )
-                                },
-                                onRestoreAutomaticName = {
-                                    lanScannerViewModel.clearCustomNameByRouteKey(
-                                        navigationState.deviceDetailKey,
-                                    )
-                                },
-                                onSaveDeviceType = { deviceType ->
-                                    lanScannerViewModel.setUserDeviceTypeByRouteKey(
-                                        navigationState.deviceDetailKey,
-                                        deviceType,
-                                    )
-                                },
-                                onSaveNotes = { notes ->
-                                    lanScannerViewModel.setNotesByRouteKey(
-                                        navigationState.deviceDetailKey,
-                                        notes,
-                                    )
+                                onEditProfile = {
+                                    if (lanScannerViewModel.beginDeviceProfileEdit(
+                                            navigationState.deviceDetailKey,
+                                        )
+                                    ) {
+                                        navigationState = navigationState.openDeviceProfileEdit()
+                                    }
                                 },
                                 onOpenPing = { target ->
                                     openToolFromDeviceDetail(ToolScreen.PING, target)
@@ -619,6 +620,19 @@ class MainActivity : AppCompatActivity() {
                                     )
                                 },
                                 deviceDetailEvents = lanScannerViewModel.deviceDetailEvents,
+                            )
+                            ToolScreen.DEVICE_PROFILE_EDIT -> DeviceProfileEditScreen(
+                                uiState = deviceProfileEditState,
+                                onNameChanged = lanScannerViewModel::onDeviceProfileNameChanged,
+                                onTypeChanged = lanScannerViewModel::onDeviceProfileTypeChanged,
+                                onNotesChanged = lanScannerViewModel::onDeviceProfileNotesChanged,
+                                onSave = lanScannerViewModel::saveDeviceProfileEdit,
+                                onCancel = ::goBack,
+                                onDiscard = {
+                                    lanScannerViewModel.discardDeviceProfileEdit()
+                                    navigationState = navigationState.goBack()
+                                },
+                                onKeepEditing = lanScannerViewModel::keepEditingDeviceProfile,
                             )
                         }
                     }

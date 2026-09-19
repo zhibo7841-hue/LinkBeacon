@@ -700,6 +700,13 @@ Key terminology:
 
 ### Task A — Device Edit Profile Polish
 
+**Completed in Task 100.** The implementation uses a dedicated secondary
+editor route, a ViewModel-owned draft/validation state, one atomic
+`SavedDeviceRepository.setEditableProfile` update, a read-only Local Profile
+summary, bilingual/accessibility resources, dirty-back confirmation, and
+regression coverage. Room schema and identity/Favorite/WoL semantics remain
+unchanged. Port Scan runtime has not started.
+
 Add the dedicated editor route, draft/validation model, atomic repository/use
 case update, read-only Local Profile summary, unsaved-change handling,
 accessibility, bilingual resources, and tests. Do not change Room schema or any

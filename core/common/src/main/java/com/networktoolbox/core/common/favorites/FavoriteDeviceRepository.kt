@@ -27,6 +27,14 @@ interface SavedDeviceRepository {
 
     suspend fun setNotes(id: Long, notes: String?)
 
+    /** Atomically updates the user-editable profile fields without touching identity or observations. */
+    suspend fun setEditableProfile(
+        id: Long,
+        customName: String?,
+        deviceType: DeviceType?,
+        notes: String?,
+    )
+
     /** Saves or removes only the local Wake-on-LAN configuration. */
     suspend fun setWakeOnLanConfig(
         id: Long,
@@ -73,6 +81,13 @@ object NoOpSavedDeviceRepository : SavedDeviceRepository {
     override suspend fun setUserDeviceType(id: Long, deviceType: DeviceType?) = Unit
 
     override suspend fun setNotes(id: Long, notes: String?) = Unit
+
+    override suspend fun setEditableProfile(
+        id: Long,
+        customName: String?,
+        deviceType: DeviceType?,
+        notes: String?,
+    ) = Unit
 
     override suspend fun setWakeOnLanConfig(
         id: Long,

@@ -379,6 +379,83 @@ class RoomFavoriteDeviceRepositoryTest {
         )
     }
 
+    @Test
+    fun `atomic editable profile update preserves identity favorite wol and observation metadata`() = runBlocking {
+        val repository = RoomFavoriteDeviceRepository(FakeFavoriteDeviceDao())
+        val wol = WakeOnLanConfig(MacAddress.parse("AA:BB:CC:DD:EE:FF")!!)
+        val id = repository.save(
+            favorite().copy(
+                customName = "Old",
+                userDeviceType = DeviceType.ROUTER,
+                notes = "Old note",
+                wolConfig = wol,
+                firstSeenAt = 11L,
+                lastSeenAt = 22L,
+            ),
+        )
+
+        repository.setEditableProfile(
+            id = id,
+            customName = "  Rack host  ",
+            deviceType = DeviceType.SERVER,
+            notes = "  Docker\r\nNavidrome  ",
+        )
+
+        val saved = repository.observeProfiles().first().single()
+        assertEquals(id, saved.id)
+        assertEquals(FavoriteIdentityType.MAC, saved.identityType)
+        assertEquals("AA:BB:CC:DD:EE:FF", saved.identityValue)
+        assertTrue(saved.isFavorite)
+        assertEquals(wol, saved.wolConfig)
+        assertEquals(11L, saved.firstSeenAt)
+        assertEquals(22L, saved.lastSeenAt)
+        assertEquals("Rack host", saved.customName)
+        assertEquals(DeviceType.SERVER, saved.userDeviceType)
+        assertEquals("Docker\nNavidrome", saved.notes)
+    }
+
+    @Test
+    fun `atomic editable profile clear retains other managed state and deletes only true orphan`() = runBlocking {
+        val repository = RoomFavoriteDeviceRepository(FakeFavoriteDeviceDao())
+        val favoriteId = repository.save(
+            favorite().copy(customName = "Name", userDeviceType = DeviceType.SERVER, notes = "Note"),
+        )
+        val orphanId = repository.save(
+            favorite(ip = "10.0.1.22", identityValue = "10.0.1.22").copy(
+                isFavorite = false,
+                customName = "Only field",
+            ),
+        )
+
+        repository.setEditableProfile(favoriteId, null, null, null)
+        repository.setEditableProfile(orphanId, null, null, null)
+
+        val remaining = repository.observeProfiles().first().single()
+        assertEquals(favoriteId, remaining.id)
+        assertTrue(remaining.isFavorite)
+        assertNull(remaining.customName)
+        assertNull(remaining.userDeviceType)
+        assertNull(remaining.notes)
+    }
+
+    @Test
+    fun `atomic editable profile validates unicode notes at repository boundary`() = runBlocking {
+        val repository = RoomFavoriteDeviceRepository(FakeFavoriteDeviceDao())
+        val id = repository.save(favorite())
+
+        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+            runBlocking {
+                repository.setEditableProfile(
+                    id,
+                    customName = null,
+                    deviceType = null,
+                    notes = "😀".repeat(DeviceNotes.MAX_CODE_POINTS + 1),
+                )
+            }
+        }
+        Unit
+    }
+
     private fun favorite(
         ip: String = "10.0.1.20",
         identityValue: String = "AA:BB:CC:DD:EE:FF",
@@ -509,6 +586,24 @@ private class FakeFavoriteDeviceDao : FavoriteDeviceDao {
         val index = entities.indexOfFirst { it.id == id }
         if (index < 0) return
         entities[index] = entities[index].copy(
+            notes = notes,
+            updatedAt = updatedAt,
+        )
+        publish()
+    }
+
+    override suspend fun updateEditableProfile(
+        id: Long,
+        customName: String?,
+        deviceType: String?,
+        notes: String?,
+        updatedAt: Long,
+    ) {
+        val index = entities.indexOfFirst { it.id == id }
+        if (index < 0) return
+        entities[index] = entities[index].copy(
+            customName = customName,
+            userDeviceType = deviceType,
             notes = notes,
             updatedAt = updatedAt,
         )

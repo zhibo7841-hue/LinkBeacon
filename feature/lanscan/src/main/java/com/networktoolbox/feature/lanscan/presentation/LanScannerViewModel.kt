@@ -97,6 +97,9 @@ class LanScannerViewModel @Inject constructor(
     val favoriteActionError: StateFlow<UiText?> = _favoriteActionError.asStateFlow()
     private val _customNameActionError = MutableStateFlow<UiText?>(null)
     val customNameActionError: StateFlow<UiText?> = _customNameActionError.asStateFlow()
+    private val _deviceProfileEditState = MutableStateFlow<DeviceProfileEditUiState?>(null)
+    val deviceProfileEditState: StateFlow<DeviceProfileEditUiState?> =
+        _deviceProfileEditState.asStateFlow()
     private val _deviceDetailEvents = MutableSharedFlow<DeviceDetailEvent>(
         extraBufferCapacity = 8,
     )
@@ -120,6 +123,7 @@ class LanScannerViewModel @Inject constructor(
     private var customRangeResult: LanCustomRangeResult = LanCustomRangeResult.Incomplete
     private var lastScanRange: LanScanRange? = null
     private val favoriteOperationMutex = Mutex()
+    private val deviceProfileOperationMutex = Mutex()
     private val wakeOnLanOperationMutex = Mutex()
 
     init {
@@ -515,6 +519,102 @@ class LanScannerViewModel @Inject constructor(
         }
     }
 
+    /** Starts one unified edit session. Recomposition keeps the existing draft intact. */
+    fun beginDeviceProfileEdit(routeKey: String?): Boolean {
+        val detail = resolveDeviceDetail(routeKey) ?: return false
+        val current = _deviceProfileEditState.value
+        if (current?.routeKey != detail.detailKey) {
+            _deviceProfileEditState.value = DeviceProfileEditUiState.from(detail)
+        }
+        return true
+    }
+
+    fun onDeviceProfileNameChanged(value: String) {
+        _deviceProfileEditState.value = _deviceProfileEditState.value?.copy(
+            customNameInput = value,
+            saveStatus = DeviceProfileEditSaveStatus.READY,
+        )
+    }
+
+    fun onDeviceProfileTypeChanged(value: DeviceType?) {
+        _deviceProfileEditState.value = _deviceProfileEditState.value?.copy(
+            selectedDeviceType = value,
+            saveStatus = DeviceProfileEditSaveStatus.READY,
+        )
+    }
+
+    fun onDeviceProfileNotesChanged(value: String) {
+        _deviceProfileEditState.value = _deviceProfileEditState.value?.copy(
+            notesInput = value,
+            saveStatus = DeviceProfileEditSaveStatus.READY,
+        )
+    }
+
+    fun saveDeviceProfileEdit() {
+        val draft = _deviceProfileEditState.value ?: return
+        if (!draft.canSave) return
+        val customName = runCatching(draft::normalizedCustomName).getOrElse {
+            _deviceProfileEditState.value = draft.copy(saveStatus = DeviceProfileEditSaveStatus.ERROR)
+            return
+        }
+        val notes = runCatching(draft::normalizedNotes).getOrElse {
+            _deviceProfileEditState.value = draft.copy(saveStatus = DeviceProfileEditSaveStatus.ERROR)
+            return
+        }
+        _deviceProfileEditState.value = draft.copy(saveStatus = DeviceProfileEditSaveStatus.SAVING)
+        viewModelScope.launch {
+            deviceProfileOperationMutex.withLock {
+                val saved = try {
+                    updateEditableProfileByRouteKey(
+                        routeKey = draft.routeKey,
+                        customName = customName,
+                        deviceType = draft.selectedDeviceType,
+                        notes = notes,
+                    )
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (_: Exception) {
+                    false
+                }
+                _deviceProfileEditState.value = _deviceProfileEditState.value
+                    ?.takeIf { it.routeKey == draft.routeKey }
+                    ?.copy(
+                        saveStatus = if (saved) {
+                            DeviceProfileEditSaveStatus.SAVED
+                        } else {
+                            DeviceProfileEditSaveStatus.ERROR
+                        },
+                    )
+            }
+        }
+    }
+
+    fun discardDeviceProfileEdit() {
+        _deviceProfileEditState.value = null
+    }
+
+    /** Returns true when the caller may navigate away immediately. */
+    fun requestDeviceProfileEditClose(): Boolean {
+        val current = _deviceProfileEditState.value ?: return true
+        if (current.saveStatus == DeviceProfileEditSaveStatus.SAVING) return false
+        if (!current.isDirty) {
+            _deviceProfileEditState.value = null
+            return true
+        }
+        _deviceProfileEditState.value = current.copy(discardConfirmationVisible = true)
+        return false
+    }
+
+    fun keepEditingDeviceProfile() {
+        _deviceProfileEditState.value = _deviceProfileEditState.value?.copy(
+            discardConfirmationVisible = false,
+        )
+    }
+
+    fun completeDeviceProfileEdit() {
+        _deviceProfileEditState.value = null
+    }
+
     /**
      * Resolves the current action target instead of treating the navigation
      * route kind as the current favorite state. A favorite route can become an
@@ -803,6 +903,62 @@ class LanScannerViewModel @Inject constructor(
 
             is DeviceDetailActionTarget.SavedProfile -> updateExisting(target.profile.id)
             null -> Unit
+        }
+    }
+
+    private suspend fun updateEditableProfileByRouteKey(
+        routeKey: String,
+        customName: String?,
+        deviceType: DeviceType?,
+        notes: String?,
+    ): Boolean {
+        val parsed = LanDeviceDetailRouteKey.parse(routeKey) ?: return false
+        val context = currentNetworkContext() ?: return false
+        val scope = LanNetworkScope.from(context) ?: return false
+        return when (val target = resolveDeviceDetailActionTarget(parsed, context, scope)) {
+            is DeviceDetailActionTarget.Observed -> {
+                val candidate = LanFavoriteIdentity.candidate(target.device, target.context)
+                    ?: return false
+                val existing = savedDeviceRepository.findMatching(candidate)
+                if (existing != null) {
+                    savedDeviceRepository.setEditableProfile(
+                        id = existing.id,
+                        customName = customName,
+                        deviceType = deviceType,
+                        notes = notes,
+                    )
+                } else if (customName != null || deviceType != null || notes != null) {
+                    val profile = LanFavoriteIdentity.createSavedProfile(
+                        device = target.device,
+                        context = target.context,
+                        now = System.currentTimeMillis(),
+                    ) ?: return false
+                    if (savedDeviceRepository.save(
+                            profile.copy(
+                                isFavorite = false,
+                                customName = customName,
+                                userDeviceType = deviceType,
+                                notes = notes,
+                            ),
+                        ) == 0L
+                    ) {
+                        return false
+                    }
+                }
+                true
+            }
+
+            is DeviceDetailActionTarget.SavedProfile -> {
+                savedDeviceRepository.setEditableProfile(
+                    id = target.profile.id,
+                    customName = customName,
+                    deviceType = deviceType,
+                    notes = notes,
+                )
+                true
+            }
+
+            null -> false
         }
     }
 
