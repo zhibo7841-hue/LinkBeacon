@@ -531,3 +531,31 @@ upgrade and user-data continuity. RC1 is Release Ready. Android 13 and Android
 accepted release policy does not require repeating the full final-artifact RC
 matrix on every supported Android version. This changes release acceptance
 procedure only and does not alter the frozen v0.6.0 product scope.
+
+## V0.7.0 — Device Center Enhancement
+
+Status: **Current development mainline / design approved**.
+
+v0.7.0 strengthens the existing LAN Device Center rather than adding a broad
+set of new network tools. Its confirmed direction is:
+
+- safer, evidence-first saved-device association that prefers an unconfirmed
+  or duplicate profile over transferring user data to the wrong device;
+- user-maintained Device Type with a consistent Material-style type icon;
+- local plain-text Device Notes;
+- truthful First Seen / Last Seen and Current address / Last observed address
+  semantics;
+- clearer separation of current scan observations and managed profile state;
+- additive, backward-compatible migration with tests preserving Favorites,
+  Custom Names, Wake-on-LAN configuration, and existing observation metadata.
+
+First Seen is limited to managed profiles. v0.7.0 does not create a persistent
+observation record for every scanned host. It also does not add background
+presence monitoring, online/offline claims, a presence timeline, a full
+multi-network manager, cross-network automatic merging, or a complex manual
+Merge/Split workflow. Detailed design and audit findings are recorded in
+[DEVICE_CENTER_V2_DESIGN.md](DEVICE_CENTER_V2_DESIGN.md).
+
+The planned product direction after v0.7.0 is **SSL/TLS and Website Access
+Diagnostics**, followed later by **Wi-Fi Analyzer**. These are later mainlines,
+not part of the v0.7.0 feature scope.

@@ -541,3 +541,40 @@ This log records the confirmed project decisions. New scope or changes to these 
 - Boundary: this decision changes release acceptance procedure only. It does
   not alter v0.6.0 functionality, supported Android versions, runtime code,
   version metadata, signed RC1 bytes, Tag, or GitHub Release state.
+
+## Decision: v0.7.0 Device Center Enhancement and conservative identity
+
+- Date: 2026-09-19
+- Status: Accepted
+- Product direction: v0.7.0 prioritizes reliable saved-device profiles and
+  long-term local management over adding many new network tools. Device Type,
+  Notes, truthful First/Last Seen semantics, current-versus-last-observed
+  addresses, and migration safety form the Device Center enhancement scope.
+- Identity policy: matching is evidence-first and conservative. A false merge
+  that transfers Favorite, Custom Name, Wake-on-LAN, Device Type, or Notes is
+  more harmful than an unconfirmed or duplicate profile. Strong conflicts,
+  weak-only matches, missing evidence, and ambiguity must not silently inherit
+  user-owned profile data.
+- Stable identifier: the existing `SavedDeviceProfile.id` remains the stable
+  local profile identifier. v0.7.0 evolves the existing optional evidence and
+  profile fields; it does not create a parallel Stable Device ID system merely
+  to rename concepts.
+- First Seen boundary: First Seen is stored only for a managed profile created
+  from reliable current observation evidence. Existing profiles with no
+  provable first-observation time remain `Not recorded`; migration time is
+  never used. v0.7.0 does not create a global observation database for all
+  scanned devices.
+- Retention: Favorite, Custom Name, user Device Type, Notes, or Wake-on-LAN
+  configuration is sufficient to retain a profile. Observation timestamps and
+  detected metadata alone do not convert every scan result into a permanent
+  profile.
+- Deferred scope: complete multi-network management, cross-network automatic
+  merging, background presence monitoring, online/offline alerts, timelines,
+  a complex Merge/Split UI, and automatic OS fingerprinting remain outside
+  v0.7.0. SSL/TLS and Website Access Diagnostics are the subsequent product
+  direction; Wi-Fi Analyzer follows later and neither belongs to v0.7.0.
+- Privacy and compatibility: all new profile metadata remains local. Changes
+  must use an additive migration and preserve existing IDs, Favorites, Custom
+  Names, Wake-on-LAN settings, History, and Android application identity. No
+  Android 17 local-network permission is requested before a separate target-37
+  compatibility decision.
