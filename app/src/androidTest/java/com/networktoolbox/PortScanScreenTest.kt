@@ -1,10 +1,12 @@
 package com.networktoolbox
 
+import androidx.activity.compose.setContent
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.networktoolbox.core.designsystem.NetworkToolboxTheme
 import com.networktoolbox.core.network.portscan.OpenPortResult
 import com.networktoolbox.core.network.portscan.PortScanProgress
@@ -13,12 +15,17 @@ import com.networktoolbox.feature.port.presentation.PortScanSnapshot
 import com.networktoolbox.feature.port.presentation.PortScanUiState
 import com.networktoolbox.feature.port.presentation.PortScanUiStatus
 import com.networktoolbox.feature.port.ui.PortScanScreen
+import com.networktoolbox.feature.port.R as PortR
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
+@HiltAndroidTest
 class PortScanScreenTest {
-    @get:Rule val compose = createComposeRule()
+    @get:Rule(order = 0) val hilt = HiltAndroidRule(this)
+    @get:Rule(order = 1) val compose = createAndroidComposeRule<MainActivity>()
 
     @Test fun idleScreenShowsEditableTargetAndStartAction() {
         render(PortScanUiState())
@@ -34,7 +41,9 @@ class PortScanScreenTest {
             ),
         )
         compose.onNodeWithTag("port_scan_running").assertIsDisplayed()
-        compose.onNodeWithText("8 / 24 ports").assertIsDisplayed()
+        compose.onNodeWithText(
+            compose.activity.getString(PortR.string.port_scan_progress_value, 8, 24),
+        ).performScrollTo().assertIsDisplayed()
         compose.onNodeWithTag("port_scan_stop_button").assertIsDisplayed()
     }
 
@@ -56,8 +65,10 @@ class PortScanScreenTest {
                 ),
             ),
         )
-        compose.onNodeWithTag("open_port_22").assertIsDisplayed()
-        compose.onNodeWithText("Common service: SSH").assertIsDisplayed()
+        compose.onNodeWithTag("open_port_22").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText(
+            compose.activity.getString(PortR.string.port_hint_ssh),
+        ).performScrollTo().assertIsDisplayed()
     }
 
     @Test fun stoppedScreenRetainsPartialOpenPorts() {
@@ -69,12 +80,14 @@ class PortScanScreenTest {
             ),
         )
         compose.onNodeWithTag("port_scan_result").assertIsDisplayed()
-        compose.onNodeWithTag("open_port_9100").assertIsDisplayed()
-        compose.onNodeWithText("Common service: Raw printing / JetDirect").assertIsDisplayed()
+        compose.onNodeWithTag("open_port_9100").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText(
+            compose.activity.getString(PortR.string.port_hint_raw_printing),
+        ).performScrollTo().assertIsDisplayed()
     }
 
     private fun render(state: PortScanUiState, onStop: () -> Unit = {}) {
-        compose.setContent {
+        compose.activity.setContent {
             NetworkToolboxTheme {
                 PortScanScreen(
                     uiState = state,
