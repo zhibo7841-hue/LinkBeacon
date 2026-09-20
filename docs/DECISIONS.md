@@ -652,3 +652,26 @@ This log records the confirmed project decisions. New scope or changes to these 
   integration, SSL/TLS, Website Diagnostics, or Wi-Fi Analyzer to v0.7.1.
 - Version metadata: `versionName` and `versionCode` remain unchanged until a
   separately authorized v0.7.1 RC Preparation task.
+
+## Decision: LinkBeacon v0.7.1 feature freeze and RC artifact
+
+- Date: 2026-09-20
+- Status: Accepted
+- Freeze: v0.7.1 is frozen to Device Center profile-editing polish and the
+  completed bounded TCP Connect Port Scan from Tools and Device Detail. No
+  additional product capability is authorized during RC preparation.
+- Compatibility: Android identity remains `com.networktoolbox`; Room remains
+  version 5 with the existing additive migration chain. Existing profile IDs,
+  Favorites, Custom Names, Device Types, Notes, Wake-on-LAN configuration,
+  observation metadata, and History must survive the formal in-place upgrade.
+- RC artifact rule: RC1 is built with the existing release signing identity and
+  copied without re-signing as `LinkBeacon-v0.7.1-RC1.apk`. Its SHA-256 is the
+  artifact identity for final acceptance. Any Kotlin/Java, Android resource,
+  manifest, runtime Gradle/dependency, or native change after generation
+  invalidates RC1 and requires a newly built RC number and checksum.
+- Acceptance: the exact signed RC1 must complete a separately authorized
+  representative-device full regression from the official signed v0.7.0
+  baseline before a Tag or GitHub Release is created.
+- Deferred scope: SSL/TLS and Website Diagnostics remain v0.8.0; Wi-Fi
+  Analyzer remains v0.9.0. UDP/SYN scanning, fingerprinting, Port Scan History,
+  Report integration, IPv6 Port Scan, and background scanning remain excluded.

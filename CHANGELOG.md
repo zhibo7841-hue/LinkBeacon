@@ -6,6 +6,30 @@
 
 - Updated GitHub Actions dependencies to remove deprecated Node.js 20 runtime warnings.
 
+## 0.7.1
+
+### Device Center
+
+- Unified Custom Name, Device Type, and Notes editing on one device-profile page.
+- Improved the local profile workflow with atomic saves and unsaved-change handling.
+
+### Port Scan
+
+- Added a 24-port Quick Scan and inclusive custom TCP ranges from 1 to 65535.
+- Added Port Scan entry points from Tools and Device Detail.
+- Added real-time progress, Stop, partial-result retention, and open-port results.
+- Added clearly labelled common-service hints without claiming service detection.
+
+### Reliability
+
+- Added bounded concurrent TCP scanning and active-socket cleanup.
+- Added network-change protection and safeguards for large port ranges.
+
+### Compatibility
+
+- Preserved existing Favorites, Custom Names, Notes, Device Types, Wake-on-LAN
+  configuration, observation metadata, and History without a Room schema change.
+
 ## 0.7.0
 
 ### Device Center

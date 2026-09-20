@@ -28,6 +28,15 @@ and last observed address semantics, and search by device type or notes. It
 retains the complete English and Simplified-Chinese experience introduced in
 v0.6.0.
 
+### Upcoming v0.7.1
+
+- Unified editing for a device's Custom Name, Device Type, and Notes.
+- TCP Port Scan from Tools and Device Detail.
+- A 24-port Quick Scan and custom inclusive ranges from 1 to 65535.
+- Open-port results with clearly labelled common-service hints.
+- Bounded concurrency, cancellable sockets, and network-change protection for
+  safer scans.
+
 ## Screenshots
 
 <p align="center">
