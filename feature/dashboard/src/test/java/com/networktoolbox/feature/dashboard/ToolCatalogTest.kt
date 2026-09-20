@@ -17,14 +17,19 @@ class ToolCatalogTest {
         assertTrue(sections.all { it.subtitle == null })
         assertPresentationEquals(
             listOf(
-                listOf(DashboardToolId.PING, DashboardToolId.TCP, DashboardToolId.TRACEROUTE),
+                listOf(
+                    DashboardToolId.PING,
+                    DashboardToolId.TCP,
+                    DashboardToolId.TRACEROUTE,
+                    DashboardToolId.PORT_SCAN,
+                ),
                 listOf(DashboardToolId.DNS),
                 listOf(DashboardToolId.SUBNET, DashboardToolId.LAN_SCAN),
                 listOf(DashboardToolId.REPORT),
             ),
             sections.map { section -> section.tools.map(DashboardToolDefinition::id) },
         )
-        assertPresentationEquals(7, sections.flatMap { it.tools }.distinctBy(DashboardToolDefinition::id).size)
+        assertPresentationEquals(8, sections.flatMap { it.tools }.distinctBy(DashboardToolDefinition::id).size)
     }
 
     @Test
@@ -56,6 +61,7 @@ class ToolCatalogTest {
                 DashboardToolId.PING to "测试目标连通性",
                 DashboardToolId.DNS to "查询域名解析",
                 DashboardToolId.TCP to "检查 TCP 服务端口",
+                DashboardToolId.PORT_SCAN to "查找目标上开放的 TCP 端口",
                 DashboardToolId.TRACEROUTE to "追踪目标网络路径",
                 DashboardToolId.SUBNET to "计算网络地址",
                 DashboardToolId.LAN_SCAN to "发现局域网设备",
@@ -82,6 +88,7 @@ class ToolCatalogTest {
             onOpenPing = { onClick(DashboardToolId.PING) },
             onOpenDns = { onClick(DashboardToolId.DNS) },
             onOpenTcp = { onClick(DashboardToolId.TCP) },
+            onOpenPortScan = { onClick(DashboardToolId.PORT_SCAN) },
             onOpenTraceroute = { onClick(DashboardToolId.TRACEROUTE) },
             onOpenSubnet = { onClick(DashboardToolId.SUBNET) },
             onOpenLanScan = { onClick(DashboardToolId.LAN_SCAN) },

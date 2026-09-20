@@ -71,6 +71,9 @@ import com.networktoolbox.feature.lanscan.ui.LanScannerScreen
 import com.networktoolbox.feature.ping.presentation.PingViewModel
 import com.networktoolbox.feature.ping.ui.PingScreen
 import com.networktoolbox.feature.port.presentation.TcpViewModel
+import com.networktoolbox.feature.port.presentation.PortScanTargetSource
+import com.networktoolbox.feature.port.presentation.PortScanViewModel
+import com.networktoolbox.feature.port.ui.PortScanScreen
 import com.networktoolbox.feature.port.ui.TcpScreen
 import com.networktoolbox.feature.report.diagnostic.v2.DiagnosticHistoryReportResolver
 import com.networktoolbox.feature.report.diagnostic.v2.DiagnosticOverallStatus
@@ -99,6 +102,7 @@ class MainActivity : AppCompatActivity() {
     private val historyViewModel: HistoryViewModel by viewModels()
     private val pingViewModel: PingViewModel by viewModels()
     private val tcpViewModel: TcpViewModel by viewModels()
+    private val portScanViewModel: PortScanViewModel by viewModels()
     private val reportViewModel: ReportViewModel by viewModels()
     private val subnetViewModel: SubnetViewModel by viewModels()
     private val lanScannerViewModel: LanScannerViewModel by viewModels()
@@ -204,6 +208,7 @@ class MainActivity : AppCompatActivity() {
             val historyUiState by historyViewModel.uiState.collectAsState()
             val pingUiState by pingViewModel.uiState.collectAsState()
             val tcpUiState by tcpViewModel.uiState.collectAsState()
+            val portScanUiState by portScanViewModel.uiState.collectAsState()
             val reportUiState by reportViewModel.uiState.collectAsState()
             val savedReportState by savedReportViewModel.uiState.collectAsState()
             val subnetUiState by subnetViewModel.uiState.collectAsState()
@@ -259,6 +264,19 @@ class MainActivity : AppCompatActivity() {
                 savedReportViewModel.open(navigationState.reportHistoryId)
             }
 
+            LaunchedEffect(
+                navigationState.toolScreen,
+                navigationState.toolInitialTarget,
+                navigationState.toolTargetSource,
+            ) {
+                if (navigationState.toolScreen == ToolScreen.PORT_SCAN) {
+                    portScanViewModel.applyNavigationTarget(
+                        target = navigationState.toolInitialTarget,
+                        source = navigationState.toolTargetSource.toPortScanTargetSource(),
+                    )
+                }
+            }
+
             LaunchedEffect(lanNetworkFingerprint) {
                 // A new process first emits Idle while repository data loads.
                 if (lanNetworkFingerprint == null) return@LaunchedEffect
@@ -289,6 +307,11 @@ class MainActivity : AppCompatActivity() {
                 when (screen) {
                     ToolScreen.PING -> pingViewModel.applyNavigationTarget(null)
                     ToolScreen.TCP -> tcpViewModel.applyNavigationHost(null)
+                    ToolScreen.PORT_SCAN -> portScanViewModel.applyNavigationTarget(
+                        target = null,
+                        source = PortScanTargetSource.TOOLS,
+                        force = true,
+                    )
                     else -> Unit
                 }
                 navigationState = navigationState.openTool(screen)
@@ -297,20 +320,38 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            fun openToolFromDeviceDetail(screen: ToolScreen, target: String) {
-                if (screen != ToolScreen.PING && screen != ToolScreen.TCP) return
+            fun openToolFromDeviceDetail(
+                screen: ToolScreen,
+                target: String,
+                isLastObserved: Boolean = false,
+            ) {
+                if (screen !in setOf(ToolScreen.PING, ToolScreen.TCP, ToolScreen.PORT_SCAN)) return
                 val detailKey = navigationState.deviceDetailKey ?: return
                 val normalizedTarget = target.trim().takeIf(String::isNotBlank) ?: return
                 closeDrawer()
                 when (screen) {
                     ToolScreen.PING -> pingViewModel.applyNavigationTarget(normalizedTarget)
                     ToolScreen.TCP -> tcpViewModel.applyNavigationHost(normalizedTarget)
+                    ToolScreen.PORT_SCAN -> portScanViewModel.applyNavigationTarget(
+                        target = normalizedTarget,
+                        source = if (isLastObserved) {
+                            PortScanTargetSource.LAST_OBSERVED_ADDRESS
+                        } else {
+                            PortScanTargetSource.CURRENT_ADDRESS
+                        },
+                        force = true,
+                    )
                     else -> return
                 }
                 navigationState = navigationState.openToolFromDeviceDetail(
                     screen = screen,
                     detailKey = detailKey,
                     initialTarget = normalizedTarget,
+                    targetSource = if (isLastObserved) {
+                        NavigationTargetSource.LAST_OBSERVED_ADDRESS
+                    } else {
+                        NavigationTargetSource.CURRENT_ADDRESS
+                    },
                 )
             }
 
@@ -321,6 +362,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 lanScannerViewModel.stopScan()
                 tracerouteViewModel.stop()
+                portScanViewModel.stopScan()
                 if (destination == TopLevelDestination.DEVICES) {
                     lanScannerViewModel.prepareDeviceCenter()
                 }
@@ -348,6 +390,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 lanScannerViewModel.stopScan()
                 tracerouteViewModel.stop()
+                portScanViewModel.stopScan()
                 navigationState = navigationState.goBack()
             }
 
@@ -368,6 +411,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     lanScannerViewModel.stopScan()
                     tracerouteViewModel.stop()
+                    portScanViewModel.stopScan()
                 }
                 navigationState = navigationState.openSecondaryDestination(destination)
                 if (destination == ToolScreen.HISTORY) {
@@ -461,6 +505,7 @@ class MainActivity : AppCompatActivity() {
                                     onOpenPing = { openTool(ToolScreen.PING) },
                                     onOpenDns = { openTool(ToolScreen.DNS) },
                                     onOpenTcp = { openTool(ToolScreen.TCP) },
+                                    onOpenPortScan = { openTool(ToolScreen.PORT_SCAN) },
                                     onOpenTraceroute = { openTool(ToolScreen.TRACEROUTE) },
                                     onOpenSubnet = { openTool(ToolScreen.SUBNET) },
                                     onOpenLanScan = { openTool(ToolScreen.LAN_SCAN) },
@@ -520,6 +565,19 @@ class MainActivity : AppCompatActivity() {
                                 onHostChanged = tcpViewModel::onHostChanged,
                                 onPortChanged = tcpViewModel::onPortChanged,
                                 onCheck = tcpViewModel::check,
+                                onBack = ::goBack,
+                            )
+                            ToolScreen.PORT_SCAN -> PortScanScreen(
+                                uiState = portScanUiState,
+                                onTargetChanged = portScanViewModel::onTargetChanged,
+                                onModeChanged = portScanViewModel::onModeChanged,
+                                onCustomStartChanged = portScanViewModel::onCustomStartChanged,
+                                onCustomEndChanged = portScanViewModel::onCustomEndChanged,
+                                onStart = portScanViewModel::startScan,
+                                onStop = portScanViewModel::stopScan,
+                                onStopAndLeave = portScanViewModel::stopAndThen,
+                                onConfirmLargeRange = portScanViewModel::confirmLargeRange,
+                                onDismissLargeRange = portScanViewModel::dismissLargeRangeConfirmation,
                                 onBack = ::goBack,
                             )
                             ToolScreen.TRACEROUTE -> TracerouteScreen(
@@ -607,6 +665,13 @@ class MainActivity : AppCompatActivity() {
                                 onOpenTcp = { target ->
                                     openToolFromDeviceDetail(ToolScreen.TCP, target)
                                 },
+                                onOpenPortScan = { target, isLastObserved ->
+                                    openToolFromDeviceDetail(
+                                        screen = ToolScreen.PORT_SCAN,
+                                        target = target,
+                                        isLastObserved = isLastObserved,
+                                    )
+                                },
                                 onSaveWakeOnLan = { macAddress, udpPort ->
                                     lanScannerViewModel.saveWakeOnLanByRouteKey(
                                         routeKey = navigationState.deviceDetailKey,
@@ -654,6 +719,12 @@ private fun LanScannerUiState.scrollNetworkContext() = when (this) {
     is LanScannerUiState.UnsupportedNetwork -> readiness.networkContext
     is LanScannerUiState.VpnBlocked -> readiness.networkContext
     is LanScannerUiState.Error -> readiness?.networkContext
+}
+
+private fun NavigationTargetSource.toPortScanTargetSource(): PortScanTargetSource = when (this) {
+    NavigationTargetSource.NONE -> PortScanTargetSource.TOOLS
+    NavigationTargetSource.CURRENT_ADDRESS -> PortScanTargetSource.CURRENT_ADDRESS
+    NavigationTargetSource.LAST_OBSERVED_ADDRESS -> PortScanTargetSource.LAST_OBSERVED_ADDRESS
 }
 
 @Composable

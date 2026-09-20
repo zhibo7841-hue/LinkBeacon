@@ -25,6 +25,7 @@ class AppNavigationStateTest {
         ToolScreen.PING,
         ToolScreen.DNS,
         ToolScreen.TCP,
+        ToolScreen.PORT_SCAN,
         ToolScreen.SUBNET,
         ToolScreen.TRACEROUTE,
         ToolScreen.LAN_SCAN,
@@ -204,7 +205,7 @@ class AppNavigationStateTest {
 
     @Test
     fun existingToolsOpenedFromDeviceDetail_returnToTheSameDetail() {
-        listOf(ToolScreen.PING, ToolScreen.TCP).forEach { tool ->
+        listOf(ToolScreen.PING, ToolScreen.TCP, ToolScreen.PORT_SCAN).forEach { tool ->
             val detailKey = "favorite:scope:type:value"
             val state = AppNavigationState()
                 .openDeviceDetail(detailKey)
@@ -226,6 +227,41 @@ class AppNavigationStateTest {
             assertEquals(ToolScreen.NONE, returned.toolBackDestination)
             assertEquals(null, returned.toolInitialTarget)
         }
+    }
+
+    @Test
+    fun portScanOpenedFromDeviceDetail_preservesCallerTargetAndLastObservedSource() {
+        val detailKey = "favorite:scope:type:value"
+        val state = AppNavigationState()
+            .openDeviceDetail(detailKey)
+            .openToolFromDeviceDetail(
+                screen = ToolScreen.PORT_SCAN,
+                detailKey = detailKey,
+                initialTarget = "10.0.1.80",
+                targetSource = NavigationTargetSource.LAST_OBSERVED_ADDRESS,
+            )
+
+        assertEquals(ToolScreen.PORT_SCAN, state.toolScreen)
+        assertEquals("10.0.1.80", state.toolInitialTarget)
+        assertEquals(NavigationTargetSource.LAST_OBSERVED_ADDRESS, state.toolTargetSource)
+        assertEquals(ToolScreen.DEVICE_DETAIL, state.goBack().toolScreen)
+        assertEquals(detailKey, state.goBack().deviceDetailKey)
+    }
+
+    @Test
+    fun portScanNavigationMetadata_survivesSaveableRestore() {
+        val state = AppNavigationState()
+            .openDeviceDetail("observed:10.0.1.10")
+            .openToolFromDeviceDetail(
+                ToolScreen.PORT_SCAN,
+                "observed:10.0.1.10",
+                "10.0.1.10",
+                NavigationTargetSource.CURRENT_ADDRESS,
+            )
+        val saved = with(AppNavigationState.Saver) { SaverScope { true }.save(state) }
+        val restored = requireNotNull(AppNavigationState.Saver.restore(requireNotNull(saved)))
+
+        assertEquals(state, restored)
     }
 
     @Test

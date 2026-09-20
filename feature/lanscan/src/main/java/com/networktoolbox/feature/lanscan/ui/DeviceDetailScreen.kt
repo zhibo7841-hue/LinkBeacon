@@ -71,6 +71,7 @@ fun DeviceDetailScreen(
     favoriteErrorMessage: UiText? = null,
     onOpenPing: (String) -> Unit = {},
     onOpenTcp: (String) -> Unit = {},
+    onOpenPortScan: (String, Boolean) -> Unit = { _, _ -> },
     onSaveWakeOnLan: (String, String) -> Unit = { _, _ -> },
     onSendWakeOnLan: () -> Unit = {},
     deviceDetailEvents: Flow<DeviceDetailEvent> = emptyFlow(),
@@ -315,6 +316,12 @@ fun DeviceDetailScreen(
                     ) {
                         Text(stringResource(R.string.lan_port))
                     }
+                }
+                SecondaryActionButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { onOpenPortScan(target, !detail.observedThisScan) },
+                ) {
+                    Text(stringResource(R.string.lan_port_scan))
                 }
             } ?: Text(
                 stringResource(R.string.lan_no_ip),

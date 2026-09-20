@@ -439,6 +439,35 @@ provider, and engine. It does not add Compose UI, navigation, History or Report
 integration, Room data, profile/identity evidence, Last Seen updates, device
 type inference, permissions, version changes, or release artifacts.
 
+## Port Scan UI and Navigation Integration (Task 102)
+
+`feature:port` now owns `PortScanViewModel` and `PortScanScreen`; both entry
+points use that same presentation path and the Task 101 `PortScanEngine`:
+
+`Tools / Device Detail -> PortScanScreen -> PortScanViewModel -> PortScanEngine`
+
+The Activity-scoped Hilt ViewModel owns target/mode/range input, validation,
+large-range confirmation state, Core progress snapshots, terminal states, and
+the scan coroutine. Compose renders state and never opens sockets. Stop cancels
+the engine job. Confirmed Back waits for cancellation before returning to the
+saved caller. The existing `AppNavigationState` carries the one-time target,
+current-versus-last-observed source, Device Detail key, and nested back route;
+the Device Detail scroll state remains owned by the app shell.
+
+Quick and custom modes share one screen. Custom ranges remain inclusive within
+`1..65535`; ranges of at least 10,000 ports require explicit confirmation.
+Open-port rows are lazy-rendered and use localized common-service hint codes.
+Closed, timeout, unreachable, and error outcomes remain aggregate metrics and
+do not allocate result rows. Activity ViewModel scope preserves active UI state
+across recomposition and configuration change; process death deliberately does
+not restore an active socket scan.
+
+This integration does not write History or Report data and does not mutate
+device identity, First/Last Seen, Device Type, Favorite, Custom Name, Notes, or
+Wake-on-LAN configuration. It adds no Room schema, permission, or alternate TCP
+implementation. Performance tuning and final real-device regression remain in
+Task D.
+
 Task 094 closed the runtime migration gate on a Sony XQ-AT72 running Android 12
 (API 31). AndroidX `MigrationTestHelper` executed the real v4 schema fixture
 through `MIGRATION_4_5`; both instrumentation tests passed and SQLite integrity

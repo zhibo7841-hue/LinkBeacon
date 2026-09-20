@@ -5,6 +5,8 @@
     <string name="home_dns_help">Look up DNS records</string>
     <string name="home_tcp">TCP Port Check</string>
     <string name="home_tcp_help">Check a TCP service port</string>
+    <string name="home_port_scan">Port Scan</string>
+    <string name="home_port_scan_help">Find open TCP ports on a target</string>
     <string name="home_trace">Traceroute</string>
     <string name="home_trace_help">Trace the route to a target</string>
     <string name="home_subnet">IPv4 Subnet</string>

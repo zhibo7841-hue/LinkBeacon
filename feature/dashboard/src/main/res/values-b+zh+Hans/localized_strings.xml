@@ -5,6 +5,8 @@
     <string name="home_dns_help">查询域名解析</string>
     <string name="home_tcp">TCP 端口检测</string>
     <string name="home_tcp_help">检查 TCP 服务端口</string>
+    <string name="home_port_scan">端口扫描</string>
+    <string name="home_port_scan_help">查找目标上开放的 TCP 端口</string>
     <string name="home_trace">Traceroute</string>
     <string name="home_trace_help">追踪目标网络路径</string>
     <string name="home_subnet">IPv4 子网计算</string>

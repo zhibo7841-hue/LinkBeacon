@@ -29,6 +29,7 @@ internal enum class ToolScreen {
     PING,
     DNS,
     TCP,
+    PORT_SCAN,
     TRACEROUTE,
     REPORT,
     HISTORY,
@@ -38,6 +39,12 @@ internal enum class ToolScreen {
     LAN_SCAN,
     DEVICE_DETAIL,
     DEVICE_PROFILE_EDIT,
+}
+
+internal enum class NavigationTargetSource {
+    NONE,
+    CURRENT_ADDRESS,
+    LAST_OBSERVED_ADDRESS,
 }
 
 internal fun TopLevelDestination.navigationOrigin(): NavigationOrigin = when (this) {
@@ -65,6 +72,7 @@ internal data class AppNavigationState(
     val deviceDetailKey: String? = null,
     /** A one-time target supplied by a Device Detail tool entry. */
     val toolInitialTarget: String? = null,
+    val toolTargetSource: NavigationTargetSource = NavigationTargetSource.NONE,
     /** Only an ID is saved; the original snapshot is read from History. */
     val reportHistoryId: Long? = null,
 ) {
@@ -79,6 +87,7 @@ internal data class AppNavigationState(
         toolBackDestination = toolScreen.takeIf { it != ToolScreen.NONE } ?: ToolScreen.NONE,
         deviceDetailKey = null,
         toolInitialTarget = null,
+        toolTargetSource = NavigationTargetSource.NONE,
         reportHistoryId = null,
     )
 
@@ -92,6 +101,7 @@ internal data class AppNavigationState(
         toolBackDestination = ToolScreen.NONE,
         deviceDetailKey = null,
         toolInitialTarget = null,
+        toolTargetSource = NavigationTargetSource.NONE,
         reportHistoryId = null,
     )
 
@@ -102,6 +112,7 @@ internal data class AppNavigationState(
         toolBackDestination = ToolScreen.NONE,
         deviceDetailKey = key,
         toolInitialTarget = null,
+        toolTargetSource = NavigationTargetSource.NONE,
         reportHistoryId = null,
     )
 
@@ -111,6 +122,7 @@ internal data class AppNavigationState(
         toolOrigin = NavigationOrigin.DEVICES,
         toolBackDestination = ToolScreen.DEVICE_DETAIL,
         toolInitialTarget = null,
+        toolTargetSource = NavigationTargetSource.NONE,
         reportHistoryId = null,
     )
 
@@ -119,6 +131,7 @@ internal data class AppNavigationState(
         screen: ToolScreen,
         detailKey: String,
         initialTarget: String,
+        targetSource: NavigationTargetSource = NavigationTargetSource.CURRENT_ADDRESS,
     ): AppNavigationState = copy(
         topLevelDestination = TopLevelDestination.DEVICES,
         toolScreen = screen,
@@ -126,6 +139,7 @@ internal data class AppNavigationState(
         toolBackDestination = ToolScreen.DEVICE_DETAIL,
         deviceDetailKey = detailKey,
         toolInitialTarget = initialTarget,
+        toolTargetSource = targetSource,
         reportHistoryId = null,
     )
 
@@ -135,6 +149,7 @@ internal data class AppNavigationState(
         toolBackDestination = ToolScreen.NONE,
         deviceDetailKey = null,
         toolInitialTarget = null,
+        toolTargetSource = NavigationTargetSource.NONE,
         reportHistoryId = null,
     )
 
@@ -146,6 +161,7 @@ internal data class AppNavigationState(
             toolBackDestination = ToolScreen.NONE,
             deviceDetailKey = null,
             toolInitialTarget = null,
+            toolTargetSource = NavigationTargetSource.NONE,
             reportHistoryId = null,
         )
         toolBackDestination != ToolScreen.NONE -> copy(
@@ -153,6 +169,7 @@ internal data class AppNavigationState(
             toolBackDestination = ToolScreen.NONE,
             deviceDetailKey = deviceDetailKey.takeIf { toolBackDestination == ToolScreen.DEVICE_DETAIL },
             toolInitialTarget = null,
+            toolTargetSource = NavigationTargetSource.NONE,
             reportHistoryId = null,
         )
         else -> copy(
@@ -161,6 +178,7 @@ internal data class AppNavigationState(
             toolBackDestination = ToolScreen.NONE,
             deviceDetailKey = null,
             toolInitialTarget = null,
+            toolTargetSource = NavigationTargetSource.NONE,
             reportHistoryId = null,
         )
     }
@@ -176,6 +194,7 @@ internal data class AppNavigationState(
                     state.deviceDetailKey,
                     state.toolInitialTarget,
                     state.reportHistoryId,
+                    state.toolTargetSource.name,
                 )
             },
             restore = { saved ->
@@ -192,6 +211,9 @@ internal data class AppNavigationState(
                     deviceDetailKey = saved.getOrNull(4) as? String,
                     toolInitialTarget = saved.getOrNull(5) as? String,
                     reportHistoryId = saved.getOrNull(6) as? Long,
+                    toolTargetSource = (saved.getOrNull(7) as? String)
+                        ?.let { value -> runCatching { NavigationTargetSource.valueOf(value) }.getOrNull() }
+                        ?: NavigationTargetSource.NONE,
                 )
             },
         )

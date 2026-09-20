@@ -81,4 +81,5 @@
     <string name="lan_completed_summary">Addresses: %1$d · Devices: %2$d · %3$s</string>
     <string name="lan_progress_summary">Scanned: %1$d / %2$d · Found: %3$d · %4$s</string>
     <string name="lan_joined">%1$s · %2$s</string>
+    <string name="lan_port_scan">Port Scan</string>
 </resources>

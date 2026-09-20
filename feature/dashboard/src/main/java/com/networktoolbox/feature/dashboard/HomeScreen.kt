@@ -94,6 +94,7 @@ fun HomeScreen(
         onOpenPing = onOpenPing,
         onOpenDns = onOpenDns,
         onOpenTcp = {},
+        onOpenPortScan = {},
         onOpenTraceroute = onOpenTraceroute,
         onOpenSubnet = {},
         onOpenLanScan = onOpenLanScan,

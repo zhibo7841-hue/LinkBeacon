@@ -7,6 +7,7 @@ import com.networktoolbox.core.network.model.*
 import com.networktoolbox.core.network.repository.NetworkRepository
 import com.networktoolbox.core.network.dns.*
 import com.networktoolbox.core.network.ping.*
+import com.networktoolbox.core.network.portscan.*
 import com.networktoolbox.core.network.tcp.*
 import com.networktoolbox.core.network.traceroute.*
 import com.networktoolbox.core.network.wol.*
@@ -65,6 +66,12 @@ object RecreationNetworkModule {
     }
     @Provides fun tcp(): TcpPortChecker = object : TcpPortChecker {
         override suspend fun check(host: String, port: Int, timeoutMs: Int): TcpProbeResult = error("Unexpected TCP")
+    }
+    @Provides fun portScan(): PortScanEngine = object : PortScanEngine {
+        override suspend fun scan(
+            request: PortScanRequest,
+            onUpdate: (PortScanUpdate) -> Unit,
+        ): PortScanSessionResult = error("Unexpected Port Scan in recreation test")
     }
     @Provides fun traceroute(): TracerouteEngine = object : TracerouteEngine {
         override suspend fun run(request: TracerouteRequest): TracerouteResult = error("Unexpected Traceroute")

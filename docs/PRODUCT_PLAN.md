@@ -598,6 +598,10 @@ fields.
 Port Scan Phase 1 is planned as a bounded TCP Connect scan launched from Device
 Detail into its own page. The candidate scope is:
 
+Implementation progress: the shared TCP Connect Core and the bilingual Tools /
+Device Detail UI integration are complete. Performance calibration and final
+real-device regression remain before release preparation.
+
 - Quick Scan based on a future audited set of common service ports; this plan
   does not freeze or publish that port list.
 - A custom inclusive Start Port / End Port range within `1..65535`; full-range

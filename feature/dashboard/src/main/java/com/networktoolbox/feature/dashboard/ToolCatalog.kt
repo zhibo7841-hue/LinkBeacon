@@ -13,6 +13,7 @@ internal enum class DashboardToolId {
     PING,
     DNS,
     TCP,
+    PORT_SCAN,
     TRACEROUTE,
     SUBNET,
     LAN_SCAN,
@@ -23,6 +24,7 @@ internal data class DashboardNavigationCallbacks(
     val onOpenPing: () -> Unit,
     val onOpenDns: () -> Unit,
     val onOpenTcp: () -> Unit,
+    val onOpenPortScan: () -> Unit,
     val onOpenTraceroute: () -> Unit,
     val onOpenSubnet: () -> Unit,
     val onOpenLanScan: () -> Unit,
@@ -80,6 +82,14 @@ internal fun dashboardToolDefinitions(
         onClick = callbacks.onOpenTraceroute,
     ),
     DashboardToolDefinition(
+        id = DashboardToolId.PORT_SCAN,
+        icon = Icons.Outlined.Lan,
+        title = R.string.home_port_scan,
+        description = R.string.home_port_scan_help,
+        accent = NetworkToolAccent.AMBER,
+        onClick = callbacks.onOpenPortScan,
+    ),
+    DashboardToolDefinition(
         id = DashboardToolId.SUBNET,
         icon = Icons.Outlined.AccountTree,
         title = R.string.home_subnet,
@@ -127,6 +137,7 @@ internal fun dashboardToolSections(
                 definitions.getValue(DashboardToolId.PING),
                 definitions.getValue(DashboardToolId.TCP),
                 definitions.getValue(DashboardToolId.TRACEROUTE),
+                definitions.getValue(DashboardToolId.PORT_SCAN),
             ),
         ),
         DashboardToolSection(

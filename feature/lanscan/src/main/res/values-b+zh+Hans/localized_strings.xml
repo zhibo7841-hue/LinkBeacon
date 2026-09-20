@@ -81,4 +81,5 @@
     <string name="lan_completed_summary">%1$d 个地址 · %2$d 台设备 · %3$s</string>
     <string name="lan_progress_summary">已扫描 %1$d / %2$d 个地址 · 发现 %3$d 台设备 · %4$s</string>
     <string name="lan_joined">%1$s · %2$s</string>
+    <string name="lan_port_scan">端口扫描</string>
 </resources>

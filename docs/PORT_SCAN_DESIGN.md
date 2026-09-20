@@ -4,8 +4,8 @@ Status: implementation-ready design audit for the candidate v0.8.0 line
 
 Date: 2026-09-19
 
-Implementation status: Task A Device Edit and Task B Port Scan Core complete;
-Task C UI/integration and Task D performance/real-device regression not started
+Implementation status: Task A Device Edit, Task B Port Scan Core, and Task C
+UI/integration complete; Task D performance/real-device regression remains
 
 This document audits the released v0.7.0 codebase and defines the bounded next
 mainline. It does not change runtime code, UI resources, Room, version metadata,
@@ -734,10 +734,22 @@ History, or Report integration.
 
 ### Task C — Port Scan UI and Integration
 
-Add the Port Scan ViewModel/screen, real progress and Stop, large-range and Back
-confirmations, open-port results, Device Detail entry, Tools entry, caller-aware
-navigation, saved-last-address warning, bilingual/accessibility resources, and
-Compose/navigation tests. Reuse Task B; do not create another socket path.
+**Completed in Task 102.** One Activity-scoped Hilt ViewModel and one Compose
+screen serve both the Tools and Device Detail entries. The page supports the
+audited 24-port Quick mode and an inclusive custom range, validates inputs
+before invoking Core, confirms ranges of 10,000 ports or more, renders real
+progress, and cancels the engine job for Stop or confirmed Back navigation.
+Completed, stopped, network-changed, resolution-failure, IPv6-only, and local
+error states use typed Core results. Only confirmed open ports receive rows;
+closed and no-response outcomes stay aggregate counts. Common-service labels
+are bilingual resource mappings and remain hints only.
+
+Device Detail supplies current or last-observed IPv4 context without
+auto-starting. Last-observed addresses show a warning and remain editable.
+Caller-aware navigation returns to the same Device Detail and retained scroll,
+while the Tools entry starts empty and returns to Tools. Task C adds no History,
+Report, Room, identity, Last Seen, Device Type, Favorite, profile, Wake-on-LAN,
+permission, version, Tag, or Release change.
 
 ### Task D — Performance and Real-device Regression
 
