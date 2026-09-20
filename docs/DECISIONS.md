@@ -633,3 +633,22 @@ This log records the confirmed project decisions. New scope or changes to these 
   or one History row per port. Before implementation, choose either one
   scan-level History record or no Phase 1 History. Port Scan uses an independent
   page reached from Device Detail and does not become profile identity evidence.
+
+## Decision: Assign Device Center Polish and Port Scan to v0.7.1
+
+- Date: 2026-09-20
+- Status: Accepted; supersedes the provisional v0.8.0 assignment only
+- Decision: Device Edit Polish and Port Scan are assigned to **v0.7.1 Device
+  Center Polish + Port Scan**, not v0.8.0. They are a natural enhancement of
+  the v0.7 Device Center path rather than a new complete product theme.
+- Scope: v0.7.1 includes Unified Device Profile Editing and the bounded,
+  cancellable TCP Connect Port Scan from Tools and Device Detail, including
+  bilingual presentation and real-device performance validation. Existing
+  History, Report, identity, Last Seen, and Device Type boundaries remain.
+- Reserved versions: **v0.8.0** is reserved for SSL/TLS + Website Diagnostics;
+  **v0.9.0** is reserved for Wi-Fi Analyzer.
+- Exclusions: this route decision does not add UDP or SYN scanning, service
+  fingerprinting, banner grabbing, Port Scan History, Automatic Diagnosis
+  integration, SSL/TLS, Website Diagnostics, or Wi-Fi Analyzer to v0.7.1.
+- Version metadata: `versionName` and `versionCode` remain unchanged until a
+  separately authorized v0.7.1 RC Preparation task.

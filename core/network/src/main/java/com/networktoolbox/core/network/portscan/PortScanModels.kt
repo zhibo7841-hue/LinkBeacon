@@ -26,8 +26,8 @@ data class PortScanConfig(
 
     companion object {
         const val DEFAULT_CONNECT_TIMEOUT_MS: Int = 1_000
-        const val DEFAULT_HOST_CONCURRENCY: Int = 32
-        const val MAX_HOST_CONCURRENCY: Int = 32
+        const val DEFAULT_HOST_CONCURRENCY: Int = 64
+        const val MAX_HOST_CONCURRENCY: Int = 64
     }
 }
 

@@ -32,8 +32,9 @@ class PortScanModelsTest {
         val config = PortScanConfig(requestedConcurrency = 200)
 
         assertEquals(1_000, config.connectTimeoutMs)
-        assertEquals(32, config.effectiveConcurrency)
-        assertEquals(32, PortScanConfig.MAX_HOST_CONCURRENCY)
+        assertEquals(64, config.effectiveConcurrency)
+        assertEquals(64, PortScanConfig.DEFAULT_HOST_CONCURRENCY)
+        assertEquals(64, PortScanConfig.MAX_HOST_CONCURRENCY)
     }
 
     private fun assertValid(start: Int, end: Int, expectedSize: Int) {

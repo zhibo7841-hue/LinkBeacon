@@ -570,9 +570,13 @@ multi-network manager, cross-network automatic merging, or a complex manual
 Merge/Split workflow. Detailed design and audit findings are recorded in
 [DEVICE_CENTER_V2_DESIGN.md](DEVICE_CENTER_V2_DESIGN.md).
 
-The planned product direction after v0.7.0 is **SSL/TLS and Website Access
-Diagnostics**, followed later by **Wi-Fi Analyzer**. These are later mainlines,
-not part of the v0.7.0 feature scope.
+The confirmed version route after v0.7.0 is:
+
+- **v0.7.0 — Device Center V2:** Released.
+- **v0.7.1 — Device Center Polish + Port Scan:** Current development;
+  feature-complete after performance and final real-device regression.
+- **v0.8.0 — SSL/TLS + Website Diagnostics:** Planned.
+- **v0.9.0 — Wi-Fi Analyzer:** Planned.
 
 The v0.7.0 release scope is frozen to the Device Center Enhancement described
 above. It does not include SSL/TLS or Website Diagnostics, Wi-Fi Analyzer,
@@ -585,8 +589,9 @@ invalidates that candidate and requires a newly built RC number.
 
 ## Confirmed direction after v0.7.0
 
-The next development mainline is **Device Edit Polish + Port Scan**. It is a
-post-v0.7 direction and does not change the frozen v0.7.0 scope.
+The current development mainline is **v0.7.1 — Device Center Polish + Port
+Scan**. It is a focused continuation of the v0.7 Device Center line and does
+not change the released v0.7.0 scope.
 
 Device Edit Polish will provide one `Edit Device Profile` entry for the three
 user-owned profile fields: Custom Name, Device Type, and Notes. Device Detail's
@@ -595,15 +600,14 @@ independent preference, Wake-on-LAN stays an independent configuration, and
 Ping, Port Check, and Port Scan remain Network Checks rather than profile-edit
 fields.
 
-Port Scan Phase 1 is planned as a bounded TCP Connect scan launched from Device
-Detail into its own page. The candidate scope is:
+Port Scan Phase 1 is a bounded TCP Connect scan launched from Device Detail or
+Tools into one shared page. Its confirmed scope is:
 
-Implementation progress: the shared TCP Connect Core and the bilingual Tools /
-Device Detail UI integration are complete. Performance calibration and final
-real-device regression remain before release preparation.
+Implementation status: the shared TCP Connect Core, bilingual Tools / Device
+Detail UI, performance calibration, and final Android 12 real-device regression
+are complete. v0.7.1 is feature-complete but is not yet an RC or release.
 
-- Quick Scan based on a future audited set of common service ports; this plan
-  does not freeze or publish that port list.
+- Quick Scan based on the audited 24-port common-service catalog.
 - A custom inclusive Start Port / End Port range within `1..65535`; full-range
   scanning is not the default.
 - Bounded concurrency with cancellation/stop. The final concurrency value is
@@ -614,9 +618,15 @@ real-device regression remain before release preparation.
 - Optional common-service hints derived from port numbers. A hint is not
   protocol confirmation or device identification.
 - No raw SYN scan, complex service fingerprinting, or per-port TCP History.
-  Phase 1 will either store at most one scan-level History record or no History;
-  that choice remains an implementation prerequisite.
+  Phase 1 stores no Port Scan History and does not feed Automatic Diagnosis.
 
-Port Scan may later lead into **SSL/TLS + Website Access Diagnostics** as a
-broader Host & Service Diagnostics direction. **Wi-Fi Analyzer** remains after
-that mainline. None of these future capabilities is part of v0.7.0.
+The v0.7.1 Must Have scope is Unified Device Profile Editing (Custom Name,
+Device Type, and Notes), standalone and Device Detail Port Scan entry points,
+Quick Scan, custom ranges within `1..65535`, bounded/cancellable TCP Connect
+scanning, network-change protection, open-port presentation, common-service
+hints, bilingual UI, and performance/real-device validation.
+
+v0.7.1 does not include SSL/TLS, Website Diagnostics, Wi-Fi Analyzer, UDP or
+SYN scanning, service fingerprinting, banner grabbing, Port Scan History, or
+Automatic Diagnosis integration. **v0.8.0** is reserved for SSL/TLS + Website
+Diagnostics, and **v0.9.0** is reserved for Wi-Fi Analyzer.

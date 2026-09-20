@@ -1,11 +1,11 @@
 # LinkBeacon Device Edit and Port Scan Design
 
-Status: implementation-ready design audit for the candidate v0.8.0 line
+Status: implemented and performance-validated for the v0.7.1 line
 
 Date: 2026-09-19
 
-Implementation status: Task A Device Edit, Task B Port Scan Core, and Task C
-UI/integration complete; Task D performance/real-device regression remains
+Implementation status: Tasks A-D complete; v0.7.1 RC Preparation remains a
+separate, not-yet-started task
 
 This document audits the released v0.7.0 codebase and defines the bounded next
 mainline. It does not change runtime code, UI resources, Room, version metadata,
@@ -13,7 +13,7 @@ permissions, tags, or releases.
 
 ## 1. Product Scope
 
-The recommended candidate scope is **v0.8.0 = Device Edit + Port Scan**. It
+The confirmed scope is **v0.7.1 = Device Center Polish + Port Scan**. It
 completes one device-focused diagnostic path:
 
 ```text
@@ -41,7 +41,7 @@ a SYN scanner, UDP scanner, vulnerability scanner, password tool, service
 fingerprinter, security score, Internet-wide scanner, or Nmap replacement.
 
 SSL/TLS and Website Access Diagnostics remain the following mainline. Wi-Fi
-Analyzer remains later. Neither belongs in v0.8.0.
+Analyzer remains later. Neither belongs in v0.7.1.
 
 ## 2. Existing TCP Architecture Audit
 
@@ -208,7 +208,7 @@ the existing nested `toolBackDestination`/`deviceDetailKey` pattern.
 
 ### Tools
 
-Port Scan should also be a standalone Tools entry in v0.8.0 so unmanaged hosts
+Port Scan is also a standalone Tools entry in v0.7.1 so unmanaged hosts
 can be entered directly. It belongs beside `Port check`, with distinct names:
 
 - `Port check` / `端口检测`: test one already-known port precisely;
@@ -331,11 +331,12 @@ fixed number of workers. Do not launch one unrestricted coroutine or socket per
 port. The producer lazily enqueues the range so `1..65535` does not first create
 65,535 jobs or result objects.
 
-Recommended initial implementation value: **32 workers**, capped internally.
-This is a starting value because the project already has real-device evidence
-for a 32-worker LAN scan, not a permanent product contract. Quick Scan uses at
-most its 24 ports. Task D must compare 16/32/64 under refused and drop/timeout
-conditions before freezing the production value.
+The implementation began at 32 workers. Task 103 compared **16, 32, and 64**
+workers on the same Android 12 device and targets. Refused-heavy scans remained
+stable at every bound; silent-drop `1..1024` time fell from about 64.6 s at 16
+to 32.4 s at 32 and 16.3 s at 64. The final default and hard cap are therefore
+**64 workers**. Work remains bounded by the fixed worker pool and channel; a
+full range never launches 65,535 unrestricted coroutines.
 
 A mutex or single aggregation actor owns counters and the open-port list.
 Presentation updates are derived from real completions. For very large ranges,
@@ -348,6 +349,11 @@ not simulated progress.
 The single Port check keeps its current 3000 ms default. LAN discovery keeps
 its existing 250 ms fallback timeout. Port Scan receives its own internal
 configuration and initially uses **1000 ms per connect attempt**, with no retry.
+
+Task 103 compared 500, 1000, and 1500 ms against the same silent-drop target.
+All three found the same known open ports in that environment; 500 ms was
+faster and 1500 ms proportionally slower. The final value remains **1000 ms**
+to retain a correctness margin for slower but valid LAN services.
 
 One second keeps a 24-port Quick Scan responsive under drop behavior while
 remaining more tolerant than LAN discovery's deliberately aggressive fallback.
@@ -718,7 +724,7 @@ identity/Favorite/WoL semantics.
 **Completed in Task 101.** `core:network` now owns one shared cancellable TCP
 connector used by both the existing single Port Check and the Port Scan engine.
 Port Check retains its 3000 ms default. Port Scan has a separate 1000 ms
-connect timeout, a fixed maximum of 32 workers, a bounded channel, one-time
+connect timeout, a fixed maximum of 64 workers, a bounded channel, one-time
 IPv4/hostname resolution, typed outcome counts, open-port-only retained detail,
 monotonic elapsed time, network-fingerprint termination, and generation-safe
 late-result rejection. Cancellation closes each registered in-flight Socket.
@@ -753,10 +759,18 @@ permission, version, Tag, or Release change.
 
 ### Task D — Performance and Real-device Regression
 
-Run the refused/drop range matrix, tune bounded concurrency/timeout from
-evidence, verify cancellation and descriptor cleanup, and regress Android 12 and
-Android 16 across representative Router/Windows/Linux/unknown targets. Record
-final constants and known limits before v0.8.0 release preparation.
+**Completed in Task 103.** Android 12/API 31 real-device testing covered Quick,
+`1..100`, `1..1024`, `1..10000`, and `1..65535`; refused-heavy and silent-drop
+targets; concurrency 16/32/64; timeout 500/1000/1500; direct Stop, Back, and a
+real Wi-Fi-to-mobile network change. The final configuration is 64 bounded
+workers and a 1000 ms connect timeout. Full-range results retained six sorted,
+unique open rows plus aggregate counters, completed in about 77.8 s on the
+tested refused-heavy LAN host, and returned active sockets to zero and file
+descriptors near baseline. Android 16 was unavailable and is not claimed.
+
+Device profile fields, Last Seen, identity, Device Type, History, and Report
+remained unchanged. The next authorized step, if requested, is v0.7.1 RC
+Preparation—not SSL/TLS, Website Diagnostics, or Wi-Fi Analyzer.
 
 No task in this split authorizes SSL/TLS, Website Diagnostics, Wi-Fi Analyzer,
 Room migration, a new permission, or a release.

@@ -406,8 +406,7 @@ probe, permission, or History schema is added.
 
 ## Port Scan Core Engine (Task 101)
 
-Port Scan Phase 1 currently includes only the reusable core boundary; its UI
-and navigation integration have not started. `core:network` owns
+Port Scan Phase 1 uses a reusable core boundary. `core:network` owns
 `TcpConnector`, which creates a closeable connect attempt around one ordinary
 Android `Socket`. The existing `AndroidTcpPortChecker` and the new
 `DefaultPortScanEngine` both use that connector, so connect classification and
@@ -423,9 +422,12 @@ A hostname is resolved once and one IPv4 address is frozen for the session;
 IPv6-only targets are explicitly unsupported in Phase 1. Quick Scan is the
 audited 24-port domain catalog. Custom ranges are inclusive and validated
 within `1..65535`. The scan uses one lazy producer, a bounded channel, and at
-most 32 fixed workers. Its separate connect timeout is 1000 ms. It never
-creates one coroutine per port and retains only open-port detail plus aggregate
-closed, timeout, unreachable, and error counts.
+most 64 fixed workers. Task 103 selected 64 from Android 12 refused-heavy and
+timeout-heavy matrices: the higher bound materially reduced silent-drop scan
+time while remaining stable and fully bounded. Its separate connect timeout
+remains 1000 ms to retain a correctness margin over the faster 500 ms candidate.
+It never creates one coroutine per port and retains only open-port detail plus
+aggregate closed, timeout, unreachable, and error counts.
 
 Each active connect attempt is registered and closed on cancellation, network
 change, replacement by a newer generation, and terminal cleanup. A material
@@ -465,8 +467,15 @@ not restore an active socket scan.
 This integration does not write History or Report data and does not mutate
 device identity, First/Last Seen, Device Type, Favorite, Custom Name, Notes, or
 Wake-on-LAN configuration. It adds no Room schema, permission, or alternate TCP
-implementation. Performance tuning and final real-device regression remain in
-Task D.
+implementation.
+
+Task 103 completed performance tuning and final real-device regression on the
+minimum-supported Android 12 device. Quick, `1..100`, `1..1024`, `1..10000`,
+and full `1..65535` ranges retain only open-port rows plus aggregate counters.
+Cancellation and real network change close the active-socket registry, stop
+new work, and preserve only the current generation. Descriptor and memory
+measurements return near baseline after terminal cleanup. Android 16 was not
+available and is not represented as tested.
 
 Task 094 closed the runtime migration gate on a Sony XQ-AT72 running Android 12
 (API 31). AndroidX `MigrationTestHelper` executed the real v4 schema fixture

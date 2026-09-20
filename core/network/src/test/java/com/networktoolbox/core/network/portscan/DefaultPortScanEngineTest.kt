@@ -53,13 +53,13 @@ class DefaultPortScanEngineTest {
     }
 
     @Test
-    fun fixedWorkersNeverExceedThirtyTwoActiveSockets() = runTest {
+    fun fixedWorkersNeverExceedSixtyFourActiveSockets() = runTest {
         val gate = CompletableDeferred<Unit>()
         val connector = FakeConnector(gate = gate)
         val deferred = async { engine(connector).scan(request(1, 64)) }
 
         runCurrent()
-        assertEquals(32, connector.maxActive.get())
+        assertEquals(64, connector.maxActive.get())
         assertTrue(connector.maxActive.get() <= PortScanConfig.MAX_HOST_CONCURRENCY)
 
         gate.complete(Unit)
@@ -208,7 +208,7 @@ class DefaultPortScanEngineTest {
         assertEquals(65_535, result.progress.scannedPorts)
         assertEquals(65_535, result.progress.closedCount)
         assertTrue(result.openPorts.isEmpty())
-        assertTrue(connector.maxActive.get() <= 32)
+        assertTrue(connector.maxActive.get() <= PortScanConfig.MAX_HOST_CONCURRENCY)
     }
 
     private fun engine(
