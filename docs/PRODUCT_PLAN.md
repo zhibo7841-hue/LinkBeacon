@@ -573,7 +573,7 @@ Merge/Split workflow. Detailed design and audit findings are recorded in
 The confirmed version route after v0.7.0 is:
 
 - **v0.7.0 — Device Center V2:** Released.
-- **v0.7.1 — Device Center Polish + Port Scan:** Release Ready; Scope Frozen.
+- **v0.7.1 — Device Center Polish + Port Scan:** Released; Scope Frozen.
 - **v0.8.0 — SSL/TLS + Website Diagnostics:** Planned.
 - **v0.9.0 — Wi-Fi Analyzer:** Planned.
 
@@ -588,11 +588,12 @@ invalidates that candidate and requires a newly built RC number.
 
 ## Confirmed direction after v0.7.0
 
-The current development mainline is **v0.7.1 — Device Center Polish + Port
-Scan**. It is a focused continuation of the v0.7 Device Center line and does
-not change the released v0.7.0 scope.
+**v0.7.1 — Device Center Polish + Port Scan** is released. It is a focused
+continuation of the v0.7 Device Center line and does not change the released
+v0.7.0 scope. The next planned version is **v0.8.0 — SSL/TLS + Website
+Diagnostics**.
 
-Device Edit Polish will provide one `Edit Device Profile` entry for the three
+Device Edit Polish provides one `Edit Device Profile` entry for the three
 user-owned profile fields: Custom Name, Device Type, and Notes. Device Detail's
 Local Profile section remains primarily informational. Favorite stays an
 independent preference, Wake-on-LAN stays an independent configuration, and
@@ -605,9 +606,9 @@ Tools into one shared page. Its confirmed scope is:
 Implementation status: the shared TCP Connect Core, bilingual Tools / Device
 Detail UI, performance calibration, and the representative full RC regression
 on Sony XQ-AT72 / Android 12 are complete. The exact frozen signed RC1 passed
-the release gate without runtime changes. v0.7.1 is **Release Ready** and its
-scope is **Frozen**. Publication remains a separate authorized task; this
-status does not itself create a Tag or public Release.
+the release gate without runtime changes and was published byte-for-byte as the
+formal GitHub Release asset. v0.7.1 is **Released** and its scope remains
+**Frozen**.
 
 - Quick Scan based on the audited 24-port common-service catalog.
 - A custom inclusive Start Port / End Port range within `1..65535`; full-range
