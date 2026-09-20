@@ -573,8 +573,7 @@ Merge/Split workflow. Detailed design and audit findings are recorded in
 The confirmed version route after v0.7.0 is:
 
 - **v0.7.0 — Device Center V2:** Released.
-- **v0.7.1 — Device Center Polish + Port Scan:** Feature Complete; RC
-  Preparation; Scope Frozen.
+- **v0.7.1 — Device Center Polish + Port Scan:** Release Ready; Scope Frozen.
 - **v0.8.0 — SSL/TLS + Website Diagnostics:** Planned.
 - **v0.9.0 — Wi-Fi Analyzer:** Planned.
 
@@ -604,11 +603,11 @@ Port Scan Phase 1 is a bounded TCP Connect scan launched from Device Detail or
 Tools into one shared page. Its confirmed scope is:
 
 Implementation status: the shared TCP Connect Core, bilingual Tools / Device
-Detail UI, performance calibration, and final Android 12 real-device regression
-are complete. v0.7.1 is **Feature Complete**, in **RC Preparation**, and its
-scope is **Frozen**. RC preparation may change version metadata and release
-documentation, but it does not authorize another runtime feature or a public
-Release.
+Detail UI, performance calibration, and the representative full RC regression
+on Sony XQ-AT72 / Android 12 are complete. The exact frozen signed RC1 passed
+the release gate without runtime changes. v0.7.1 is **Release Ready** and its
+scope is **Frozen**. Publication remains a separate authorized task; this
+status does not itself create a Tag or public Release.
 
 - Quick Scan based on the audited 24-port common-service catalog.
 - A custom inclusive Start Port / End Port range within `1..65535`; full-range
