@@ -2,11 +2,10 @@ package com.networktoolbox.core.network.data
 
 import com.networktoolbox.core.network.tcp.TcpPortChecker
 import com.networktoolbox.core.common.diagnostic.DiagnosticTcpOutcome
-import java.io.IOException
-import java.net.ConnectException
-import java.net.NoRouteToHostException
-import java.net.SocketException
-import java.net.SocketTimeoutException
+import com.networktoolbox.core.network.tcp.TcpConnectAttempt
+import com.networktoolbox.core.network.tcp.TcpConnectOutcome
+import com.networktoolbox.core.network.tcp.TcpConnectResult
+import com.networktoolbox.core.network.tcp.TcpConnector
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -18,7 +17,7 @@ import org.junit.Test
 class AndroidTcpPortCheckerTest {
     @Test
     fun successfulConnectionReturnsLatencyAndForwardsArguments() = runBlocking {
-        val connector = FakeTcpConnection()
+        val connector = FakeTcpConnector()
         val checker = AndroidTcpPortChecker(connector)
 
         val result = checker.check("127.0.0.1", port = 443, timeoutMs = 1_250)
@@ -37,7 +36,7 @@ class AndroidTcpPortCheckerTest {
     @Test
     fun connectionRefusedIsClassifiedSeparately() = runBlocking {
         val checker = AndroidTcpPortChecker(
-            FakeTcpConnection { _, _, _ -> throw ConnectException("Connection refused") },
+            FakeTcpConnector(TcpConnectResult(TcpConnectOutcome.REFUSED)),
         )
 
         val result = checker.check("192.0.2.10", port = 443)
@@ -51,7 +50,7 @@ class AndroidTcpPortCheckerTest {
     @Test
     fun timeoutIsClassifiedSeparately() = runBlocking {
         val checker = AndroidTcpPortChecker(
-            FakeTcpConnection { _, _, _ -> throw SocketTimeoutException("connect timed out") },
+            FakeTcpConnector(TcpConnectResult(TcpConnectOutcome.TIMEOUT)),
         )
 
         val result = checker.check("192.0.2.10", port = 443)
@@ -65,7 +64,7 @@ class AndroidTcpPortCheckerTest {
     @Test
     fun otherIoExceptionIsClassifiedAsUnknownError() = runBlocking {
         val checker = AndroidTcpPortChecker(
-            FakeTcpConnection { _, _, _ -> throw IOException("network failure") },
+            FakeTcpConnector(TcpConnectResult(TcpConnectOutcome.ERROR)),
         )
 
         val result = checker.check("192.0.2.10", port = 443)
@@ -78,7 +77,7 @@ class AndroidTcpPortCheckerTest {
     @Test
     fun noRouteIsClassifiedAsNoRoute() = runBlocking {
         val checker = AndroidTcpPortChecker(
-            FakeTcpConnection { _, _, _ -> throw NoRouteToHostException("No route") },
+            FakeTcpConnector(TcpConnectResult(TcpConnectOutcome.NO_ROUTE)),
         )
 
         val result = checker.check("192.0.2.10", port = 443)
@@ -90,7 +89,7 @@ class AndroidTcpPortCheckerTest {
     @Test
     fun networkUnreachableIsClassifiedWithoutGuessingOtherSocketErrors() = runBlocking {
         val checker = AndroidTcpPortChecker(
-            FakeTcpConnection { _, _, _ -> throw SocketException("Network is unreachable") },
+            FakeTcpConnector(TcpConnectResult(TcpConnectOutcome.NETWORK_UNREACHABLE)),
         )
 
         val result = checker.check("192.0.2.10", port = 443)
@@ -101,7 +100,7 @@ class AndroidTcpPortCheckerTest {
 
     @Test
     fun emptyHostReturnsInvalidResultWithoutConnecting() = runBlocking {
-        val connector = FakeTcpConnection()
+        val connector = FakeTcpConnector()
         val checker = AndroidTcpPortChecker(connector)
 
         val result = checker.check(" ", port = 443)
@@ -114,7 +113,7 @@ class AndroidTcpPortCheckerTest {
 
     @Test
     fun outOfRangePortsReturnInvalidResultWithoutConnecting() = runBlocking {
-        val connector = FakeTcpConnection()
+        val connector = FakeTcpConnector()
         val checker = AndroidTcpPortChecker(connector)
 
         val zeroResult = checker.check("127.0.0.1", port = 0)
@@ -129,7 +128,7 @@ class AndroidTcpPortCheckerTest {
 
     @Test
     fun nonPositiveTimeoutReturnsInvalidResultWithoutConnecting() = runBlocking {
-        val connector = FakeTcpConnection()
+        val connector = FakeTcpConnector()
         val checker = AndroidTcpPortChecker(connector)
 
         val result = checker.check("127.0.0.1", port = 443, timeoutMs = 0)
@@ -144,9 +143,12 @@ class AndroidTcpPortCheckerTest {
         assertEquals(3_000, TcpPortChecker.DEFAULT_TIMEOUT_MS)
     }
 
-    private class FakeTcpConnection(
-        private val action: (String, Int, Int) -> Unit = { _, _, _ -> },
-    ) : TcpConnection {
+    private class FakeTcpConnector(
+        private val result: TcpConnectResult = TcpConnectResult(
+            TcpConnectOutcome.CONNECTED,
+            latencyMs = 1,
+        ),
+    ) : TcpConnector {
         var callCount: Int = 0
             private set
         var receivedHost: String? = null
@@ -156,12 +158,16 @@ class AndroidTcpPortCheckerTest {
         var receivedTimeoutMs: Int? = null
             private set
 
-        override fun connect(host: String, port: Int, timeoutMs: Int) {
+        override fun createAttempt(host: String, port: Int, timeoutMs: Int): TcpConnectAttempt {
             callCount += 1
             receivedHost = host
             receivedPort = port
             receivedTimeoutMs = timeoutMs
-            action(host, port, timeoutMs)
+            return object : TcpConnectAttempt {
+                override suspend fun awaitResult(): TcpConnectResult = result
+
+                override fun close() = Unit
+            }
         }
     }
 }

@@ -8,6 +8,8 @@ import com.networktoolbox.core.network.data.AndroidNetworkRepository
 import com.networktoolbox.core.network.data.AndroidPingEngine
 import com.networktoolbox.core.network.data.AndroidPingSessionProbe
 import com.networktoolbox.core.network.data.AndroidTcpPortChecker
+import com.networktoolbox.core.network.data.AndroidTcpConnector
+import com.networktoolbox.core.network.data.SystemPortScanTargetResolver
 import com.networktoolbox.core.network.data.AndroidLanNetworkBindingProvider
 import com.networktoolbox.core.network.data.AndroidWakeOnLanSender
 import com.networktoolbox.core.network.data.traceroute.AndroidNativeUdpTracerouteProbe
@@ -19,6 +21,12 @@ import com.networktoolbox.core.network.ping.DefaultPingSessionEngine
 import com.networktoolbox.core.network.ping.PingProbe
 import com.networktoolbox.core.network.ping.PingSessionEngine
 import com.networktoolbox.core.network.tcp.TcpPortChecker
+import com.networktoolbox.core.network.tcp.TcpConnector
+import com.networktoolbox.core.network.portscan.DefaultPortScanEngine
+import com.networktoolbox.core.network.portscan.DefaultPortScanNetworkFingerprintProvider
+import com.networktoolbox.core.network.portscan.PortScanEngine
+import com.networktoolbox.core.network.portscan.PortScanNetworkFingerprintProvider
+import com.networktoolbox.core.network.portscan.PortScanTargetResolver
 import com.networktoolbox.core.network.traceroute.DefaultTracerouteEngine
 import com.networktoolbox.core.network.traceroute.TracerouteEngine
 import com.networktoolbox.core.network.traceroute.TracerouteNetworkProvider
@@ -113,7 +121,37 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideTcpPortChecker(): TcpPortChecker = AndroidTcpPortChecker()
+    fun provideTcpConnector(): TcpConnector = AndroidTcpConnector()
+
+    @Provides
+    @Singleton
+    fun provideTcpPortChecker(
+        tcpConnector: TcpConnector,
+    ): TcpPortChecker = AndroidTcpPortChecker(tcpConnector)
+
+    @Provides
+    @Singleton
+    fun providePortScanTargetResolver(): PortScanTargetResolver =
+        SystemPortScanTargetResolver()
+
+    @Provides
+    @Singleton
+    fun providePortScanNetworkFingerprintProvider(): PortScanNetworkFingerprintProvider =
+        DefaultPortScanNetworkFingerprintProvider()
+
+    @Provides
+    @Singleton
+    fun providePortScanEngine(
+        tcpConnector: TcpConnector,
+        targetResolver: PortScanTargetResolver,
+        networkRepository: NetworkRepository,
+        fingerprintProvider: PortScanNetworkFingerprintProvider,
+    ): PortScanEngine = DefaultPortScanEngine(
+        tcpConnector = tcpConnector,
+        targetResolver = targetResolver,
+        networkRepository = networkRepository,
+        fingerprintProvider = fingerprintProvider,
+    )
 
     @Provides
     @Singleton

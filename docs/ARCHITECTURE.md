@@ -404,6 +404,41 @@ and notes-only profiles use the same managed-profile retention and persistence
 path established by Task 092. No observation database, new detector, network
 probe, permission, or History schema is added.
 
+## Port Scan Core Engine (Task 101)
+
+Port Scan Phase 1 currently includes only the reusable core boundary; its UI
+and navigation integration have not started. `core:network` owns
+`TcpConnector`, which creates a closeable connect attempt around one ordinary
+Android `Socket`. The existing `AndroidTcpPortChecker` and the new
+`DefaultPortScanEngine` both use that connector, so connect classification and
+socket cleanup cannot diverge. Single Port Check keeps its 3000 ms default and
+existing result contract.
+
+The core flow is:
+
+`PortScanRequest -> PortScanTargetResolver -> DefaultPortScanEngine ->
+TcpConnector -> PortScanSessionResult`
+
+A hostname is resolved once and one IPv4 address is frozen for the session;
+IPv6-only targets are explicitly unsupported in Phase 1. Quick Scan is the
+audited 24-port domain catalog. Custom ranges are inclusive and validated
+within `1..65535`. The scan uses one lazy producer, a bounded channel, and at
+most 32 fixed workers. Its separate connect timeout is 1000 ms. It never
+creates one coroutine per port and retains only open-port detail plus aggregate
+closed, timeout, unreachable, and error counts.
+
+Each active connect attempt is registered and closed on cancellation, network
+change, replacement by a newer generation, and terminal cleanup. A material
+fingerprint change from the shared `NetworkRepository` stops the session
+through the same cancellation path. Generation and coroutine-state checks
+reject late results. Elapsed time uses a monotonic clock. A stopped session
+preserves confirmed open ports and counters but remains explicitly incomplete.
+
+Task 101 adds Hilt bindings for the connector, target resolver, fingerprint
+provider, and engine. It does not add Compose UI, navigation, History or Report
+integration, Room data, profile/identity evidence, Last Seen updates, device
+type inference, permissions, version changes, or release artifacts.
+
 Task 094 closed the runtime migration gate on a Sony XQ-AT72 running Android 12
 (API 31). AndroidX `MigrationTestHelper` executed the real v4 schema fixture
 through `MIGRATION_4_5`; both instrumentation tests passed and SQLite integrity

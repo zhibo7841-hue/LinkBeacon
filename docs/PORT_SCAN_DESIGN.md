@@ -4,7 +4,8 @@ Status: implementation-ready design audit for the candidate v0.8.0 line
 
 Date: 2026-09-19
 
-Implementation status: not started
+Implementation status: Task A Device Edit and Task B Port Scan Core complete;
+Task C UI/integration and Task D performance/real-device regression not started
 
 This document audits the released v0.7.0 codebase and defines the bounded next
 mainline. It does not change runtime code, UI resources, Room, version metadata,
@@ -713,6 +714,17 @@ accessibility, bilingual resources, and tests. Do not change Room schema or any
 identity/Favorite/WoL semantics.
 
 ### Task B — Port Scan Core Engine
+
+**Completed in Task 101.** `core:network` now owns one shared cancellable TCP
+connector used by both the existing single Port Check and the Port Scan engine.
+Port Check retains its 3000 ms default. Port Scan has a separate 1000 ms
+connect timeout, a fixed maximum of 32 workers, a bounded channel, one-time
+IPv4/hostname resolution, typed outcome counts, open-port-only retained detail,
+monotonic elapsed time, network-fingerprint termination, and generation-safe
+late-result rejection. Cancellation closes each registered in-flight Socket.
+The audited 24-port catalog and inclusive `1..65535` validator are domain code.
+No UI, History, Report, Device Profile/identity mutation, permission, Room,
+version, Tag, or Release work is included.
 
 Harden the shared TCP connector for true socket cancellation and typed Android
 outcomes. Add pure request/session/result models, target resolution, Quick Scan
