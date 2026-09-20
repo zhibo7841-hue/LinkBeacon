@@ -20,15 +20,14 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 
 ## Development status
 
-- **Latest stable release:** [v0.7.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.0)
+- **Latest stable release:** [v0.7.1](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.1)
 
-v0.7.0 enhances Device Center with device types and icons, local notes, first
-and last observed information, safer saved-device association, clearer current
-and last observed address semantics, and search by device type or notes. It
-retains the complete English and Simplified-Chinese experience introduced in
-v0.6.0.
+v0.7.1 polishes Device Center with one unified editor for Custom Name, Device
+Type, and Notes. It also adds TCP Port Scan from Tools and Device Detail, with
+Quick Scan, custom ranges, open-port results, common-service hints, Stop, and
+automatic termination when the active network changes.
 
-### Upcoming v0.7.1
+### What's new in v0.7.1
 
 - Unified editing for a device's Custom Name, Device Type, and Notes.
 - TCP Port Scan from Tools and Device Detail.
@@ -87,7 +86,7 @@ that the target device powered on or became reachable.
 
 ## Language support
 
-v0.7.0 supports:
+v0.7.1 supports:
 
 - English.
 - Simplified Chinese.
@@ -117,14 +116,14 @@ the user. This does not mean that diagnostic results are uploaded.
 
 ## Download
 
-The latest stable release is **v0.7.0**:
+The latest stable release is **v0.7.1**:
 
-- [Download LinkBeacon-v0.7.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.0/LinkBeacon-v0.7.0.apk)
-- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.0/LinkBeacon-v0.7.0.apk.sha256)
-- [View the v0.7.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.0)
+- [Download LinkBeacon-v0.7.1.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.1/LinkBeacon-v0.7.1.apk)
+- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.1/LinkBeacon-v0.7.1.apk.sha256)
+- [View the v0.7.1 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.1)
 
 The matching SHA-256 checksum is provided with the release assets. Existing
-v0.6.0 installations can upgrade directly without clearing local data.
+v0.7.0 installations can upgrade directly without clearing local data.
 
 ## Build and development
 
@@ -157,6 +156,8 @@ maintainer-local and are not required for ordinary development builds.
 - [v0.6.0 release readiness](docs/V0.6_RELEASE_READINESS.md)
 - [v0.7.0 release notes](docs/V0.7_RELEASE_NOTES.md)
 - [v0.7.0 release readiness](docs/V0.7_RELEASE_READINESS.md)
+- [v0.7.1 release notes](docs/V0.7.1_RELEASE_NOTES.md)
+- [v0.7.1 release readiness](docs/V0.7.1_RELEASE_READINESS.md)
 - [Published v0.4.0 release notes](docs/releases/v0.4.0.md)
 - [Development workflow](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI design system](docs/UI_DESIGN_SYSTEM.md)

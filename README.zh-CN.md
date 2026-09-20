@@ -19,13 +19,13 @@ NetworkToolbox 已在 v0.5.0 更名为 LinkBeacon。Android application ID
 
 ## 开发状态
 
-- **最新稳定版本：** [v0.7.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.0)
+- **最新稳定版本：** [v0.7.1](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.1)
 
-v0.7.0 增强设备中心，加入设备类型与图标、本地设备备注、首次与最近发现
-信息、更安全的已保存设备关联、更清晰的当前/最近观察地址语义，以及设备
-类型与备注搜索，并继续保留 v0.6.0 引入的完整英文和简体中文体验。
+v0.7.1 进一步完善设备中心，通过统一入口管理自定义名称、设备类型和备注。
+同时新增从工具页和设备详情进入的 TCP 端口扫描，支持快速扫描、自定义范围、
+开放端口结果、常见用途提示、停止扫描，以及网络切换时自动终止。
 
-### 即将推出 v0.7.1
+### v0.7.1 新增内容
 
 - 在同一入口统一编辑设备的自定义名称、设备类型和备注。
 - 从工具页或设备详情执行 TCP 端口扫描。
@@ -80,7 +80,7 @@ LinkBeacon 展示检测事实、可能原因和排障建议。当现有证据无
 
 ## 语言支持
 
-v0.7.0 支持：
+v0.7.1 支持：
 
 - English。
 - 简体中文。
@@ -109,13 +109,13 @@ LinkBeacon 只会为了执行用户主动选择的检测而访问网络。这不
 
 ## 下载
 
-最新稳定版本为 **v0.7.0**：
+最新稳定版本为 **v0.7.1**：
 
-- [下载 LinkBeacon-v0.7.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.0/LinkBeacon-v0.7.0.apk)
-- [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.0/LinkBeacon-v0.7.0.apk.sha256)
-- [查看 v0.7.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.0)
+- [下载 LinkBeacon-v0.7.1.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.1/LinkBeacon-v0.7.1.apk)
+- [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.1/LinkBeacon-v0.7.1.apk.sha256)
+- [查看 v0.7.1 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.1)
 
-对应 SHA-256 校验文件与 Release 附件一同提供。现有 v0.6.0 安装可以直接
+对应 SHA-256 校验文件与 Release 附件一同提供。现有 v0.7.0 安装可以直接
 升级，无需清除本地数据。
 
 ## 构建与开发
@@ -149,6 +149,8 @@ Windows 请使用 `gradlew.bat` 代替 `./gradlew`。Debug APK 生成在
 - [v0.6.0 发布就绪记录](docs/V0.6_RELEASE_READINESS.md)
 - [v0.7.0 Release Notes](docs/V0.7_RELEASE_NOTES.md)
 - [v0.7.0 发布就绪记录](docs/V0.7_RELEASE_READINESS.md)
+- [v0.7.1 Release Notes](docs/V0.7.1_RELEASE_NOTES.md)
+- [v0.7.1 发布就绪记录](docs/V0.7.1_RELEASE_READINESS.md)
 - [已发布的 v0.4.0 Release Notes](docs/releases/v0.4.0.md)
 - [开发流程](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI 设计系统](docs/UI_DESIGN_SYSTEM.md)
