@@ -675,3 +675,40 @@ This log records the confirmed project decisions. New scope or changes to these 
 - Deferred scope: SSL/TLS and Website Diagnostics remain v0.8.0; Wi-Fi
   Analyzer remains v0.9.0. UDP/SYN scanning, fingerprinting, Port Scan History,
   Report integration, IPv6 Port Scan, and background scanning remain excluded.
+
+## Decision: v0.8 SSL/TLS and Website Diagnostics evidence boundary
+
+- Date: 2026-09-21
+- Status: Accepted design baseline; implementation not started
+- Product model: v0.8.0 provides two user-initiated tools. SSL/TLS Check is a
+  Host + Port technical check. Website Diagnostics is a staged URL diagnosis
+  across DNS, TCP, TLS/certificate, redirect, and HTTP evidence. They share
+  typed Core evidence but do not enter global Automatic Diagnosis by default.
+- Interpretation: each stage retains its own fact. TCP success followed by TLS
+  failure is not an Internet failure. HTTP 4xx and 5xx prove that a server
+  responded and are application/resource outcomes, not proof of network loss.
+  Findings and recommendations remain evidence-first and conservative.
+- Trust and identity: platform/app system trust is the authoritative
+  certificate trust baseline. LinkBeacon uses standard SNI and HTTPS endpoint
+  identification (SAN/wildcard/IP rules), does not pin arbitrary websites, and
+  does not implement a trust-all production channel or custom PKIX validator.
+  Self-signed/private-CA, expired, not-yet-valid, and hostname-mismatch evidence
+  is explained without labelling the whole website or network unavailable.
+- Network path: VPN, HTTP proxy, Private DNS, Fake-IP, and Android VALIDATED are
+  context evidence, never faults by themselves. Raw TLS and a proxy-aware HTTP
+  request may use different paths and must not be presented as equivalent.
+  Network change cancels the session rather than mixing evidence.
+- HTTP boundary: requests are bounded diagnostics, not browsing. Redirects are
+  manually limited, response bodies are not downloaded in full, the User-Agent
+  identifies LinkBeacon, and HTTP/3/QUIC/browser/JavaScript behavior is deferred.
+- Persistence and privacy: completed sessions may write at most one versioned
+  local History snapshot; no stage writes a separate record. LinkBeacon does
+  not upload results, while privacy copy must accurately state that the selected
+  resolver/proxy/server observes ordinary diagnostic traffic, including SNI and
+  the requested URL where applicable.
+- Security boundary: no vulnerability scan, TLS score, cipher brute force, CVE
+  lookup, CT search, directory brute force, password/auth testing, Internet-wide
+  scan, or legacy TLS compatibility layer is authorized for v0.8.0.
+- Compatibility: Android 12 remains the mandatory minimum-platform validation
+  target. Android 16 is validated when available. Android 17 local-network
+  permission remains a future target-37 gate and is not requested early.
