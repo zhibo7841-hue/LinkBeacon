@@ -574,7 +574,8 @@ The confirmed version route after v0.7.0 is:
 
 - **v0.7.0 — Device Center V2:** Released.
 - **v0.7.1 — Device Center Polish + Port Scan:** Released; Scope Frozen.
-- **v0.8.0 — SSL/TLS + Website Diagnostics:** Design Audit complete; Planning.
+- **v0.8.0 — SSL/TLS + Website Diagnostics:** In development; TLS / Certificate
+  Core complete, Website HTTP Core and UI pending.
 - **v0.9.0 — Wi-Fi Analyzer:** Planned.
 
 The v0.7.0 release scope is frozen to the Device Center Enhancement described
@@ -598,9 +599,10 @@ The v0.8.0 design audit is complete. Its planning baseline is
 tools, SSL/TLS Check and Website Diagnostics, share typed DNS/TCP/TLS/
 certificate/HTTP evidence while retaining conservative interpretation,
 system-trust semantics, local-only result storage, cancellation, network-change
-protection, and bilingual progressive disclosure. Implementation has not
-started, and this planning status does not change the v0.7.1 release or the
-v0.9.0 Wi-Fi Analyzer reservation.
+protection, and bilingual progressive disclosure. Task A's TLS / Certificate
+Core is complete. Website HTTP Core, UI, History integration, and final
+real-device regression remain pending; this implementation progress does not
+change the v0.7.1 release or the v0.9.0 Wi-Fi Analyzer reservation.
 
 Device Edit Polish provides one `Edit Device Profile` entry for the three
 user-owned profile fields: Custom Name, Device Type, and Notes. Device Detail's

@@ -441,6 +441,52 @@ provider, and engine. It does not add Compose UI, navigation, History or Report
 integration, Room data, profile/identity evidence, Last Seen updates, device
 type inference, permissions, version changes, or release artifacts.
 
+## TLS / Certificate Core (Task 109)
+
+The first v0.8 implementation stage adds a platform-only TLS evidence pipeline
+inside `core:network`:
+
+`TlsProbeRequest -> TcpConnectionConnector -> connected Socket -> SSLSocket ->
+RecordingX509TrustManager -> TlsProbeResult`
+
+`AndroidTcpConnector` remains the one ordinary TCP implementation. Its legacy
+`TcpConnector` adapter still closes a successful socket immediately after
+returning the existing typed connect result, so Port Check and Port Scan retain
+their established behavior and timeouts. The additional
+`TcpConnectionConnector` transfers a successful connected socket to exactly one
+higher-protocol owner. That owner must close it on success, failure, timeout,
+cancellation, or network change. The socket primitive remains in Core and is
+not exposed to Compose or feature presentation code.
+
+`DefaultTlsProbe` layers a platform `SSLSocket` over that exact TCP socket. It
+uses the default app/platform `TrustManagerFactory` and `SSLContext`; no custom
+root store, alternate provider, pinning, or trust-all path exists. A per-probe
+`RecordingX509TrustManager` records the peer-presented chain before delegating
+the unchanged decision to the real trust manager. Delegate failures propagate,
+and the recorded chain is evidence rather than a validated path.
+
+DNS server names are normalized through IDN ASCII rules and sent as SNI. IP
+literals do not invent domain SNI; IPv6 link-local literals without a reliable
+scope are rejected before connecting. After a system-trusted handshake, the
+platform HTTPS hostname verifier records a separate hostname/IP-SAN result.
+Trust failure leaves hostname verification `NOT_EVALUATED`, so trust and name
+evidence cannot overwrite one another.
+
+The immutable result records direct-app-socket transport, selected address and
+port, TCP outcome/timing, TLS handshake timing, negotiated protocol, cipher and
+ALPN when present, platform trust, hostname verification, presented certificate
+Subject/Issuer/SAN/validity/chain length, and conservative typed issues.
+Self-signed is emitted only when subject equals issuer and the leaf verifies
+with its own public key. Core reports remaining validity days but assigns no
+near-expiry severity; later presentation/analyzer policy owns that threshold.
+
+Connect and handshake timeouts are separate (3000 ms and 5000 ms defaults).
+Coroutine cancellation closes the in-flight attempt and both layered sockets.
+The existing shared network fingerprint stops a running probe with the typed
+`NETWORK_CHANGED` outcome. VPN state is retained as context only. This stage
+does not implement HTTP, UI, History, Report, Automatic Diagnosis, scoring,
+cipher enumeration, or a Port Scan-to-TLS action.
+
 ## Port Scan UI and Navigation Integration (Task 102)
 
 `feature:port` now owns `PortScanViewModel` and `PortScanScreen`; both entry

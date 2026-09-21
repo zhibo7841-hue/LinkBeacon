@@ -22,6 +22,7 @@ import com.networktoolbox.core.network.ping.PingProbe
 import com.networktoolbox.core.network.ping.PingSessionEngine
 import com.networktoolbox.core.network.tcp.TcpPortChecker
 import com.networktoolbox.core.network.tcp.TcpConnector
+import com.networktoolbox.core.network.tcp.TcpConnectionConnector
 import com.networktoolbox.core.network.portscan.DefaultPortScanEngine
 import com.networktoolbox.core.network.portscan.DefaultPortScanNetworkFingerprintProvider
 import com.networktoolbox.core.network.portscan.PortScanEngine
@@ -32,6 +33,16 @@ import com.networktoolbox.core.network.traceroute.TracerouteEngine
 import com.networktoolbox.core.network.traceroute.TracerouteNetworkProvider
 import com.networktoolbox.core.network.traceroute.UdpTracerouteNativeProbe
 import com.networktoolbox.core.network.repository.NetworkRepository
+import com.networktoolbox.core.network.tls.DefaultTlsProbe
+import com.networktoolbox.core.network.tls.PlatformTlsHostnameVerifier
+import com.networktoolbox.core.network.tls.PlatformTlsSocketFactoryProvider
+import com.networktoolbox.core.network.tls.SystemTlsClock
+import com.networktoolbox.core.network.tls.SystemTlsTrustManagerProvider
+import com.networktoolbox.core.network.tls.TlsClock
+import com.networktoolbox.core.network.tls.TlsHostnameVerifier
+import com.networktoolbox.core.network.tls.TlsProbe
+import com.networktoolbox.core.network.tls.TlsSocketFactoryProvider
+import com.networktoolbox.core.network.tls.TlsTrustManagerProvider
 import com.networktoolbox.core.network.wol.LanNetworkBindingProvider
 import com.networktoolbox.core.network.wol.WakeOnLanSender
 import com.networktoolbox.feature.dashboard.domain.ObserveNetworkContextUseCase
@@ -121,7 +132,15 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideTcpConnector(): TcpConnector = AndroidTcpConnector()
+    fun provideAndroidTcpConnector(): AndroidTcpConnector = AndroidTcpConnector()
+
+    @Provides
+    @Singleton
+    fun provideTcpConnector(connector: AndroidTcpConnector): TcpConnector = connector
+
+    @Provides
+    @Singleton
+    fun provideTcpConnectionConnector(connector: AndroidTcpConnector): TcpConnectionConnector = connector
 
     @Provides
     @Singleton
@@ -151,6 +170,44 @@ object NetworkModule {
         targetResolver = targetResolver,
         networkRepository = networkRepository,
         fingerprintProvider = fingerprintProvider,
+    )
+
+    @Provides
+    @Singleton
+    fun provideTlsTrustManagerProvider(): TlsTrustManagerProvider =
+        SystemTlsTrustManagerProvider()
+
+    @Provides
+    @Singleton
+    fun provideTlsSocketFactoryProvider(): TlsSocketFactoryProvider =
+        PlatformTlsSocketFactoryProvider()
+
+    @Provides
+    @Singleton
+    fun provideTlsHostnameVerifier(): TlsHostnameVerifier = PlatformTlsHostnameVerifier()
+
+    @Provides
+    @Singleton
+    fun provideTlsClock(): TlsClock = SystemTlsClock()
+
+    @Provides
+    @Singleton
+    fun provideTlsProbe(
+        connectionConnector: TcpConnectionConnector,
+        trustManagerProvider: TlsTrustManagerProvider,
+        socketFactoryProvider: TlsSocketFactoryProvider,
+        hostnameVerifier: TlsHostnameVerifier,
+        networkRepository: NetworkRepository,
+        fingerprintProvider: PortScanNetworkFingerprintProvider,
+        clock: TlsClock,
+    ): TlsProbe = DefaultTlsProbe(
+        connectionConnector = connectionConnector,
+        trustManagerProvider = trustManagerProvider,
+        socketFactoryProvider = socketFactoryProvider,
+        hostnameVerifier = hostnameVerifier,
+        networkRepository = networkRepository,
+        fingerprintProvider = fingerprintProvider,
+        clock = clock,
     )
 
     @Provides

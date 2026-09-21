@@ -1,6 +1,7 @@
 package com.networktoolbox.core.network.data
 
 import com.networktoolbox.core.network.tcp.TcpConnectOutcome
+import com.networktoolbox.core.network.tcp.TcpConnectionResult
 import java.net.ConnectException
 import java.net.Socket
 import java.net.SocketAddress
@@ -33,6 +34,27 @@ class AndroidTcpConnectorTest {
             }
 
             assertEquals(TcpConnectOutcome.CONNECTED, result.outcome)
+            acceptJob.join()
+        }
+    }
+
+    @Test
+    fun successfulConnectionTransfersSocketOwnershipUntilCallerClosesIt() = runBlocking {
+        ServerSocket(0).use { server ->
+            val releaseServer = CountDownLatch(1)
+            val acceptJob = launch(Dispatchers.IO) {
+                server.accept().use { releaseServer.await(5, TimeUnit.SECONDS) }
+            }
+            val connector = AndroidTcpConnector(ioDispatcher = Dispatchers.IO)
+            val attempt = connector.createConnectionAttempt("127.0.0.1", server.localPort, 1_000)
+
+            val result = attempt.awaitConnection() as TcpConnectionResult.Connected
+            attempt.close()
+
+            assertTrue(!result.connection.socket.isClosed)
+            result.connection.close()
+            assertTrue(result.connection.socket.isClosed)
+            releaseServer.countDown()
             acceptJob.join()
         }
     }

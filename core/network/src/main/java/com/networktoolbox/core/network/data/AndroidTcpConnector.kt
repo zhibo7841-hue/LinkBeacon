@@ -3,6 +3,10 @@ package com.networktoolbox.core.network.data
 import com.networktoolbox.core.network.tcp.TcpConnectAttempt
 import com.networktoolbox.core.network.tcp.TcpConnectOutcome
 import com.networktoolbox.core.network.tcp.TcpConnectResult
+import com.networktoolbox.core.network.tcp.TcpConnectionAttempt
+import com.networktoolbox.core.network.tcp.TcpConnectionConnector
+import com.networktoolbox.core.network.tcp.TcpConnectionResult
+import com.networktoolbox.core.network.tcp.ConnectedTcpSocket
 import com.networktoolbox.core.network.tcp.TcpConnector
 import java.io.IOException
 import java.net.ConnectException
@@ -28,9 +32,18 @@ class AndroidTcpConnector(
     private val socketFactory: TcpSocketFactory = TcpSocketFactory(::Socket),
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val nanoTime: () -> Long = System::nanoTime,
-) : TcpConnector {
+) : TcpConnector, TcpConnectionConnector {
     override fun createAttempt(host: String, port: Int, timeoutMs: Int): TcpConnectAttempt =
-        AndroidTcpConnectAttempt(
+        ClosingTcpConnectAttempt(
+            delegate = createConnectionAttempt(host, port, timeoutMs),
+        )
+
+    override fun createConnectionAttempt(
+        host: String,
+        port: Int,
+        timeoutMs: Int,
+    ): TcpConnectionAttempt =
+        AndroidTcpConnectionAttempt(
             socket = socketFactory.create(),
             host = host,
             port = port,
@@ -40,52 +53,94 @@ class AndroidTcpConnector(
         )
 }
 
-private class AndroidTcpConnectAttempt(
+private class ClosingTcpConnectAttempt(
+    private val delegate: TcpConnectionAttempt,
+) : TcpConnectAttempt {
+    override suspend fun awaitResult(): TcpConnectResult = when (val result = delegate.awaitConnection()) {
+        is TcpConnectionResult.Connected -> result.connection.use {
+            TcpConnectResult(
+                outcome = TcpConnectOutcome.CONNECTED,
+                latencyMs = result.latencyMs,
+            )
+        }
+
+        is TcpConnectionResult.Failed -> result.result
+    }
+
+    override fun close() = delegate.close()
+}
+
+private class AndroidTcpConnectionAttempt(
     private val socket: Socket,
     private val host: String,
     private val port: Int,
     private val timeoutMs: Int,
     private val ioDispatcher: CoroutineDispatcher,
     private val nanoTime: () -> Long,
-) : TcpConnectAttempt {
+) : TcpConnectionAttempt {
     private val closed = AtomicBoolean(false)
+    private val ownershipTransferred = AtomicBoolean(false)
+    private val awaited = AtomicBoolean(false)
 
-    override suspend fun awaitResult(): TcpConnectResult = withContext(ioDispatcher) {
+    override suspend fun awaitConnection(): TcpConnectionResult = withContext(ioDispatcher) {
+        check(awaited.compareAndSet(false, true)) { "A TCP connection attempt can only be awaited once." }
         suspendCancellableCoroutine { continuation ->
             continuation.invokeOnCancellation { close() }
             val startedAt = nanoTime()
-            val result = try {
+            val result: TcpConnectionResult = try {
                 socket.connect(InetSocketAddress(host, port), timeoutMs)
-                TcpConnectResult(
-                    outcome = TcpConnectOutcome.CONNECTED,
+                TcpConnectionResult.Connected(
+                    connection = AndroidConnectedTcpSocket(socket),
                     latencyMs = elapsedMillis(startedAt),
                 )
             } catch (_: SocketTimeoutException) {
-                TcpConnectResult(TcpConnectOutcome.TIMEOUT, errorMessage = TIMEOUT)
+                TcpConnectionResult.Failed(
+                    TcpConnectResult(TcpConnectOutcome.TIMEOUT, errorMessage = TIMEOUT),
+                )
             } catch (_: NoRouteToHostException) {
-                TcpConnectResult(TcpConnectOutcome.NO_ROUTE, errorMessage = NO_ROUTE)
+                TcpConnectionResult.Failed(
+                    TcpConnectResult(TcpConnectOutcome.NO_ROUTE, errorMessage = NO_ROUTE),
+                )
             } catch (error: ConnectException) {
-                classifyConnectException(error)
+                TcpConnectionResult.Failed(classifyConnectException(error))
             } catch (error: SocketException) {
-                classifySocketException(error)
+                TcpConnectionResult.Failed(classifySocketException(error))
             } catch (_: IOException) {
-                TcpConnectResult(TcpConnectOutcome.ERROR, errorMessage = UNKNOWN_ERROR)
+                TcpConnectionResult.Failed(
+                    TcpConnectResult(TcpConnectOutcome.ERROR, errorMessage = UNKNOWN_ERROR),
+                )
             } catch (_: SecurityException) {
-                TcpConnectResult(TcpConnectOutcome.ERROR, errorMessage = UNKNOWN_ERROR)
+                TcpConnectionResult.Failed(
+                    TcpConnectResult(TcpConnectOutcome.ERROR, errorMessage = UNKNOWN_ERROR),
+                )
             } catch (_: RuntimeException) {
-                TcpConnectResult(TcpConnectOutcome.ERROR, errorMessage = UNKNOWN_ERROR)
-            } finally {
+                TcpConnectionResult.Failed(
+                    TcpConnectResult(TcpConnectOutcome.ERROR, errorMessage = UNKNOWN_ERROR),
+                )
+            }
+
+            if (result is TcpConnectionResult.Connected && continuation.isActive) {
+                ownershipTransferred.set(true)
+            } else if (result !is TcpConnectionResult.Connected) {
                 close()
             }
 
             if (continuation.isActive) {
-                runCatching { continuation.resume(result) }
+                runCatching {
+                    continuation.resume(result) { _, value, _ ->
+                        (value as? TcpConnectionResult.Connected)?.connection?.close()
+                    }
+                }.onFailure {
+                    (result as? TcpConnectionResult.Connected)?.connection?.close()
+                }
+            } else {
+                (result as? TcpConnectionResult.Connected)?.connection?.close()
             }
         }
     }
 
     override fun close() {
-        if (closed.compareAndSet(false, true)) {
+        if (!ownershipTransferred.get() && closed.compareAndSet(false, true)) {
             runCatching { socket.close() }
         }
     }
@@ -133,5 +188,20 @@ private class AndroidTcpConnectAttempt(
         const val NO_ROUTE = "No route to host"
         const val NETWORK_UNREACHABLE = "Network unreachable"
         const val UNKNOWN_ERROR = "Unknown error"
+    }
+}
+
+private class AndroidConnectedTcpSocket(
+    override val socket: Socket,
+) : ConnectedTcpSocket {
+    private val closed = AtomicBoolean(false)
+
+    override val remoteAddress: String?
+        get() = socket.inetAddress?.hostAddress
+
+    override fun close() {
+        if (closed.compareAndSet(false, true)) {
+            runCatching { socket.close() }
+        }
     }
 }

@@ -279,8 +279,8 @@ The SSL/TLS core recommendation is Android/Java standard TLS:
 - client mode, finite handshake/read timeout, cancellation by closing the
   exact raw and TLS sockets;
 - `SNIHostName` for DNS names;
-- `SSLParameters.endpointIdentificationAlgorithm = "HTTPS"` for standard
-  endpoint identity verification;
+- the platform HTTPS hostname verifier after a system-trusted handshake, so
+  endpoint identity remains a separate observation from chain trust;
 - the negotiated `SSLSession` for protocol, cipher suite, and peer chain.
 
 Do not enable disabled legacy protocols, install an alternate provider, use a
@@ -380,10 +380,11 @@ Advanced details may show each intermediate's Subject/Issuer and validity
 dates. Serial number, raw ASN.1 extensions, signature bytes, key material, and
 every X.509 field are not part of the ordinary screen.
 
-One centralized policy sets the expiry notice threshold to **30 calendar days**.
-`0..30` days remaining is `ATTENTION`, not failure. Expired and not-yet-valid
-are certificate failures. The threshold belongs in one Core policy object and
-must not be duplicated in UI, analyzer, and History.
+Core exposes validity dates, validity status, and remaining whole days without
+assigning a near-expiry severity. A later presentation/analyzer policy may set
+the planned **30 calendar day** notice threshold (`0..30` days is attention,
+not failure), but that policy must be centralized there and not duplicated in
+UI, analyzer, and History.
 
 ## 10. HTTP Stage
 
@@ -968,9 +969,11 @@ remains only a hint; 443 open never means TLS confirmed.
 
 Keep the implementation split small:
 
-1. **Task A — TLS / Certificate Core:** input normalization shared primitives,
-   established TCP hand-off, standard TLS probe, system trust/hostname checks,
-   certificate policy/models, cancellation, fixtures, and unit tests. No UI.
+1. **Task A — TLS / Certificate Core: Completed.** Input normalization, shared
+   established-TCP hand-off, platform TLS probe, system trust plus separate
+   hostname checks, certificate evidence/models, cancellation/network-change
+   cleanup, deterministic fixtures, unit tests, and Android 12 instrumentation
+   are implemented. No UI, History, or Report integration was added.
 2. **Task B — Website Diagnostics Core:** dependency audit/measurement,
    HTTP transport, staged orchestrator, proxy/path semantics, redirects,
    analyzer, immutable snapshot, cancellation/network change, and fake tests.
@@ -985,4 +988,5 @@ Keep the implementation split small:
    cleanup, cancellation, APK/dependency measurement, and release-scope audit.
 
 Only after Tasks A-E pass should a separately authorized v0.8.0 RC Preparation
-change `versionName`/`versionCode`. This design task does not start Task A.
+change `versionName`/`versionCode`. Task B HTTP Core, Task C UI, Task D History,
+and Task E final regression have not started.
