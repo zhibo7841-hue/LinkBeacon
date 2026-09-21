@@ -40,6 +40,7 @@ internal class AndroidNetworkContextReader(context: Context) {
             val capabilities = networkCapabilities ?: manager.getNetworkCapabilities(network)
             val properties = linkProperties ?: manager.getLinkProperties(network)
             val wifiInfo = capabilities?.transportInfo as? WifiInfo
+            val proxy = properties?.httpProxy
 
             NetworkContextMapper.map(
                 NetworkContextSnapshot(
@@ -64,6 +65,11 @@ internal class AndroidNetworkContextReader(context: Context) {
                     // NET_CAPABILITY_PARTIAL_CONNECTIVITY is not part of the public
                     // android-36 SDK surface, so do not guess or use a hidden constant.
                     partialConnectivity = null,
+                    proxyHost = proxy?.host?.takeIf(String::isNotBlank),
+                    proxyPort = proxy?.port?.takeIf { it in 1..65_535 },
+                    proxyPacUrl = proxy?.pacFileUrl
+                        ?.toString()
+                        ?.takeIf { it.isNotBlank() && it != "" },
                     wifiName = wifiInfo?.ssid
                         ?.takeUnless { it.isBlank() || it == WifiManager.UNKNOWN_SSID }
                         ?.trim('"'),

@@ -21,6 +21,9 @@ class DefaultPortScanNetworkFingerprintProvider : PortScanNetworkFingerprintProv
             context.gateway.orEmpty().trim(),
             context.dnsServers.map(String::trim).filter(String::isNotBlank).sorted().joinToString(","),
             context.vpnActive.toString(),
+            context.proxyHost.orEmpty().trim().lowercase(Locale.ROOT),
+            context.proxyPort?.toString().orEmpty(),
+            context.proxyPacUrl.orEmpty().trim(),
         ).joinToString("|")
         return MessageDigest.getInstance("SHA-256")
             .digest(canonical.toByteArray(Charsets.UTF_8))

@@ -1,6 +1,7 @@
 package com.networktoolbox.di
 
 import android.content.Context
+import com.networktoolbox.BuildConfig
 import com.networktoolbox.core.common.history.HistoryRecorder
 import com.networktoolbox.core.network.data.AndroidDnsEngine
 import com.networktoolbox.core.network.data.dns.AndroidDnsQueryEngine
@@ -16,6 +17,9 @@ import com.networktoolbox.core.network.data.traceroute.AndroidNativeUdpTracerout
 import com.networktoolbox.core.network.data.traceroute.AndroidTracerouteNetworkProvider
 import com.networktoolbox.core.network.dns.DnsEngine
 import com.networktoolbox.core.network.dns.DnsQueryEngine
+import com.networktoolbox.core.network.http.HttpProbe
+import com.networktoolbox.core.network.http.OkHttpProbe
+import com.networktoolbox.core.network.http.WebsiteUserAgentProvider
 import com.networktoolbox.core.network.ping.PingEngine
 import com.networktoolbox.core.network.ping.DefaultPingSessionEngine
 import com.networktoolbox.core.network.ping.PingProbe
@@ -45,6 +49,12 @@ import com.networktoolbox.core.network.tls.TlsSocketFactoryProvider
 import com.networktoolbox.core.network.tls.TlsTrustManagerProvider
 import com.networktoolbox.core.network.wol.LanNetworkBindingProvider
 import com.networktoolbox.core.network.wol.WakeOnLanSender
+import com.networktoolbox.core.network.website.DefaultWebsiteDiagnosticAnalyzer
+import com.networktoolbox.core.network.website.DefaultWebsiteDiagnosticUseCase
+import com.networktoolbox.core.network.website.SystemWebsiteDiagnosticClock
+import com.networktoolbox.core.network.website.WebsiteDiagnosticAnalyzer
+import com.networktoolbox.core.network.website.WebsiteDiagnosticClock
+import com.networktoolbox.core.network.website.WebsiteDiagnosticUseCase
 import com.networktoolbox.feature.dashboard.domain.ObserveNetworkContextUseCase
 import com.networktoolbox.feature.dns.domain.LookupDnsUseCase
 import com.networktoolbox.feature.ping.domain.ExecutePingUseCase
@@ -208,6 +218,48 @@ object NetworkModule {
         networkRepository = networkRepository,
         fingerprintProvider = fingerprintProvider,
         clock = clock,
+    )
+
+    @Provides
+    @Singleton
+    fun provideHttpProbe(): HttpProbe = OkHttpProbe()
+
+    @Provides
+    @Singleton
+    fun provideWebsiteUserAgentProvider(): WebsiteUserAgentProvider =
+        WebsiteUserAgentProvider { "LinkBeacon/${BuildConfig.VERSION_NAME}" }
+
+    @Provides
+    @Singleton
+    fun provideWebsiteDiagnosticClock(): WebsiteDiagnosticClock = SystemWebsiteDiagnosticClock()
+
+    @Provides
+    @Singleton
+    fun provideWebsiteDiagnosticAnalyzer(): WebsiteDiagnosticAnalyzer =
+        DefaultWebsiteDiagnosticAnalyzer()
+
+    @Provides
+    @Singleton
+    fun provideWebsiteDiagnosticUseCase(
+        dnsQueryEngine: DnsQueryEngine,
+        tcpConnector: TcpConnector,
+        tlsProbe: TlsProbe,
+        httpProbe: HttpProbe,
+        networkRepository: NetworkRepository,
+        fingerprintProvider: PortScanNetworkFingerprintProvider,
+        analyzer: WebsiteDiagnosticAnalyzer,
+        clock: WebsiteDiagnosticClock,
+        userAgentProvider: WebsiteUserAgentProvider,
+    ): WebsiteDiagnosticUseCase = DefaultWebsiteDiagnosticUseCase(
+        dnsQueryEngine = dnsQueryEngine,
+        tcpConnector = tcpConnector,
+        tlsProbe = tlsProbe,
+        httpProbe = httpProbe,
+        networkRepository = networkRepository,
+        fingerprintProvider = fingerprintProvider,
+        analyzer = analyzer,
+        clock = clock,
+        userAgentProvider = userAgentProvider,
     )
 
     @Provides

@@ -974,9 +974,12 @@ Keep the implementation split small:
    hostname checks, certificate evidence/models, cancellation/network-change
    cleanup, deterministic fixtures, unit tests, and Android 12 instrumentation
    are implemented. No UI, History, or Report integration was added.
-2. **Task B — Website Diagnostics Core:** dependency audit/measurement,
-   HTTP transport, staged orchestrator, proxy/path semantics, redirects,
-   analyzer, immutable snapshot, cancellation/network change, and fake tests.
+2. **Task B — Website Diagnostics Core: Completed.** OkHttp 5.4.0 is the one
+   audited HTTP stack; the implementation includes URL normalization, staged
+   DNS/TCP/TLS/HTTP orchestration, explicit direct-versus-proxy evidence,
+   manual bounded redirects, immutable snapshots, stable analyzer codes,
+   cancellation/network-change cleanup, local fixtures, and regression tests.
+   No UI, History, Report, Share, or Automatic Diagnosis integration was added.
 3. **Task C — SSL/TLS + Website UI:** two Tools routes, progressive UI,
    bilingual/accessibility resources, ViewModels, source-aware navigation, and
    Compose tests. No Device Detail or Automatic Diagnosis integration.
@@ -988,5 +991,22 @@ Keep the implementation split small:
    cleanup, cancellation, APK/dependency measurement, and release-scope audit.
 
 Only after Tasks A-E pass should a separately authorized v0.8.0 RC Preparation
-change `versionName`/`versionCode`. Task B HTTP Core, Task C UI, Task D History,
-and Task E final regression have not started.
+change `versionName`/`versionCode`. Task C UI has not started. Task D History /
+optional Copy remains pending a separately confirmed scope decision, and Task E
+final regression has not started.
+
+### Task B implementation boundary
+
+Task B preserves the design's evidence hierarchy: DNS success, TCP connect,
+TLS handshake, certificate trust/name checks, and HTTP response are separate
+facts. The direct diagnostic probes reuse the existing DNS, TCP, and TLS Core;
+the actual HTTP request records its own OkHttp route. A configured/PAC proxy can
+therefore continue despite local target-DNS failure, and a successful proxied
+HTTP response does not rewrite a failed direct TLS probe as successful.
+
+OkHttp 5.4.0 was selected because it provides owned per-call cancellation,
+independent timeouts, disabled automatic redirects, protocol and route
+evidence, and immediate body close on Android 12 while remaining compatible
+with this repository's compileSdk 36 baseline. It is Apache-2.0 licensed and
+transitively adds Okio 3.17.0. Retrofit, WebView, browser stacks, trust-all TLS,
+cookie persistence, authentication, and body download are not present.

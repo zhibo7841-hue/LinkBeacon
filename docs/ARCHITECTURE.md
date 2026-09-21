@@ -487,6 +487,52 @@ The existing shared network fingerprint stops a running probe with the typed
 does not implement HTTP, UI, History, Report, Automatic Diagnosis, scoring,
 cipher enumeration, or a Port Scan-to-TLS action.
 
+## Website Diagnostics Core (Task 110)
+
+Task B adds an immutable staged Website Diagnostics pipeline inside
+`core:network` without adding UI or persistence:
+
+`WebsiteDiagnosticRequest -> URL normalization -> DNS -> diagnostic TCP ->
+direct TLS evidence -> actual HTTP request -> manual redirect orchestration ->
+WebsiteDiagnosticAnalyzer -> WebsiteDiagnosticSnapshot`
+
+`WebsiteTargetNormalizer` accepts only HTTP and HTTPS, defaults a scheme-less
+target to HTTPS, uses standard IDN conversion and URL resolution, rejects user
+information, removes fragments from execution, and separates the executable URL
+from a query-redacted display URL. IP literals make DNS explicitly not
+applicable. Domain lookups reuse `DnsQueryEngine`; TCP candidate attempts reuse
+`TcpConnector`; HTTPS evidence reuses `TlsProbe`. Candidate failures remain in
+the hop evidence when a later address succeeds.
+
+The production `HttpProbe` adapter uses OkHttp 5.4.0 (Apache License 2.0).
+Redirects and connection retries are disabled, cookies are disabled, GET uses
+only the LinkBeacon user agent and `Accept: */*`, and response bodies are closed
+without being consumed. It retains only status, protocol, Location, Server,
+Content-Type, Via, timing, failure type, and actual route class. Each in-flight
+call has explicit `Call.cancel()` ownership.
+
+Direct DNS/TCP/TLS evidence is never presented as the same route as the HTTP
+client's actual transport. The network snapshot carries static proxy and PAC
+context, while OkHttp route evidence takes precedence once observed. A proxy
+path may continue to HTTP when local target DNS fails; a direct path cannot.
+VPN and Android validation remain context rather than success/failure claims.
+
+The use case follows at most five redirects and creates at most six independent
+hops. Relative, absolute, cross-host, HTTP-to-HTTPS, and HTTPS-to-HTTP redirects
+use standard URL resolution; loops, missing/invalid Location values, and the
+limit have stable typed results. Every hop retains independent DNS, TCP, TLS,
+certificate, HTTP, transport, and monotonic timing evidence. HTTP 4xx and 5xx
+remain valid application responses and never overwrite successful lower-layer
+evidence.
+
+Session cancellation closes TCP attempts and HTTP calls and propagates through
+DNS and TLS. A shared network fingerprint races the operation; change cancels
+the active stage and returns only already committed immutable hops with the
+typed `NETWORK_CHANGED` outcome. A pure analyzer emits stable finding and
+recommendation codes, never localized UI prose. This stage writes no History,
+Report/PDF/Share data and does not join Automatic Diagnosis, Device Detail, or
+Port Scan.
+
 ## Port Scan UI and Navigation Integration (Task 102)
 
 `feature:port` now owns `PortScanViewModel` and `PortScanScreen`; both entry

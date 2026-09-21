@@ -27,6 +27,12 @@ data class NetworkContext(
     val captivePortal: Boolean? = null,
     /** Whether Android reports partial connectivity for this network. */
     val partialConnectivity: Boolean? = null,
+    /** Static HTTP proxy host configured for the active link, when exposed. */
+    val proxyHost: String? = null,
+    /** Static HTTP proxy port configured for the active link, when exposed. */
+    val proxyPort: Int? = null,
+    /** PAC URL configured for the active link, when exposed. */
+    val proxyPacUrl: String? = null,
 ) {
     companion object {
         fun unknown(): NetworkContext = NetworkContext(
@@ -47,6 +53,9 @@ data class NetworkContext(
             privateDnsServerName = null,
             captivePortal = null,
             partialConnectivity = null,
+            proxyHost = null,
+            proxyPort = null,
+            proxyPacUrl = null,
         )
 
         fun noActiveNetwork(): NetworkContext = NetworkContext(
@@ -67,6 +76,9 @@ data class NetworkContext(
             privateDnsServerName = null,
             captivePortal = null,
             partialConnectivity = null,
+            proxyHost = null,
+            proxyPort = null,
+            proxyPacUrl = null,
         )
     }
 }
