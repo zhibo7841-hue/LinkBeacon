@@ -15,6 +15,10 @@
     <string name="home_lan_help">Discover local devices</string>
     <string name="home_diagnosis">Network Diagnosis</string>
     <string name="home_diagnosis_help">Check for connection issues</string>
+    <string name="home_tls_check">SSL/TLS Check</string>
+    <string name="home_tls_check_help">Inspect a server certificate</string>
+    <string name="home_website_diagnostics">Website Diagnostics</string>
+    <string name="home_website_diagnostics_help">Diagnose website access</string>
     <string name="home_connectivity">Connectivity &amp; Path</string>
     <string name="home_resolution">Resolution &amp; Services</string>
     <string name="home_network_address">Network &amp; Address</string>

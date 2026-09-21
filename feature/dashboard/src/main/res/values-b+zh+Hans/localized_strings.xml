@@ -15,6 +15,10 @@
     <string name="home_lan_help">发现局域网设备</string>
     <string name="home_diagnosis">网络诊断</string>
     <string name="home_diagnosis_help">自动检查网络问题</string>
+    <string name="home_tls_check">SSL/TLS 检查</string>
+    <string name="home_tls_check_help">检查服务器证书</string>
+    <string name="home_website_diagnostics">网站诊断</string>
+    <string name="home_website_diagnostics_help">诊断网站访问问题</string>
     <string name="home_connectivity">连通与路径</string>
     <string name="home_resolution">解析与服务</string>
     <string name="home_network_address">网络与地址</string>

@@ -23,13 +23,13 @@ class ToolCatalogTest {
                     DashboardToolId.TRACEROUTE,
                     DashboardToolId.PORT_SCAN,
                 ),
-                listOf(DashboardToolId.DNS),
+                listOf(DashboardToolId.DNS, DashboardToolId.TLS_CHECK),
                 listOf(DashboardToolId.SUBNET, DashboardToolId.LAN_SCAN),
-                listOf(DashboardToolId.REPORT),
+                listOf(DashboardToolId.REPORT, DashboardToolId.WEBSITE_DIAGNOSTICS),
             ),
             sections.map { section -> section.tools.map(DashboardToolDefinition::id) },
         )
-        assertPresentationEquals(8, sections.flatMap { it.tools }.distinctBy(DashboardToolDefinition::id).size)
+        assertPresentationEquals(10, sections.flatMap { it.tools }.distinctBy(DashboardToolDefinition::id).size)
     }
 
     @Test
@@ -66,6 +66,8 @@ class ToolCatalogTest {
                 DashboardToolId.SUBNET to "计算网络地址",
                 DashboardToolId.LAN_SCAN to "发现局域网设备",
                 DashboardToolId.REPORT to "自动检查网络问题",
+                DashboardToolId.TLS_CHECK to "检查服务器证书",
+                DashboardToolId.WEBSITE_DIAGNOSTICS to "诊断网站访问问题",
             ),
             definitions.associate { it.id to it.description },
         )
@@ -93,5 +95,7 @@ class ToolCatalogTest {
             onOpenSubnet = { onClick(DashboardToolId.SUBNET) },
             onOpenLanScan = { onClick(DashboardToolId.LAN_SCAN) },
             onOpenReport = { onClick(DashboardToolId.REPORT) },
+            onOpenTlsCheck = { onClick(DashboardToolId.TLS_CHECK) },
+            onOpenWebsiteDiagnostics = { onClick(DashboardToolId.WEBSITE_DIAGNOSTICS) },
         )
 }

@@ -94,6 +94,22 @@ enum class WebsiteStageStatus {
     UNKNOWN,
 }
 
+enum class WebsiteProgressStatus {
+    RUNNING,
+    PASS,
+    ATTENTION,
+    FAIL,
+    NOT_APPLICABLE,
+    SKIPPED,
+}
+
+data class WebsiteDiagnosticProgress(
+    val hopIndex: Int,
+    val targetUrlRedacted: String,
+    val stage: WebsiteStage,
+    val status: WebsiteProgressStatus,
+)
+
 enum class WebsiteDnsFailureReason {
     NXDOMAIN,
     NO_RECORDS,

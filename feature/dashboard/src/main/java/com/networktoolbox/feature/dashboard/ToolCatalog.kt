@@ -5,6 +5,8 @@ import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Lan
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.WifiTethering
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.networktoolbox.core.designsystem.NetworkToolAccent
@@ -18,6 +20,8 @@ internal enum class DashboardToolId {
     SUBNET,
     LAN_SCAN,
     REPORT,
+    TLS_CHECK,
+    WEBSITE_DIAGNOSTICS,
 }
 
 internal data class DashboardNavigationCallbacks(
@@ -29,6 +33,8 @@ internal data class DashboardNavigationCallbacks(
     val onOpenSubnet: () -> Unit,
     val onOpenLanScan: () -> Unit,
     val onOpenReport: () -> Unit,
+    val onOpenTlsCheck: () -> Unit = {},
+    val onOpenWebsiteDiagnostics: () -> Unit = {},
 )
 
 internal data class DashboardToolDefinition(
@@ -113,6 +119,22 @@ internal fun dashboardToolDefinitions(
         accent = NetworkToolAccent.AMBER,
         onClick = callbacks.onOpenReport,
     ),
+    DashboardToolDefinition(
+        id = DashboardToolId.TLS_CHECK,
+        icon = Icons.Outlined.Security,
+        title = R.string.home_tls_check,
+        description = R.string.home_tls_check_help,
+        accent = NetworkToolAccent.CYAN,
+        onClick = callbacks.onOpenTlsCheck,
+    ),
+    DashboardToolDefinition(
+        id = DashboardToolId.WEBSITE_DIAGNOSTICS,
+        icon = Icons.Outlined.Language,
+        title = R.string.home_website_diagnostics,
+        description = R.string.home_website_diagnostics_help,
+        accent = NetworkToolAccent.AMBER,
+        onClick = callbacks.onOpenWebsiteDiagnostics,
+    ),
 )
 
 internal fun quickToolDefinitions(
@@ -144,6 +166,7 @@ internal fun dashboardToolSections(
             title = R.string.home_resolution,
             tools = listOf(
                 definitions.getValue(DashboardToolId.DNS),
+                definitions.getValue(DashboardToolId.TLS_CHECK),
             ),
         ),
         DashboardToolSection(
@@ -157,6 +180,7 @@ internal fun dashboardToolSections(
             title = R.string.home_diagnostics,
             tools = listOf(
                 definitions.getValue(DashboardToolId.REPORT),
+                definitions.getValue(DashboardToolId.WEBSITE_DIAGNOSTICS),
             ),
         ),
     )

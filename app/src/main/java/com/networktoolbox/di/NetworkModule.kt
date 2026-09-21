@@ -101,6 +101,9 @@ import com.networktoolbox.feature.report.diagnostic.v4.DiagnosticAnalyzerV4
 import com.networktoolbox.feature.report.domain.DnsUseCase as ReportDnsUseCase
 import com.networktoolbox.feature.report.domain.PingUseCase as ReportPingUseCase
 import com.networktoolbox.feature.report.domain.TcpUseCase as ReportTcpUseCase
+import com.networktoolbox.feature.webdiagnostics.domain.RunTlsCheck
+import com.networktoolbox.feature.webdiagnostics.domain.RunTlsCheckUseCase
+import com.networktoolbox.feature.webdiagnostics.domain.TlsCheckAnalyzer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -260,6 +263,17 @@ object NetworkModule {
         analyzer = analyzer,
         clock = clock,
         userAgentProvider = userAgentProvider,
+    )
+
+    @Provides
+    @Singleton
+    fun provideRunTlsCheck(
+        dnsQueryEngine: DnsQueryEngine,
+        tlsProbe: TlsProbe,
+    ): RunTlsCheck = RunTlsCheckUseCase(
+        dnsQueryEngine = dnsQueryEngine,
+        tlsProbe = tlsProbe,
+        analyzer = TlsCheckAnalyzer(),
     )
 
     @Provides

@@ -86,6 +86,10 @@ import com.networktoolbox.feature.subnet.presentation.SubnetViewModel
 import com.networktoolbox.feature.subnet.ui.SubnetScreen
 import com.networktoolbox.feature.traceroute.presentation.TracerouteViewModel
 import com.networktoolbox.feature.traceroute.ui.TracerouteScreen
+import com.networktoolbox.feature.webdiagnostics.presentation.TlsCheckViewModel
+import com.networktoolbox.feature.webdiagnostics.presentation.WebsiteDiagnosticsViewModel
+import com.networktoolbox.feature.webdiagnostics.ui.TlsCheckScreen
+import com.networktoolbox.feature.webdiagnostics.ui.WebsiteDiagnosticsScreen
 import com.networktoolbox.core.designsystem.NetworkToolboxTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
@@ -107,6 +111,8 @@ class MainActivity : AppCompatActivity() {
     private val subnetViewModel: SubnetViewModel by viewModels()
     private val lanScannerViewModel: LanScannerViewModel by viewModels()
     private val tracerouteViewModel: TracerouteViewModel by viewModels()
+    private val tlsCheckViewModel: TlsCheckViewModel by viewModels()
+    private val websiteDiagnosticsViewModel: WebsiteDiagnosticsViewModel by viewModels()
     private val savedReportViewModel: SavedReportViewModel by viewModels()
     private val pdfExportViewModel: PdfExportViewModel by viewModels()
     private var pdfLauncher: ActivityResultLauncher<String>? = null
@@ -218,6 +224,8 @@ class MainActivity : AppCompatActivity() {
             val deviceCenterSearchState by lanScannerViewModel.deviceCenterSearchState.collectAsState()
             val favoriteActionError by lanScannerViewModel.favoriteActionError.collectAsState()
             val tracerouteUiState by tracerouteViewModel.uiState.collectAsState()
+            val tlsCheckUiState by tlsCheckViewModel.uiState.collectAsState()
+            val websiteDiagnosticsUiState by websiteDiagnosticsViewModel.uiState.collectAsState()
             var navigationState by rememberSaveable(stateSaver = AppNavigationState.Saver) {
                 mutableStateOf(AppNavigationState())
             }
@@ -304,6 +312,12 @@ class MainActivity : AppCompatActivity() {
                 if (toolScreen == ToolScreen.TRACEROUTE && screen != ToolScreen.TRACEROUTE) {
                     tracerouteViewModel.stop()
                 }
+                if (toolScreen == ToolScreen.TLS_CHECK && screen != ToolScreen.TLS_CHECK) {
+                    tlsCheckViewModel.stop()
+                }
+                if (toolScreen == ToolScreen.WEBSITE_DIAGNOSTICS && screen != ToolScreen.WEBSITE_DIAGNOSTICS) {
+                    websiteDiagnosticsViewModel.stop()
+                }
                 when (screen) {
                     ToolScreen.PING -> pingViewModel.applyNavigationTarget(null)
                     ToolScreen.TCP -> tcpViewModel.applyNavigationHost(null)
@@ -363,6 +377,8 @@ class MainActivity : AppCompatActivity() {
                 lanScannerViewModel.stopScan()
                 tracerouteViewModel.stop()
                 portScanViewModel.stopScan()
+                tlsCheckViewModel.stop()
+                websiteDiagnosticsViewModel.stop()
                 if (destination == TopLevelDestination.DEVICES) {
                     lanScannerViewModel.prepareDeviceCenter()
                 }
@@ -391,6 +407,8 @@ class MainActivity : AppCompatActivity() {
                 lanScannerViewModel.stopScan()
                 tracerouteViewModel.stop()
                 portScanViewModel.stopScan()
+                tlsCheckViewModel.stop()
+                websiteDiagnosticsViewModel.stop()
                 navigationState = navigationState.goBack()
             }
 
@@ -412,6 +430,8 @@ class MainActivity : AppCompatActivity() {
                     lanScannerViewModel.stopScan()
                     tracerouteViewModel.stop()
                     portScanViewModel.stopScan()
+                    tlsCheckViewModel.stop()
+                    websiteDiagnosticsViewModel.stop()
                 }
                 navigationState = navigationState.openSecondaryDestination(destination)
                 if (destination == ToolScreen.HISTORY) {
@@ -510,6 +530,8 @@ class MainActivity : AppCompatActivity() {
                                     onOpenSubnet = { openTool(ToolScreen.SUBNET) },
                                     onOpenLanScan = { openTool(ToolScreen.LAN_SCAN) },
                                     onOpenReport = { openTool(ToolScreen.REPORT) },
+                                    onOpenTlsCheck = { openTool(ToolScreen.TLS_CHECK) },
+                                    onOpenWebsiteDiagnostics = { openTool(ToolScreen.WEBSITE_DIAGNOSTICS) },
                                 )
                                 TopLevelDestination.DEVICES -> LanDeviceCenterScreen(
                                     uiState = lanScannerUiState,
@@ -585,6 +607,30 @@ class MainActivity : AppCompatActivity() {
                                 onTargetChanged = tracerouteViewModel::onTargetChanged,
                                 onStart = tracerouteViewModel::start,
                                 onStop = tracerouteViewModel::stop,
+                                onBack = ::goBack,
+                            )
+                            ToolScreen.TLS_CHECK -> TlsCheckScreen(
+                                uiState = tlsCheckUiState,
+                                onTargetChanged = tlsCheckViewModel::onTargetChanged,
+                                onPortChanged = tlsCheckViewModel::onPortChanged,
+                                onStart = tlsCheckViewModel::start,
+                                onStop = tlsCheckViewModel::stop,
+                                onStopAndLeave = tlsCheckViewModel::stopAndThen,
+                                onToggleDetails = tlsCheckViewModel::toggleDetails,
+                                onToggleSans = tlsCheckViewModel::toggleSans,
+                                onToggleChain = tlsCheckViewModel::toggleChain,
+                                onBack = ::goBack,
+                            )
+                            ToolScreen.WEBSITE_DIAGNOSTICS -> WebsiteDiagnosticsScreen(
+                                uiState = websiteDiagnosticsUiState,
+                                onTargetChanged = websiteDiagnosticsViewModel::onTargetChanged,
+                                onStart = websiteDiagnosticsViewModel::start,
+                                onStop = websiteDiagnosticsViewModel::stop,
+                                onStopAndLeave = websiteDiagnosticsViewModel::stopAndThen,
+                                onToggleDetails = websiteDiagnosticsViewModel::toggleDetails,
+                                onToggleRedirects = websiteDiagnosticsViewModel::toggleRedirects,
+                                onToggleRecommendations = websiteDiagnosticsViewModel::toggleRecommendations,
+                                onToggleCertificate = websiteDiagnosticsViewModel::toggleCertificate,
                                 onBack = ::goBack,
                             )
                             ToolScreen.REPORT -> key(reportScrollKey) {

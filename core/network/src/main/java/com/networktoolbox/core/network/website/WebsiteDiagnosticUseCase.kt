@@ -32,8 +32,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withTimeout
 
-fun interface WebsiteDiagnosticUseCase {
-    suspend fun run(request: WebsiteDiagnosticRequest): WebsiteDiagnosticSnapshot
+interface WebsiteDiagnosticUseCase {
+    suspend fun run(
+        request: WebsiteDiagnosticRequest,
+        onProgress: (WebsiteDiagnosticProgress) -> Unit,
+    ): WebsiteDiagnosticSnapshot
+
+    suspend fun run(request: WebsiteDiagnosticRequest): WebsiteDiagnosticSnapshot = run(request) { }
 }
 
 class DefaultWebsiteDiagnosticUseCase(
@@ -47,7 +52,10 @@ class DefaultWebsiteDiagnosticUseCase(
     private val clock: WebsiteDiagnosticClock,
     private val userAgentProvider: WebsiteUserAgentProvider,
 ) : WebsiteDiagnosticUseCase {
-    override suspend fun run(request: WebsiteDiagnosticRequest): WebsiteDiagnosticSnapshot = coroutineScope {
+    override suspend fun run(
+        request: WebsiteDiagnosticRequest,
+        onProgress: (WebsiteDiagnosticProgress) -> Unit,
+    ): WebsiteDiagnosticSnapshot = coroutineScope {
         val startedAtEpochMs = clock.currentTimeMillis()
         val startedAtNanos = clock.nanoTime()
         val initialContext = networkRepository.observeNetworkContext().first()
@@ -78,6 +86,7 @@ class DefaultWebsiteDiagnosticUseCase(
                     request = request,
                     initialContext = initialContext,
                     completedHops = completedHops,
+                    onProgress = onProgress,
                 )
             }
         }
@@ -158,6 +167,7 @@ class DefaultWebsiteDiagnosticUseCase(
         request: WebsiteDiagnosticRequest,
         initialContext: NetworkContext,
         completedHops: AtomicReference<List<WebsiteDiagnosticHop>>,
+        onProgress: (WebsiteDiagnosticProgress) -> Unit,
     ): List<WebsiteDiagnosticHop> {
         val hops = mutableListOf<WebsiteDiagnosticHop>()
         val visited = linkedSetOf<String>()
@@ -170,7 +180,7 @@ class DefaultWebsiteDiagnosticUseCase(
                 replaceLastWithRedirectFailure(hops, WebsiteRedirectFailureReason.LOOP, completedHops)
                 break
             }
-            val hop = executeHop(hops.size, target, request, initialContext)
+            val hop = executeHop(hops.size, target, request, initialContext, onProgress)
             hops += hop
             completedHops.set(hops.toList())
 
@@ -223,16 +233,34 @@ class DefaultWebsiteDiagnosticUseCase(
         target: NormalizedWebsiteTarget,
         request: WebsiteDiagnosticRequest,
         networkContext: NetworkContext,
+        onProgress: (WebsiteDiagnosticProgress) -> Unit,
     ): WebsiteDiagnosticHop {
         val hopStartedAt = clock.nanoTime()
         val plannedTransport = httpProbe.plannedTransport(target.executionUrl, networkContext)
+        onProgress.update(index, target, WebsiteStage.DNS, WebsiteProgressStatus.RUNNING)
         val dns = resolveDns(target, request.dnsTimeoutMs)
+        onProgress.update(index, target, WebsiteStage.DNS, dns.status.toProgressStatus())
         val mayUseProxyDns = plannedTransport != HttpTransportPath.DIRECT
         if (dns.status == WebsiteStageStatus.FAIL && !mayUseProxyDns) {
+            onProgress.update(index, target, WebsiteStage.TCP, WebsiteProgressStatus.SKIPPED)
+            onProgress.update(
+                index,
+                target,
+                WebsiteStage.TLS,
+                if (target.scheme == WebsiteScheme.HTTP) WebsiteProgressStatus.NOT_APPLICABLE else WebsiteProgressStatus.SKIPPED,
+            )
+            onProgress.update(
+                index,
+                target,
+                WebsiteStage.CERTIFICATE,
+                if (target.scheme == WebsiteScheme.HTTP) WebsiteProgressStatus.NOT_APPLICABLE else WebsiteProgressStatus.SKIPPED,
+            )
+            onProgress.update(index, target, WebsiteStage.HTTP, WebsiteProgressStatus.SKIPPED)
             return emptyAfterDns(index, target, plannedTransport, dns, hopStartedAt)
         }
 
         val tcp = if (dns.candidateAddresses.isNotEmpty()) {
+            onProgress.update(index, target, WebsiteStage.TCP, WebsiteProgressStatus.RUNNING)
             connectCandidates(dns.candidateAddresses, target.port, request.tcpConnectTimeoutMs)
         } else {
             WebsiteTcpEvidence(
@@ -242,15 +270,25 @@ class DefaultWebsiteDiagnosticUseCase(
                 durationMs = null,
             )
         }
+        onProgress.update(index, target, WebsiteStage.TCP, tcp.status.toProgressStatus())
         val tls = if (target.scheme == WebsiteScheme.HTTPS && tcp.selectedAddress != null) {
+            onProgress.update(index, target, WebsiteStage.TLS, WebsiteProgressStatus.RUNNING)
             probeTls(target, tcp.selectedAddress, request)
         } else if (target.scheme == WebsiteScheme.HTTP) {
             WebsiteTlsEvidence(WebsiteStageStatus.NOT_APPLICABLE, null, null)
         } else {
             WebsiteTlsEvidence(WebsiteStageStatus.SKIPPED, null, null)
         }
+        onProgress.update(index, target, WebsiteStage.TLS, tls.status.toProgressStatus())
+        onProgress.update(
+            index,
+            target,
+            WebsiteStage.CERTIFICATE,
+            tls.certificateProgressStatus(target.scheme),
+        )
 
         currentCoroutineContext().ensureActive()
+        onProgress.update(index, target, WebsiteStage.HTTP, WebsiteProgressStatus.RUNNING)
         val httpCall = httpProbe.createCall(
             HttpProbeRequest(
                 executionUrl = target.executionUrl,
@@ -267,6 +305,16 @@ class DefaultWebsiteDiagnosticUseCase(
         } finally {
             httpCall.close()
         }
+        onProgress.update(
+            index,
+            target,
+            WebsiteStage.HTTP,
+            when {
+                http.responded && http.statusCategory == HttpStatusCategory.SUCCESS_2XX -> WebsiteProgressStatus.PASS
+                http.responded -> WebsiteProgressStatus.ATTENTION
+                else -> WebsiteProgressStatus.FAIL
+            },
+        )
         return WebsiteDiagnosticHop(
             index = index,
             target = target,
@@ -472,6 +520,48 @@ class DefaultWebsiteDiagnosticUseCase(
         WebsiteTargetFailureReason.INVALID_HOST,
         WebsiteTargetFailureReason.UNSUPPORTED_IPV6_SCOPE,
         -> WebsiteRedirectFailureReason.INVALID_LOCATION
+    }
+
+    private fun WebsiteStageStatus.toProgressStatus(): WebsiteProgressStatus = when (this) {
+        WebsiteStageStatus.PASS -> WebsiteProgressStatus.PASS
+        WebsiteStageStatus.ATTENTION -> WebsiteProgressStatus.ATTENTION
+        WebsiteStageStatus.FAIL -> WebsiteProgressStatus.FAIL
+        WebsiteStageStatus.NOT_APPLICABLE -> WebsiteProgressStatus.NOT_APPLICABLE
+        WebsiteStageStatus.SKIPPED -> WebsiteProgressStatus.SKIPPED
+        WebsiteStageStatus.UNKNOWN -> WebsiteProgressStatus.SKIPPED
+    }
+
+    private fun WebsiteTlsEvidence.certificateProgressStatus(
+        scheme: WebsiteScheme,
+    ): WebsiteProgressStatus {
+        if (scheme == WebsiteScheme.HTTP) return WebsiteProgressStatus.NOT_APPLICABLE
+        val tls = result ?: return WebsiteProgressStatus.SKIPPED
+        return when {
+            tls.certificate.leaf == null -> WebsiteProgressStatus.ATTENTION
+            tls.certificateIssues.isNotEmpty() ||
+                tls.trustStatus != com.networktoolbox.core.network.tls.CertificateTrustStatus.SYSTEM_TRUSTED ||
+                tls.hostnameStatus != com.networktoolbox.core.network.tls.HostnameVerificationStatus.MATCH ->
+                WebsiteProgressStatus.ATTENTION
+            else -> WebsiteProgressStatus.PASS
+        }
+    }
+
+    private fun ((WebsiteDiagnosticProgress) -> Unit).update(
+        hopIndex: Int,
+        target: NormalizedWebsiteTarget,
+        stage: WebsiteStage,
+        status: WebsiteProgressStatus,
+    ) {
+        runCatching {
+            invoke(
+                WebsiteDiagnosticProgress(
+                    hopIndex = hopIndex,
+                    targetUrlRedacted = target.displayUrlRedacted,
+                    stage = stage,
+                    status = status,
+                ),
+            )
+        }
     }
 
     private fun String.isFakeIpAddress(): Boolean {

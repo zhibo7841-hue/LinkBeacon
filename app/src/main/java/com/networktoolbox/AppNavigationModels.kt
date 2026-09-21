@@ -31,6 +31,8 @@ internal enum class ToolScreen {
     TCP,
     PORT_SCAN,
     TRACEROUTE,
+    TLS_CHECK,
+    WEBSITE_DIAGNOSTICS,
     REPORT,
     HISTORY,
     SETTINGS,

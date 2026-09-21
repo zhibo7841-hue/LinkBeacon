@@ -49,6 +49,27 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DefaultWebsiteDiagnosticUseCaseTest {
+    @Test fun `progress callback reflects real ordered http stages without synthetic timing`() = runBlocking {
+        val updates = mutableListOf<WebsiteDiagnosticProgress>()
+        val fixture = Fixture(http = FakeHttp())
+
+        fixture.useCase.run(WebsiteDiagnosticRequest("http://example.com"), updates::add)
+
+        assertEquals(
+            listOf(
+                WebsiteStage.DNS to WebsiteProgressStatus.RUNNING,
+                WebsiteStage.DNS to WebsiteProgressStatus.PASS,
+                WebsiteStage.TCP to WebsiteProgressStatus.RUNNING,
+                WebsiteStage.TCP to WebsiteProgressStatus.PASS,
+                WebsiteStage.TLS to WebsiteProgressStatus.NOT_APPLICABLE,
+                WebsiteStage.CERTIFICATE to WebsiteProgressStatus.NOT_APPLICABLE,
+                WebsiteStage.HTTP to WebsiteProgressStatus.RUNNING,
+                WebsiteStage.HTTP to WebsiteProgressStatus.PASS,
+            ),
+            updates.map { it.stage to it.status },
+        )
+    }
+
     @Test fun `https orchestration preserves ordered dns tcp tls and http evidence`() = runBlocking {
         val events = mutableListOf<String>()
         val fixture = Fixture(

@@ -28,6 +28,8 @@ class AppNavigationStateTest {
         ToolScreen.PORT_SCAN,
         ToolScreen.SUBNET,
         ToolScreen.TRACEROUTE,
+        ToolScreen.TLS_CHECK,
+        ToolScreen.WEBSITE_DIAGNOSTICS,
         ToolScreen.LAN_SCAN,
         ToolScreen.REPORT,
         ToolScreen.HISTORY,

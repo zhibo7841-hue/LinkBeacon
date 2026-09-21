@@ -29,6 +29,8 @@ fun ToolsScreen(
     onOpenSubnet: () -> Unit,
     onOpenLanScan: () -> Unit,
     onOpenReport: () -> Unit,
+    onOpenTlsCheck: () -> Unit,
+    onOpenWebsiteDiagnostics: () -> Unit,
     modifier: Modifier = Modifier,
     scrollState: ScrollState? = null,
     onOpenMenu: () -> Unit = {},
@@ -42,6 +44,8 @@ fun ToolsScreen(
         onOpenSubnet = onOpenSubnet,
         onOpenLanScan = onOpenLanScan,
         onOpenReport = onOpenReport,
+        onOpenTlsCheck = onOpenTlsCheck,
+        onOpenWebsiteDiagnostics = onOpenWebsiteDiagnostics,
     )
 
     Surface(modifier = modifier.fillMaxSize()) {

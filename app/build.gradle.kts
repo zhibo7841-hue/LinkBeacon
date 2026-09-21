@@ -107,6 +107,7 @@ dependencies {
     implementation(project(":feature:history"))
     implementation(project(":feature:lanscan"))
     implementation(project(":feature:traceroute"))
+    implementation(project(":feature:webdiagnostics"))
     implementation(project(":feature:port"))
     implementation(project(":feature:ping"))
     implementation(project(":feature:report"))

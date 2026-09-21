@@ -121,6 +121,7 @@ class DefaultTlsProbe(
         resources: ProbeResources,
     ): TlsProbeResult {
         val address = request.connectAddress.hostAddress.orEmpty()
+        request.notifyStage(TlsProbeStage.TCP_CONNECT)
         val attempt = connectionConnector.createConnectionAttempt(
             host = address,
             port = request.port,
@@ -154,6 +155,7 @@ class DefaultTlsProbe(
         }
         currentCoroutineContext().ensureActive()
 
+        request.notifyStage(TlsProbeStage.TLS_HANDSHAKE)
         val recordingTrustManager = RecordingX509TrustManager(trustManagerProvider.create())
         val socketFactory = socketFactoryProvider.create(recordingTrustManager)
         val sslSocket = socketFactory.createSocket(
@@ -173,6 +175,7 @@ class DefaultTlsProbe(
         val handshakeDurationMs = elapsedMillis(handshakeStartedAt)
         currentCoroutineContext().ensureActive()
 
+        request.notifyStage(TlsProbeStage.CERTIFICATE_CHECK)
         val recordedChain = recordingTrustManager.presentedChain.ifEmpty {
             (handshake as? HandshakeResult.Success)
                 ?.session
@@ -364,6 +367,10 @@ class DefaultTlsProbe(
 
     private fun elapsedMillis(startedNanos: Long): Long =
         ((clock.nanoTime() - startedNanos).coerceAtLeast(0L) / NANOS_PER_MILLISECOND)
+
+    private fun TlsProbeRequest.notifyStage(stage: TlsProbeStage) {
+        runCatching { progressListener.onStageStarted(stage) }
+    }
 
     private sealed interface HandshakeResult {
         data class Success(val session: SSLSession) : HandshakeResult

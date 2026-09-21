@@ -533,6 +533,36 @@ recommendation codes, never localized UI prose. This stage writes no History,
 Report/PDF/Share data and does not join Automatic Diagnosis, Device Detail, or
 Port Scan.
 
+## SSL/TLS and Website Diagnostics UI (Task 111)
+
+Task C adds `feature:webdiagnostics` as a presentation-only boundary over the
+Task 109 and Task 110 Core pipelines:
+
+`Tools -> TlsCheckScreen -> TlsCheckViewModel -> RunTlsCheckUseCase ->
+DnsQueryEngine + TlsProbe`
+
+`Tools -> WebsiteDiagnosticsScreen -> WebsiteDiagnosticsViewModel ->
+WebsiteDiagnosticUseCase`
+
+The two independent Tools routes keep editable input only while idle, expose
+real Core stage callbacks rather than timer progress, and cancel their owned
+coroutine before leaving a running screen. Recomposition does not start work;
+process death does not restore an active network operation. A rerun always
+creates a fresh Core request and cannot merge prior evidence.
+
+Presentation maps typed outcomes, findings, recommendations, transport context,
+and failure codes to English and Simplified Chinese resources. Compose does not
+open sockets, resolve DNS, perform TLS, follow redirects, or recreate analyzer
+rules. TLS trust, hostname matching, validity, and the peer-presented chain stay
+separate facts. Website results preserve DNS/TCP/direct-TLS evidence separately
+from the actual HTTP proxy/direct route, and HTTP responses including 4xx/5xx
+remain response evidence rather than generic network failure.
+
+This UI stage writes no History, Report/PDF/Share data and does not integrate
+with Automatic Diagnosis, Device Detail, or Port Scan. Task D History/optional
+Copy and Report scope remain a separate decision; Task E final performance and
+real-device regression remains pending.
+
 ## Port Scan UI and Navigation Integration (Task 102)
 
 `feature:port` now owns `PortScanViewModel` and `PortScanScreen`; both entry

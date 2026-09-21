@@ -11,9 +11,11 @@ import com.networktoolbox.core.network.portscan.*
 import com.networktoolbox.core.network.tcp.*
 import com.networktoolbox.core.network.traceroute.*
 import com.networktoolbox.core.network.wol.*
+import com.networktoolbox.core.network.website.*
 import com.networktoolbox.feature.dashboard.domain.ObserveNetworkContextUseCase
 import com.networktoolbox.feature.lanscan.domain.*
 import com.networktoolbox.feature.lanscan.domain.model.*
+import com.networktoolbox.feature.webdiagnostics.domain.RunTlsCheck
 import com.networktoolbox.feature.report.diagnostic.v2.orchestration.*
 import com.networktoolbox.feature.report.diagnostic.v4.*
 import com.networktoolbox.core.common.diagnostic.DiagnosticIntent
@@ -75,6 +77,15 @@ object RecreationNetworkModule {
     }
     @Provides fun traceroute(): TracerouteEngine = object : TracerouteEngine {
         override suspend fun run(request: TracerouteRequest): TracerouteResult = error("Unexpected Traceroute")
+    }
+    @Provides fun tlsCheck(): RunTlsCheck = RunTlsCheck { _, _, _ ->
+        error("Unexpected SSL/TLS Check in recreation test")
+    }
+    @Provides fun websiteDiagnostics(): WebsiteDiagnosticUseCase = object : WebsiteDiagnosticUseCase {
+        override suspend fun run(
+            request: WebsiteDiagnosticRequest,
+            onProgress: (WebsiteDiagnosticProgress) -> Unit,
+        ): WebsiteDiagnosticSnapshot = error("Unexpected Website Diagnostics in recreation test")
     }
     @Provides fun analyzer(): DiagnosticAnalyzerV4 = DefaultDiagnosticAnalyzerV4()
     @Provides fun orchestrator(f: RecreationFixture): DiagnosticOrchestrator = object : DiagnosticOrchestrator {

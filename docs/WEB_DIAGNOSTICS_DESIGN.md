@@ -980,9 +980,12 @@ Keep the implementation split small:
    manual bounded redirects, immutable snapshots, stable analyzer codes,
    cancellation/network-change cleanup, local fixtures, and regression tests.
    No UI, History, Report, Share, or Automatic Diagnosis integration was added.
-3. **Task C — SSL/TLS + Website UI:** two Tools routes, progressive UI,
-   bilingual/accessibility resources, ViewModels, source-aware navigation, and
-   Compose tests. No Device Detail or Automatic Diagnosis integration.
+3. **Task C — SSL/TLS + Website UI: Completed.** Two independent Tools routes,
+   real Core-driven staged progress, bilingual/accessibility resources, typed
+   ViewModels, caller-aware Back navigation, progressive certificate/redirect/
+   transport details, cancellation confirmation, and Compose tests are
+   implemented. No History, Report/PDF/Share, Device Detail, Port Scan jump, or
+   Automatic Diagnosis integration was added.
 4. **Task D — History and optional Copy:** one versioned snapshot per completed
    tool run, restore screens, redaction tests, and compact Copy only if the
    Must-Have gate is stable. No Room migration or PDF/share.
@@ -991,9 +994,9 @@ Keep the implementation split small:
    cleanup, cancellation, APK/dependency measurement, and release-scope audit.
 
 Only after Tasks A-E pass should a separately authorized v0.8.0 RC Preparation
-change `versionName`/`versionCode`. Task C UI has not started. Task D History /
-optional Copy remains pending a separately confirmed scope decision, and Task E
-final regression has not started.
+change `versionName`/`versionCode`. Task C UI is complete. Task D History /
+optional Copy and Report scope remain pending a separately confirmed decision,
+and Task E final regression has not started.
 
 ### Task B implementation boundary
 

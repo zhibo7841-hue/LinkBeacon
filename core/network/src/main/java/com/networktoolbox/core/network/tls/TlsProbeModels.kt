@@ -12,6 +12,7 @@ data class TlsProbeRequest(
     val port: Int = TlsProbeDefaults.DEFAULT_PORT,
     val connectTimeoutMs: Int = TlsProbeDefaults.DEFAULT_CONNECT_TIMEOUT_MS,
     val handshakeTimeoutMs: Int = TlsProbeDefaults.DEFAULT_HANDSHAKE_TIMEOUT_MS,
+    val progressListener: TlsProbeProgressListener = TlsProbeProgressListener.NONE,
 ) {
     init {
         require(serverName.isNotBlank()) { "Server name must not be blank." }
@@ -25,6 +26,20 @@ data class TlsProbeRequest(
                 TlsServerNameType.IPV6_LITERAL -> connectAddress is Inet6Address
             },
         ) { "Server name type must match the connect address family." }
+    }
+}
+
+enum class TlsProbeStage {
+    TCP_CONNECT,
+    TLS_HANDSHAKE,
+    CERTIFICATE_CHECK,
+}
+
+fun interface TlsProbeProgressListener {
+    fun onStageStarted(stage: TlsProbeStage)
+
+    companion object {
+        val NONE = TlsProbeProgressListener { }
     }
 }
 
