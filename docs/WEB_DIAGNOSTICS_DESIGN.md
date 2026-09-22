@@ -998,15 +998,15 @@ Keep the implementation split small:
    without network I/O or re-analysis, list presentation is bilingual, and
    privacy redaction is covered by tests. The existing generic Room table is
    reused without migration. Optional Copy and Report/PDF/Share remain deferred.
-5. **Task E — Performance and real-device regression:** Android 12 full matrix,
-   Android 16 compatibility when available, HomeLab/proxy/VPN/Fake-IP/dual-stack,
-   cleanup, cancellation, APK/dependency measurement, and release-scope audit.
+5. **Task E — Performance and real-device regression: Completed.** The Android
+   12 full matrix, Android 16 core compatibility spot checks, HomeLab/Fake-IP and
+   deterministic proxy/VPN coverage, cleanup, cancellation, artifact checks,
+   privacy audit, and release-scope audit passed.
 
-Only after Tasks A-E pass should a separately authorized v0.8.0 RC Preparation
-change `versionName`/`versionCode`. Tasks A-D are complete; optional Copy and
-Report/PDF/Share remain deferred. The signed Android 12 portion of Task E is
-complete. Android 16 compatibility was not executed because no Android 16
-device was available for that gate, and final v0.8 regression remains.
+Tasks A-E are complete. A separately authorized v0.8 RC Preparation may now
+change `versionName`/`versionCode`; this document does not perform that change.
+Optional Copy and Report/PDF/Share remain deferred, as does Automatic Diagnosis
+integration.
 
 ### Signed Android 12 UI / functional regression (Task 112)
 
@@ -1050,9 +1050,38 @@ not claimed as tested. No Runtime, Android resource, manifest, dependency,
 version, RC, tag, or release change was made for Task 112.
 
 History is complete. Optional Copy and Report/PDF/Share remain deferred.
-Therefore the signed Android 12 UI/functional regression is complete, but
-v0.8.0 is not yet declared feature-complete or release-ready until final v0.8
-regression passes.
+
+### Final regression status (Task 114)
+
+Final v0.8 regression completed on 2026-09-22. The Sony XQ-AT72 / Android 12
+(API 31) full matrix passed using an in-place installed artifact signed with the
+project release certificate. Package user ID, first-install time, and
+credential-encrypted data inode remained unchanged. The run covered trusted,
+untrusted, hostname-mismatch, and expired TLS; HTTP 200/404/5xx and redirects;
+redaction; cancellation and real network change; one-write History persistence;
+read-only saved-result restoration; locale/theme/rotation; legacy and invalid
+payload behavior; and regressions across the existing tools. Six deterministic
+network instrumentation tests passed on the same device.
+
+Sony XQ-FS72 / Android 16 (API 36) then passed TLS Healthy and Website Healthy
+compatibility spot checks using the current debug-signed build installed in
+place over the existing debug-signed package. No uninstall or user-data clear
+was used. The final JVM suite, lint, Debug build, and androidTest compilation
+passed; no crash or ANR was observed.
+
+The final regression found and fixed two bounded runtime defects: the History
+card header could starve its title width on Android 12, and a transport failure
+could beat a slightly delayed network-change callback. History cards now keep
+title/status actions on separate rows, and Website Diagnostics gives the
+existing network-change signal a short bounded settlement window before
+finalizing a transport failure. No analyzer rule, probe scope, Room schema,
+version, Report/PDF/Share path, or Automatic Diagnosis stage changed.
+
+SSL/TLS Check, Website Diagnostics, and their local History are now **Feature
+Complete** and **Scope Frozen** for v0.8. Report/PDF/Share and Automatic
+Diagnosis integration remain deferred. The next step is a separately authorized
+v0.8 RC Preparation; this status does not declare the release Release Ready or
+Released.
 
 ### Task B implementation boundary
 

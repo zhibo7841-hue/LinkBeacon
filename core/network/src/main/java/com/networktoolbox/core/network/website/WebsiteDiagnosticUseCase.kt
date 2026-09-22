@@ -31,6 +31,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 
 interface WebsiteDiagnosticUseCase {
     suspend fun run(
@@ -99,6 +100,14 @@ class DefaultWebsiteDiagnosticUseCase(
         try {
             select {
                 operation.onAwait { hops ->
+                    val changedAfterTransportFailure = if (hops.hasTransportFailure()) {
+                        withTimeoutOrNull(NETWORK_CHANGE_SETTLE_MS) {
+                            networkChange.await()
+                            true
+                        } ?: false
+                    } else {
+                        false
+                    }
                     buildSnapshot(
                         redactedInput = redactedInput,
                         normalizedTarget = normalization.target,
@@ -109,7 +118,7 @@ class DefaultWebsiteDiagnosticUseCase(
                         startedAtEpochMs = startedAtEpochMs,
                         startedAtNanos = startedAtNanos,
                         hops = hops,
-                        networkChanged = false,
+                        networkChanged = changedAfterTransportFailure,
                     )
                 }
                 networkChange.onAwait {
@@ -161,6 +170,9 @@ class DefaultWebsiteDiagnosticUseCase(
             operation.cancel()
         }
     }
+
+    private fun List<WebsiteDiagnosticHop>.hasTransportFailure(): Boolean =
+        lastOrNull()?.http?.responded != true
 
     private suspend fun executeRedirectChain(
         initialTarget: NormalizedWebsiteTarget,
@@ -579,3 +591,5 @@ class DefaultWebsiteDiagnosticUseCase(
         const val NANOS_PER_MILLISECOND = 1_000_000L
     }
 }
+
+private const val NETWORK_CHANGE_SETTLE_MS = 500L

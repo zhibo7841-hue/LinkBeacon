@@ -218,6 +218,24 @@ class DefaultWebsiteDiagnosticUseCaseTest {
         assertTrue(result.findings.any { it.code == WebsiteFindingCode.NETWORK_CHANGED })
     }
 
+    @Test fun `late network callback wins over a transport failure race`() = runBlocking {
+        val resultReady = CompletableDeferred<Unit>()
+        val http = FakeHttp(
+            responses = ArrayDeque(listOf(httpFailureResult())),
+            resultReady = resultReady,
+        )
+        val fixture = Fixture(http = http)
+        val deferred = async { fixture.useCase.run(WebsiteDiagnosticRequest("http://example.com")) }
+
+        resultReady.await()
+        delay(100)
+        fixture.contextFlow.value = networkContext(ipv4 = "10.0.0.3")
+
+        val result = deferred.await()
+        assertEquals(WebsiteDiagnosticOutcome.NETWORK_CHANGED, result.outcome)
+        assertTrue(result.findings.any { it.code == WebsiteFindingCode.NETWORK_CHANGED })
+    }
+
     @Test fun `session timeout closes active http and returns typed failure`() = runBlocking {
         val started = CompletableDeferred<Unit>()
         val http = FakeHttp(waitForever = true, started = started)
@@ -324,6 +342,7 @@ private class FakeHttp(
     private val responses: ArrayDeque<HttpProbeResult> = ArrayDeque(),
     private val waitForever: Boolean = false,
     private val started: CompletableDeferred<Unit>? = null,
+    private val resultReady: CompletableDeferred<Unit>? = null,
     private val onCreate: (HttpProbeRequest) -> Unit = {},
 ) : HttpProbe {
     val lastCallClosed = AtomicBoolean(false)
@@ -339,7 +358,9 @@ private class FakeHttp(
             override suspend fun awaitResult(): HttpProbeResult {
                 started?.complete(Unit)
                 if (waitForever) delay(Long.MAX_VALUE)
-                return if (responses.isEmpty()) httpResult(defaultStatus, transport = transport) else responses.removeFirst()
+                val result = if (responses.isEmpty()) httpResult(defaultStatus, transport = transport) else responses.removeFirst()
+                resultReady?.complete(Unit)
+                return result
             }
 
             override fun close() {
@@ -387,6 +408,19 @@ private fun httpResult(
     transportPath = transport,
     bodyBytesRead = 0,
     failureReason = null,
+)
+
+private fun httpFailureResult() = HttpProbeResult(
+    requestUrlRedacted = "http://example.com/",
+    method = "GET",
+    statusCode = null,
+    statusCategory = null,
+    protocol = null,
+    responseHeaders = HttpResponseHeaders(null, null, null, null),
+    durationMs = 1,
+    transportPath = HttpTransportPath.DIRECT,
+    bodyBytesRead = 0,
+    failureReason = HttpFailureReason.CONNECTION_FAILED,
 )
 
 private fun trustedTls(request: TlsProbeRequest): TlsProbeResult = TlsProbeResult(

@@ -574,11 +574,12 @@ The confirmed version route after v0.7.0 is:
 
 - **v0.7.0 — Device Center V2:** Released.
 - **v0.7.1 — Device Center Polish + Port Scan:** Released; Scope Frozen.
-- **v0.8.0 — SSL/TLS + Website Diagnostics:** In development; TLS / Certificate
-  Core, Website Diagnostics Core, and their user-facing UI are complete. The
-  signed Android 12 UI/functional regression is complete. Versioned local
-  History for both tools is complete. Report/PDF/Share and Automatic Diagnosis
-  integration remain deferred to separately authorized work.
+- **v0.8.0 — SSL/TLS + Website Diagnostics:** Feature Complete; Scope Frozen.
+  TLS / Certificate Core, Website Diagnostics Core, their user-facing UI, and
+  versioned local History are complete. Final Android 12 regression and Android
+  16 compatibility spot checks passed. Report/PDF/Share and Automatic Diagnosis
+  integration remain deferred to separately authorized work. The next step is
+  v0.8 RC Preparation; this status is not Release Ready or Released.
 - **v0.9.0 — Wi-Fi Analyzer:** Planned.
 
 The v0.7.0 release scope is frozen to the Device Center Enhancement described
@@ -608,13 +609,14 @@ routes and bilingual progressive UI are complete. Task D's immutable,
 versioned local History snapshots and read-only saved-result presentation are
 complete: one completed tool run creates at most one row, and opening History
 never repeats network I/O or analysis. Report/PDF/Share and Automatic Diagnosis
-integration remain deferred. The signed Android 12
-UI/functional regression passed on Sony XQ-AT72 / API 31 without Runtime
-changes; Android 16 compatibility was not executed because no Android 16 device
-was available for that gate. v0.8.0 is not yet feature-complete: final v0.8
-performance, privacy, compatibility, and real-device regression remains. This
-progress does not change the v0.7.1 release or the v0.9.0 Wi-Fi Analyzer
-reservation.
+integration remain deferred. Final regression passed on Sony XQ-AT72 / Android
+12 (API 31), including an in-place signed validation install with preserved
+application identity and user data. TLS Healthy and Website Healthy
+compatibility spot checks also passed on Sony XQ-FS72 / Android 16 (API 36).
+v0.8.0 is therefore Feature Complete and Scope Frozen. The next separately
+authorized step is v0.8 RC Preparation; v0.8.0 is not yet Release Ready or
+Released. This status does not change the v0.7.1 release or the v0.9.0 Wi-Fi
+Analyzer reservation.
 
 Device Edit Polish provides one `Edit Device Profile` entry for the three
 user-owned profile fields: Custom Name, Device Type, and Notes. Device Detail's

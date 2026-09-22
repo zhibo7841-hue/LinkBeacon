@@ -5,6 +5,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -209,7 +210,6 @@ private fun HistoryRecordCard(
                 HistoryType.WEBSITE_DIAGNOSTIC -> Icon(Icons.Outlined.Language, contentDescription = cardContent.title)
                 else -> Unit
             }
-            NetworkStatusChip(statusVisual.state, label = stringResource(statusVisual.label))
             Text(
                 cardContent.title,
                 modifier = Modifier.weight(1f),
@@ -220,6 +220,14 @@ private fun HistoryRecordCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
+        ) {
+            NetworkStatusChip(statusVisual.state, label = stringResource(statusVisual.label))
+            Spacer(modifier = Modifier.weight(1f))
             if (cardInteraction.showChevron) {
                 NetworkToolboxChevron()
             }

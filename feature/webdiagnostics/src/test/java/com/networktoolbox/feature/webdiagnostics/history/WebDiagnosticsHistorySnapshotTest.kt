@@ -165,6 +165,27 @@ class WebDiagnosticsHistorySnapshotTest {
         assertNull(WebDiagnosticsHistorySnapshotResolver.resolve(valid.copy(detailJson = "{broken")))
         assertFalse(WebDiagnosticsHistorySnapshotResolver.canOpen(valid.copy(detailJson = "{}")))
     }
+
+    @Test fun ordinaryTlsHttpAndRedirectSnapshotsRemainCompact() {
+        val tlsJson = requireNotNull(TlsHistorySnapshotMapper.toHistoryRecord(tlsResult(), 1)).detailJson
+        val httpJson = requireNotNull(
+            WebsiteHistorySnapshotMapper.toHistoryRecord(websiteSnapshot(WebsiteDiagnosticOutcome.HEALTHY)),
+        ).detailJson
+        val redirect = websiteSnapshot(
+            outcome = WebsiteDiagnosticOutcome.ATTENTION,
+            statusCode = 302,
+            redirectLocation = "https://example.com/final?token=SECRET123",
+        )
+        val redirectJson = requireNotNull(
+            WebsiteHistorySnapshotMapper.toHistoryRecord(
+                redirect.copy(hops = redirect.hops + redirect.hops.single().copy(index = 1)),
+            ),
+        ).detailJson
+
+        listOf(tlsJson, httpJson, redirectJson).forEach { json ->
+            assertTrue("History payload should stay below 64 KiB, was ${json.toByteArray().size}", json.toByteArray().size < 64 * 1024)
+        }
+    }
 }
 
 private fun tlsResult(

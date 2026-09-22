@@ -594,6 +594,19 @@ Unknown, corrupt, or deleted payloads show a friendly unavailable state without
 fallback network work. Legacy records and existing delete/clear behavior remain
 unchanged.
 
+Final v0.8 regression verifies that the saved-result path remains a pure local
+projection: opening TLS or Website History restores stored outcome, evidence,
+findings, recommendations, and timestamp without DNS, socket, TLS, HTTP, or
+analyzer work. The generic Room schema remains version 5 and needs no migration
+for these versioned payloads. Completed sessions write at most once; cancelled,
+network-changed, and incomplete sessions write nothing.
+
+Website transport failures use a short bounded settlement window only to allow
+an already-observed network-context transition to win the terminal-state race.
+This does not retry traffic, extend successful requests, or alter analyzer
+semantics. It preserves the architecture rule that network change is a terminal
+non-history outcome rather than a generic transport failure.
+
 ## Port Scan UI and Navigation Integration (Task 102)
 
 `feature:port` now owns `PortScanViewModel` and `PortScanScreen`; both entry
