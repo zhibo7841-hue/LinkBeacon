@@ -18,6 +18,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Security
 import androidx.compose.ui.res.stringResource
 import com.networktoolbox.feature.history.R
 import androidx.compose.runtime.Composable
@@ -150,6 +153,7 @@ private fun HistoryRecordCard(
         null
     }
     val isReport = record.type == HistoryType.REPORT
+    val isWebDiagnostic = record.type == HistoryType.TLS_CHECK || record.type == HistoryType.WEBSITE_DIAGNOSTIC
     val localizedReport = if (isReport) reportText(record) else null
     val diagnosticHistorySummary = if (isReport) {
         localizedReport?.second ?: record.detailJson.readJsonString("historySummary")
@@ -158,6 +162,7 @@ private fun HistoryRecordCard(
     }
     val displayTitle = when {
         isReport -> stringResource(R.string.history_diagnosis)
+        isWebDiagnostic -> record.detailJson.readJsonString("targetDisplay") ?: record.title
         else -> pingDetails?.target ?: dnsDetails?.domain ?: record.title
     }
     val cardInteraction = historyCardInteraction(record, canOpenReport)
@@ -176,7 +181,9 @@ private fun HistoryRecordCard(
             dnsDetails?.metricsText()?.let(::add)
         },
     )
-    val reportActionLabel = stringResource(R.string.history_open_report)
+    val reportActionLabel = stringResource(
+        if (isReport) R.string.history_open_report else R.string.history_open_details,
+    )
     val cardModifier = if (cardInteraction.isClickable) {
         Modifier
             .clickable(
@@ -197,6 +204,11 @@ private fun HistoryRecordCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
         ) {
+            when (record.type) {
+                HistoryType.TLS_CHECK -> Icon(Icons.Outlined.Security, contentDescription = cardContent.title)
+                HistoryType.WEBSITE_DIAGNOSTIC -> Icon(Icons.Outlined.Language, contentDescription = cardContent.title)
+                else -> Unit
+            }
             NetworkStatusChip(statusVisual.state, label = stringResource(statusVisual.label))
             Text(
                 cardContent.title,

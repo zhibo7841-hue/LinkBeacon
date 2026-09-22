@@ -196,4 +196,10 @@
     <string name="web_rec_rate">Wait before retrying, or check the server rate-limit policy.</string>
     <string name="web_rec_server">Retry later and inspect the server or upstream service logs.</string>
     <string name="web_rec_proxy">Check the system proxy or PAC configuration.</string>
+    <string name="web_history_title">Saved diagnostic</string>
+    <string name="web_history_loading">Loading saved result…</string>
+    <string name="web_history_unavailable">This history record cannot be read</string>
+    <string name="web_history_unavailable_help">The saved data is damaged or uses an unsupported version. You can return to History and delete the record.</string>
+    <string name="web_history_snapshot_notice">Saved result — no network check is run when this page opens.</string>
+    <string name="web_history_completed_at">Completed %1$s</string>
 </resources>

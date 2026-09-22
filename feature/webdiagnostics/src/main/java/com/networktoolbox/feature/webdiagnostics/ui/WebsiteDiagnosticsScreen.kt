@@ -131,7 +131,7 @@ fun WebsiteDiagnosticsScreen(
                     description = stringResource(R.string.web_site_cancelled_desc),
                 )
             }
-            is WebsiteDiagnosticsRunState.Completed -> WebsiteResult(
+            is WebsiteDiagnosticsRunState.Completed -> WebsiteDiagnosticResultContent(
                 snapshot = state.snapshot,
                 detailsExpanded = uiState.detailsExpanded,
                 redirectsExpanded = uiState.redirectsExpanded,
@@ -162,7 +162,7 @@ fun WebsiteDiagnosticsScreen(
 }
 
 @Composable
-private fun WebsiteResult(
+internal fun WebsiteDiagnosticResultContent(
     snapshot: WebsiteDiagnosticSnapshot,
     detailsExpanded: Boolean,
     redirectsExpanded: Boolean,

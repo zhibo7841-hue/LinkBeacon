@@ -10,7 +10,7 @@ internal data class HistoryCardInteraction(
     val showDeleteAction: Boolean,
 )
 
-/** Keeps report-action visibility independent from the report payload format. */
+/** Keeps restorable-detail visibility independent from each payload format. */
 internal fun canShowReportAction(
     record: HistoryRecord,
     canOpenReport: (HistoryRecord) -> Boolean,
@@ -25,7 +25,11 @@ internal fun historyCardInteraction(
     record: HistoryRecord,
     canOpenReport: (HistoryRecord) -> Boolean,
 ): HistoryCardInteraction {
-    val canOpen = record.type == HistoryType.REPORT && canOpenReport(record)
+    val canOpen = record.type in setOf(
+        HistoryType.REPORT,
+        HistoryType.TLS_CHECK,
+        HistoryType.WEBSITE_DIAGNOSTIC,
+    ) && canOpenReport(record)
     return HistoryCardInteraction(
         isClickable = canOpen,
         showChevron = canOpen,

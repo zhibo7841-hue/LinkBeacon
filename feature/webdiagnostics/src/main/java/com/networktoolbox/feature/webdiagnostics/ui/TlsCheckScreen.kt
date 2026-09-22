@@ -103,7 +103,7 @@ fun TlsCheckScreen(
                     description = stringResource(R.string.web_tls_cancelled_desc),
                 )
             }
-            is TlsCheckRunState.Completed -> ResultContent(
+            is TlsCheckRunState.Completed -> TlsCheckResultContent(
                 result = state.result,
                 detailsExpanded = uiState.detailsExpanded,
                 sansExpanded = uiState.sansExpanded,
@@ -185,7 +185,7 @@ private fun InputCard(
 }
 
 @Composable
-private fun ResultContent(
+internal fun TlsCheckResultContent(
     result: TlsCheckResult,
     detailsExpanded: Boolean,
     sansExpanded: Boolean,

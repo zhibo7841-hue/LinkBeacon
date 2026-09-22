@@ -33,6 +33,7 @@ internal enum class ToolScreen {
     TRACEROUTE,
     TLS_CHECK,
     WEBSITE_DIAGNOSTICS,
+    WEB_DIAGNOSTICS_HISTORY,
     REPORT,
     HISTORY,
     SETTINGS,

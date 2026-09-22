@@ -2,9 +2,11 @@ package com.networktoolbox.feature.webdiagnostics.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.networktoolbox.core.common.history.HistoryRecorder
 import com.networktoolbox.feature.webdiagnostics.domain.RunTlsCheck
 import com.networktoolbox.feature.webdiagnostics.domain.TlsCheckProgress
 import com.networktoolbox.feature.webdiagnostics.domain.TlsCheckResult
+import com.networktoolbox.feature.webdiagnostics.history.TlsHistorySnapshotMapper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -40,10 +42,13 @@ data class TlsCheckUiState(
 @HiltViewModel
 class TlsCheckViewModel @Inject constructor(
     private val useCase: RunTlsCheck,
+    private val historyRecorder: HistoryRecorder = HistoryRecorder { },
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TlsCheckUiState())
     val uiState: StateFlow<TlsCheckUiState> = _uiState.asStateFlow()
     private var job: Job? = null
+    private var nextRunId = 0L
+    private val savedRunIds = mutableSetOf<Long>()
 
     fun onTargetChanged(value: String) = edit { copy(targetInput = value) }
     fun onPortChanged(value: String) = edit { copy(portInput = value.filter(Char::isDigit)) }
@@ -61,6 +66,7 @@ class TlsCheckViewModel @Inject constructor(
         }
         val target = state.targetInput.trim()
         val port = state.portInput.toInt()
+        val runId = ++nextRunId
         _uiState.update { it.copy(inputErrors = emptySet(), detailsExpanded = false) }
         job = viewModelScope.launch {
             var lastProgress: TlsCheckProgress? = null
@@ -70,6 +76,7 @@ class TlsCheckViewModel @Inject constructor(
                     _uiState.update { it.copy(runState = TlsCheckRunState.Running(progress)) }
                 }
                 _uiState.update { it.copy(runState = TlsCheckRunState.Completed(result)) }
+                saveHistoryOnce(runId, result)
             } catch (cancelled: CancellationException) {
                 _uiState.update { it.copy(runState = TlsCheckRunState.Cancelled(lastProgress)) }
             }
@@ -98,5 +105,17 @@ class TlsCheckViewModel @Inject constructor(
         }
         if (port.isBlank()) add(TlsInputError.PORT_REQUIRED)
         else if (port.toIntOrNull() !in 1..65_535) add(TlsInputError.PORT_INVALID)
+    }
+
+    private suspend fun saveHistoryOnce(runId: Long, result: TlsCheckResult) {
+        if (!savedRunIds.add(runId)) return
+        val record = TlsHistorySnapshotMapper.toHistoryRecord(result, System.currentTimeMillis()) ?: return
+        try {
+            historyRecorder.record(record)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // History is supplementary; the completed live result remains visible.
+        }
     }
 }

@@ -196,4 +196,10 @@
     <string name="web_rec_rate">稍后重试，或检查服务器限流策略。</string>
     <string name="web_rec_server">稍后重试，并检查服务器或上游服务日志。</string>
     <string name="web_rec_proxy">检查系统代理或 PAC 配置。</string>
+    <string name="web_history_title">已保存的诊断</string>
+    <string name="web_history_loading">正在加载已保存结果…</string>
+    <string name="web_history_unavailable">无法读取此历史记录</string>
+    <string name="web_history_unavailable_help">保存的数据已损坏或版本不受支持。你可以返回历史记录并删除该条目。</string>
+    <string name="web_history_snapshot_notice">这是已保存结果，打开此页面不会重新进行网络检测。</string>
+    <string name="web_history_completed_at">完成于 %1$s</string>
 </resources>

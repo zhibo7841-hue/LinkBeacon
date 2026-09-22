@@ -1,5 +1,7 @@
 package com.networktoolbox.feature.webdiagnostics.presentation
 
+import com.networktoolbox.core.common.history.HistoryRecord
+import com.networktoolbox.core.common.history.HistoryRecorder
 import com.networktoolbox.feature.webdiagnostics.domain.DiagnosticStageState
 import com.networktoolbox.feature.webdiagnostics.domain.RunTlsCheck
 import com.networktoolbox.feature.webdiagnostics.domain.TlsCheckAnalysis
@@ -99,6 +101,39 @@ class TlsCheckViewModelTest {
         vm.start(); advanceUntilIdle()
         vm.start(); advanceUntilIdle()
         assertEquals(2, calls)
+    }
+
+    @Test fun completedSessionWritesExactlyOneHistoryRecordAndRerunWritesAnother() = runTest(dispatcher) {
+        val records = mutableListOf<HistoryRecord>()
+        val vm = TlsCheckViewModel(fake(), HistoryRecorder(records::add))
+        vm.onTargetChanged("example.com")
+        vm.start(); advanceUntilIdle()
+        assertEquals(1, records.size)
+        vm.start(); advanceUntilIdle()
+        assertEquals(2, records.size)
+    }
+
+    @Test fun networkChangedAndCancelledSessionsAreNotSaved() = runTest(dispatcher) {
+        val records = mutableListOf<HistoryRecord>()
+        val changed = TlsCheckViewModel(fake(TlsCheckOutcome.NETWORK_CHANGED), HistoryRecorder(records::add))
+        changed.onTargetChanged("example.com")
+        changed.start(); advanceUntilIdle()
+        assertTrue(records.isEmpty())
+
+        val entered = CompletableDeferred<Unit>()
+        val cancelled = TlsCheckViewModel(RunTlsCheck { target, _, onProgress ->
+            onProgress(progress(target)); entered.complete(Unit); delay(Long.MAX_VALUE); result(target)
+        }, HistoryRecorder(records::add))
+        cancelled.onTargetChanged("example.com")
+        cancelled.start(); entered.await(); cancelled.stop(); advanceUntilIdle()
+        assertTrue(records.isEmpty())
+    }
+
+    @Test fun historyWriteFailureDoesNotReplaceCompletedResult() = runTest(dispatcher) {
+        val vm = TlsCheckViewModel(fake(), HistoryRecorder { error("disk full") })
+        vm.onTargetChanged("example.com")
+        vm.start(); advanceUntilIdle()
+        assertTrue(vm.uiState.value.runState is TlsCheckRunState.Completed)
     }
 
     private fun fake(outcome: TlsCheckOutcome = TlsCheckOutcome.HEALTHY) = RunTlsCheck { target, _, onProgress ->

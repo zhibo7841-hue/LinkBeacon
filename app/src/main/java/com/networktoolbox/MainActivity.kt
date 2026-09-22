@@ -88,7 +88,9 @@ import com.networktoolbox.feature.traceroute.presentation.TracerouteViewModel
 import com.networktoolbox.feature.traceroute.ui.TracerouteScreen
 import com.networktoolbox.feature.webdiagnostics.presentation.TlsCheckViewModel
 import com.networktoolbox.feature.webdiagnostics.presentation.WebsiteDiagnosticsViewModel
+import com.networktoolbox.feature.webdiagnostics.history.WebDiagnosticsHistorySnapshotResolver
 import com.networktoolbox.feature.webdiagnostics.ui.TlsCheckScreen
+import com.networktoolbox.feature.webdiagnostics.ui.WebDiagnosticsHistoryScreen
 import com.networktoolbox.feature.webdiagnostics.ui.WebsiteDiagnosticsScreen
 import com.networktoolbox.core.designsystem.NetworkToolboxTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -114,6 +116,7 @@ class MainActivity : AppCompatActivity() {
     private val tlsCheckViewModel: TlsCheckViewModel by viewModels()
     private val websiteDiagnosticsViewModel: WebsiteDiagnosticsViewModel by viewModels()
     private val savedReportViewModel: SavedReportViewModel by viewModels()
+    private val savedWebDiagnosticsHistoryViewModel: SavedWebDiagnosticsHistoryViewModel by viewModels()
     private val pdfExportViewModel: PdfExportViewModel by viewModels()
     private var pdfLauncher: ActivityResultLauncher<String>? = null
 
@@ -217,6 +220,7 @@ class MainActivity : AppCompatActivity() {
             val portScanUiState by portScanViewModel.uiState.collectAsState()
             val reportUiState by reportViewModel.uiState.collectAsState()
             val savedReportState by savedReportViewModel.uiState.collectAsState()
+            val savedWebHistoryState by savedWebDiagnosticsHistoryViewModel.uiState.collectAsState()
             val subnetUiState by subnetViewModel.uiState.collectAsState()
             val lanScannerUiState by lanScannerViewModel.uiState.collectAsState()
             val savedDeviceProfiles by lanScannerViewModel.savedProfiles.collectAsState()
@@ -270,6 +274,7 @@ class MainActivity : AppCompatActivity() {
 
             LaunchedEffect(navigationState.reportHistoryId) {
                 savedReportViewModel.open(navigationState.reportHistoryId)
+                savedWebDiagnosticsHistoryViewModel.open(navigationState.reportHistoryId)
             }
 
             LaunchedEffect(
@@ -442,6 +447,17 @@ class MainActivity : AppCompatActivity() {
             fun openDiagnosticHistory(record: HistoryRecord) {
                 navigationState = navigationState.openTool(ToolScreen.REPORT)
                     .copy(reportHistoryId = record.id)
+            }
+
+            fun openHistoryRecord(record: HistoryRecord) {
+                when (record.type) {
+                    HistoryType.REPORT -> openDiagnosticHistory(record)
+                    HistoryType.TLS_CHECK,
+                    HistoryType.WEBSITE_DIAGNOSTIC,
+                    -> navigationState = navigationState.openTool(ToolScreen.WEB_DIAGNOSTICS_HISTORY)
+                        .copy(reportHistoryId = record.id)
+                    else -> Unit
+                }
             }
 
             val backAction = AppShellPresentation.resolveBackAction(
@@ -633,6 +649,14 @@ class MainActivity : AppCompatActivity() {
                                 onToggleCertificate = websiteDiagnosticsViewModel::toggleCertificate,
                                 onBack = ::goBack,
                             )
+                            ToolScreen.WEB_DIAGNOSTICS_HISTORY -> WebDiagnosticsHistoryScreen(
+                                restored = savedWebHistoryState.restored.takeIf {
+                                    savedWebHistoryState.id == navigationState.reportHistoryId
+                                },
+                                loading = navigationState.reportHistoryId != null &&
+                                    (savedWebHistoryState.id != navigationState.reportHistoryId || savedWebHistoryState.loading),
+                                onBack = ::goBack,
+                            )
                             ToolScreen.REPORT -> key(reportScrollKey) {
                                 ReportScreen(
                                     uiState = reportUiState,
@@ -667,8 +691,11 @@ class MainActivity : AppCompatActivity() {
                                 onDelete = historyViewModel::delete,
                                 onClear = historyViewModel::clear,
                                 onBack = ::goBack,
-                                onOpenReport = ::openDiagnosticHistory,
-                                canOpenReport = DiagnosticHistoryReportResolver::canOpen,
+                                onOpenReport = ::openHistoryRecord,
+                                canOpenReport = { record ->
+                                    DiagnosticHistoryReportResolver.canOpen(record) ||
+                                        WebDiagnosticsHistorySnapshotResolver.canOpen(record)
+                                },
                                 reportText = { record -> DiagnosticHistoryLocalization.text(record, ReportLocalizationContext.capture(this@MainActivity)) },
                             )
                             ToolScreen.LAN_SCAN -> LanScannerScreen(
@@ -780,6 +807,8 @@ private fun HistoryType.displayName(legacyTitle: String): String = when (this) {
     HistoryType.TCP -> stringResource(R.string.app_ui_type_tcp)
     HistoryType.REPORT -> stringResource(R.string.app_ui_type_report)
     HistoryType.LAN_SCAN -> stringResource(R.string.app_ui_type_lan)
+    HistoryType.TLS_CHECK -> stringResource(R.string.app_ui_type_tls)
+    HistoryType.WEBSITE_DIAGNOSTIC -> stringResource(R.string.app_ui_type_website)
     HistoryType.UNKNOWN -> legacyTitle.takeIf(String::isNotBlank)
         ?: stringResource(R.string.app_ui_type_other)
 }

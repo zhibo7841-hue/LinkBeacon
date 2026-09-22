@@ -1,5 +1,7 @@
 package com.networktoolbox.feature.webdiagnostics.presentation
 
+import com.networktoolbox.core.common.history.HistoryRecord
+import com.networktoolbox.core.common.history.HistoryRecorder
 import com.networktoolbox.core.network.http.HttpTransportPath
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.core.network.website.NormalizedWebsiteTarget
@@ -140,6 +142,44 @@ class WebsiteDiagnosticsViewModelTest {
         vm.start(); advanceUntilIdle()
         vm.start(); advanceUntilIdle()
         assertEquals(2, fake.requests.size)
+    }
+
+    @Test fun healthyAttentionAndFailedTerminalSessionsAreSaved() = runTest(dispatcher) {
+        WebsiteDiagnosticOutcome.entries
+            .filter { it in setOf(WebsiteDiagnosticOutcome.HEALTHY, WebsiteDiagnosticOutcome.ATTENTION, WebsiteDiagnosticOutcome.FAILED) }
+            .forEach { outcome ->
+                val records = mutableListOf<HistoryRecord>()
+                val vm = WebsiteDiagnosticsViewModel(
+                    FakeWebsiteUseCase(snapshot = snapshot(outcome)),
+                    HistoryRecorder(records::add),
+                )
+                vm.onTargetChanged("example.com")
+                vm.start(); advanceUntilIdle()
+                assertEquals(outcome.name, 1, records.size)
+            }
+    }
+
+    @Test fun stoppedNetworkChangedAndCancelledSessionsAreNotSaved() = runTest(dispatcher) {
+        val records = mutableListOf<HistoryRecord>()
+        listOf(WebsiteDiagnosticOutcome.STOPPED, WebsiteDiagnosticOutcome.NETWORK_CHANGED).forEach { outcome ->
+            val vm = WebsiteDiagnosticsViewModel(FakeWebsiteUseCase(snapshot = snapshot(outcome)), HistoryRecorder(records::add))
+            vm.onTargetChanged("example.com")
+            vm.start(); advanceUntilIdle()
+        }
+        assertTrue(records.isEmpty())
+    }
+
+    @Test fun oneUserRunWritesOneRecordAndWriteFailureKeepsLiveResult() = runTest(dispatcher) {
+        val records = mutableListOf<HistoryRecord>()
+        val vm = WebsiteDiagnosticsViewModel(FakeWebsiteUseCase(), HistoryRecorder(records::add))
+        vm.onTargetChanged("example.com")
+        vm.start(); advanceUntilIdle()
+        assertEquals(1, records.size)
+
+        val failing = WebsiteDiagnosticsViewModel(FakeWebsiteUseCase(), HistoryRecorder { error("disk full") })
+        failing.onTargetChanged("example.com")
+        failing.start(); advanceUntilIdle()
+        assertTrue(failing.uiState.value.runState is WebsiteDiagnosticsRunState.Completed)
     }
 
     private data class Scenario(val name: String, val outcome: WebsiteDiagnosticOutcome, val finding: WebsiteFindingCode)

@@ -2,6 +2,7 @@ package com.networktoolbox.feature.webdiagnostics.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.networktoolbox.core.common.history.HistoryRecorder
 import com.networktoolbox.core.network.website.WebsiteDiagnosticOutcome
 import com.networktoolbox.core.network.website.WebsiteDiagnosticProgress
 import com.networktoolbox.core.network.website.WebsiteDiagnosticRequest
@@ -9,6 +10,7 @@ import com.networktoolbox.core.network.website.WebsiteDiagnosticSnapshot
 import com.networktoolbox.core.network.website.WebsiteDiagnosticUseCase
 import com.networktoolbox.core.network.website.WebsiteProgressStatus
 import com.networktoolbox.core.network.website.WebsiteStage
+import com.networktoolbox.feature.webdiagnostics.history.WebsiteHistorySnapshotMapper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -50,10 +52,13 @@ data class WebsiteDiagnosticsUiState(
 @HiltViewModel
 class WebsiteDiagnosticsViewModel @Inject constructor(
     private val useCase: WebsiteDiagnosticUseCase,
+    private val historyRecorder: HistoryRecorder = HistoryRecorder { },
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(WebsiteDiagnosticsUiState())
     val uiState: StateFlow<WebsiteDiagnosticsUiState> = _uiState.asStateFlow()
     private var job: Job? = null
+    private var nextRunId = 0L
+    private val savedRunIds = mutableSetOf<Long>()
 
     fun onTargetChanged(value: String) {
         if (_uiState.value.isRunning) return
@@ -80,6 +85,7 @@ class WebsiteDiagnosticsViewModel @Inject constructor(
                 runState = WebsiteDiagnosticsRunState.Running(WebsiteProgressUi()),
             )
         }
+        val runId = ++nextRunId
         job = viewModelScope.launch {
             var progressUi: WebsiteProgressUi? = null
             try {
@@ -88,6 +94,7 @@ class WebsiteDiagnosticsViewModel @Inject constructor(
                     _uiState.update { it.copy(runState = WebsiteDiagnosticsRunState.Running(requireNotNull(progressUi))) }
                 }
                 _uiState.update { it.copy(runState = WebsiteDiagnosticsRunState.Completed(snapshot)) }
+                saveHistoryOnce(runId, snapshot)
             } catch (cancelled: CancellationException) {
                 _uiState.update { it.copy(runState = WebsiteDiagnosticsRunState.Cancelled(progressUi)) }
             }
@@ -116,5 +123,17 @@ class WebsiteDiagnosticsViewModel @Inject constructor(
             targetUrlRedacted = update.targetUrlRedacted,
             stages = base.stages + (update.stage to update.status),
         )
+    }
+
+    private suspend fun saveHistoryOnce(runId: Long, snapshot: WebsiteDiagnosticSnapshot) {
+        if (!savedRunIds.add(runId)) return
+        val record = WebsiteHistorySnapshotMapper.toHistoryRecord(snapshot) ?: return
+        try {
+            historyRecorder.record(record)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // History persistence must never replace a completed live result with an error.
+        }
     }
 }

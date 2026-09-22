@@ -13,6 +13,8 @@
     <string name="app_ui_type_tcp">TCP Port Check</string>
     <string name="app_ui_type_report">Network Diagnosis</string>
     <string name="app_ui_type_lan">LAN Scanner</string>
+    <string name="app_ui_type_tls">SSL/TLS Check</string>
+    <string name="app_ui_type_website">Website Diagnostics</string>
     <string name="app_ui_type_other">Other</string>
     <string name="app_ui_version">Version %1$s</string>
 </resources>

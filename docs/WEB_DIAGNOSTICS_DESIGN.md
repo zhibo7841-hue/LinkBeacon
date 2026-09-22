@@ -749,7 +749,7 @@ advanced users expand raw values and timings.
 
 ## 25. History
 
-Phase 1 recommendation: **History is Must Have for both tools**.
+Phase 1 status: **History is implemented for both tools**.
 
 - one completed SSL/TLS Check -> at most one `TLS_CHECK` record;
 - one completed Website Diagnostics session (including redirects) -> at most
@@ -766,6 +766,13 @@ and readers does not require a Room schema migration.
 
 History opens the saved result without re-running DNS/TCP/TLS/HTTP and without
 re-analyzing it under new rules.
+
+The implemented readers fail closed for unknown schema versions and malformed
+payloads, while keeping the row visible and deletable. Live and restored views
+reuse the same result content; a saved view is read-only and includes its saved
+timestamp. History list titles and summaries are projected from typed fields at
+display time so English and Simplified Chinese can change without rewriting the
+stored row.
 
 ## 26. Report and Export
 
@@ -986,18 +993,20 @@ Keep the implementation split small:
    transport details, cancellation confirmation, and Compose tests are
    implemented. No History, Report/PDF/Share, Device Detail, Port Scan jump, or
    Automatic Diagnosis integration was added.
-4. **Task D — History and optional Copy:** one versioned snapshot per completed
-   tool run, restore screens, redaction tests, and compact Copy only if the
-   Must-Have gate is stable. No Room migration or PDF/share.
+4. **Task D — History: Completed.** One schema-versioned snapshot is written per
+   completed tool run, saved-result screens restore the exact typed evidence
+   without network I/O or re-analysis, list presentation is bilingual, and
+   privacy redaction is covered by tests. The existing generic Room table is
+   reused without migration. Optional Copy and Report/PDF/Share remain deferred.
 5. **Task E — Performance and real-device regression:** Android 12 full matrix,
    Android 16 compatibility when available, HomeLab/proxy/VPN/Fake-IP/dual-stack,
    cleanup, cancellation, APK/dependency measurement, and release-scope audit.
 
 Only after Tasks A-E pass should a separately authorized v0.8.0 RC Preparation
-change `versionName`/`versionCode`. Task C UI is complete. Task D History /
-optional Copy and Report scope remain pending a separately confirmed decision,
-and the signed Android 12 portion of Task E is complete. Android 16 compatibility
-was not executed because no Android 16 device was available for this gate.
+change `versionName`/`versionCode`. Tasks A-D are complete; optional Copy and
+Report/PDF/Share remain deferred. The signed Android 12 portion of Task E is
+complete. Android 16 compatibility was not executed because no Android 16
+device was available for that gate, and final v0.8 regression remains.
 
 ### Signed Android 12 UI / functional regression (Task 112)
 
@@ -1040,9 +1049,10 @@ deterministic Core and presentation tests. Android 16 was not available and was
 not claimed as tested. No Runtime, Android resource, manifest, dependency,
 version, RC, tag, or release change was made for Task 112.
 
-History/optional Copy and Report/PDF/Share remain pending a separate maintainer
-scope decision. Therefore the signed Android 12 UI/functional regression is
-complete, but v0.8.0 is not yet declared feature-complete or release-ready.
+History is complete. Optional Copy and Report/PDF/Share remain deferred.
+Therefore the signed Android 12 UI/functional regression is complete, but
+v0.8.0 is not yet declared feature-complete or release-ready until final v0.8
+regression passes.
 
 ### Task B implementation boundary
 

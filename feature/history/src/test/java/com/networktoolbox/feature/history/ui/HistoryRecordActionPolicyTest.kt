@@ -45,6 +45,16 @@ class HistoryRecordActionPolicyTest {
     }
 
     @Test
+    fun restorableTlsAndWebsiteRecordsUseTheSameReadOnlyDetailAffordance() {
+        listOf(HistoryType.TLS_CHECK, HistoryType.WEBSITE_DIAGNOSTIC).forEach { type ->
+            val interaction = historyCardInteraction(reportRecord().copy(type = type), canOpenReport = { true })
+            assertTrue(interaction.isClickable)
+            assertTrue(interaction.showChevron)
+            assertTrue(interaction.showDeleteAction)
+        }
+    }
+
+    @Test
     fun nonReportRecordStaysReadableAndDeletable() {
         val interaction = historyCardInteraction(
             reportRecord().copy(type = HistoryType.PING),

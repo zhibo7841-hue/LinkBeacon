@@ -37,6 +37,8 @@ internal object HistoryRecordPresentation {
         HistoryType.TCP -> UiText(R.string.history_tcp)
         HistoryType.REPORT -> UiText(R.string.history_diagnosis)
         HistoryType.LAN_SCAN -> UiText(R.string.history_lan)
+        HistoryType.TLS_CHECK -> UiText(R.string.history_tls)
+        HistoryType.WEBSITE_DIAGNOSTIC -> UiText(R.string.history_website)
         HistoryType.UNKNOWN -> legacyTitle.takeIf(String::isNotBlank)
             ?.let(::UiText)
             ?: UiText(R.string.history_other)
@@ -79,6 +81,8 @@ internal object HistoryRecordPresentation {
             HistoryType.TCP -> setOf("tcp", "tcp port check", "tcp check", "tcp 端口检测", "tcp端口检测")
             HistoryType.REPORT -> setOf("network diagnosis", "diagnostic report", "网络诊断")
             HistoryType.LAN_SCAN -> setOf("lan scanner", "lan scan", "局域网扫描")
+            HistoryType.TLS_CHECK -> setOf("tls_check", "ssl/tls check", "ssl/tls 检测")
+            HistoryType.WEBSITE_DIAGNOSTIC -> setOf("website_diagnostic", "website diagnostics", "网站访问诊断")
             HistoryType.UNKNOWN -> emptySet()
         }
     }
@@ -107,6 +111,9 @@ internal object HistoryRecordPresentation {
         // A completed LAN scan is itself a successful local operation. There
         // is no network fault status in the LAN scan history contract.
         HistoryType.LAN_SCAN -> normal()
+        HistoryType.TLS_CHECK,
+        HistoryType.WEBSITE_DIAGNOSTIC,
+        -> webStatus(record.detailJson)
         HistoryType.UNKNOWN -> unknown()
     }
 
@@ -195,6 +202,13 @@ internal object HistoryRecordPresentation {
         } ?: unknown()
     }
 
+    private fun webStatus(json: String): HistoryStatusVisual = when (json.readJsonString("outcome")) {
+        "HEALTHY" -> normal()
+        "ATTENTION" -> notice(R.string.history_attention)
+        "FAILED" -> error(R.string.history_error)
+        else -> unknown()
+    }
+
     private fun statusVisual(raw: String?): HistoryStatusVisual = when (raw?.uppercase()) {
         "NORMAL", "HEALTHY" -> normal()
         "ATTENTION", "NOTICE" -> notice(R.string.history_notice)
@@ -272,6 +286,8 @@ internal fun HistoryRecord.structuredHistorySummary(): UiText {
             "INTERNAL_ERROR" -> R.string.history_dynamic_tcp_internal_error
             else -> null
         }
+        HistoryType.TLS_CHECK -> return tlsHistorySummary(detailJson) ?: UiText(summary)
+        HistoryType.WEBSITE_DIAGNOSTIC -> return websiteHistorySummary(detailJson) ?: UiText(summary)
         else -> null
     }
     if (resource != null) return UiText(resource)
@@ -284,6 +300,41 @@ internal fun HistoryRecord.structuredHistorySummary(): UiText {
     }
     // Legacy prose is never a lookup key and is never rewritten.
     return UiText(summary)
+}
+
+private fun tlsHistorySummary(json: String): UiText? {
+    val finding = json.readJsonString("primaryFindingCode")
+    if (finding == "UNTRUSTED" || finding == "SELF_SIGNED") return UiText(R.string.history_tls_untrusted)
+    if (finding == "HOSTNAME_MISMATCH") return UiText(R.string.history_tls_hostname)
+    if (json.readJsonString("outcome") == "HEALTHY") {
+        val protocol = json.readJsonString("tlsProtocol")?.let { " · $it" }.orEmpty()
+        return UiText(R.string.history_tls_trusted, protocol)
+    }
+    return if (json.readJsonString("outcome") in setOf("ATTENTION", "FAILED")) {
+        UiText(R.string.history_tls_failed)
+    } else null
+}
+
+private fun websiteHistorySummary(json: String): UiText? {
+    val finding = json.readJsonString("primaryFindingCode")
+    if (finding in setOf("DNS_NXDOMAIN", "DNS_NO_RECORDS", "DNS_TIMEOUT", "DNS_FAILED")) {
+        return UiText(R.string.history_website_dns_failed)
+    }
+    if (finding in setOf("TLS_TRUST_FAILED", "TLS_HOSTNAME_MISMATCH", "CERTIFICATE_EXPIRED", "CERTIFICATE_NOT_YET_VALID")) {
+        return UiText(R.string.history_website_tls_failed)
+    }
+    val status = json.readJsonNumber("httpStatus")?.toIntOrNull()
+    if (status != null) {
+        val resource = when (json.readJsonString("outcome")) {
+            "HEALTHY" -> R.string.history_website_http_healthy
+            "ATTENTION" -> R.string.history_website_http_attention
+            else -> R.string.history_website_http_failed
+        }
+        return UiText(resource, status)
+    }
+    return if (json.readJsonString("outcome") in setOf("ATTENTION", "FAILED")) {
+        UiText(R.string.history_website_failed)
+    } else null
 }
 
 

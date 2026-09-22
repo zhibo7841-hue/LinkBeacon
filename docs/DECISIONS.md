@@ -712,3 +712,28 @@ This log records the confirmed project decisions. New scope or changes to these 
 - Compatibility: Android 12 remains the mandatory minimum-platform validation
   target. Android 16 is validated when available. Android 17 local-network
   permission remains a future target-37 gate and is not requested early.
+
+## Decision: v0.8 web diagnostics History snapshots
+
+- Date: 2026-09-22
+- Status: Accepted and implemented
+- Persistence: one completed SSL/TLS Check writes at most one `TLS_CHECK`
+  record, and one completed Website Diagnostics run writes at most one
+  `WEBSITE_DIAGNOSTIC` record. Redirects and internal DNS/TCP/TLS/HTTP stages do
+  not create separate rows. Cancelled, stopped, network-changed, and incomplete
+  work is not persisted as a completed result.
+- Storage contract: each family uses immutable local JSON with
+  `schemaVersion = 1` in the existing generic `history_records` table. No Room
+  schema or migration is required. Unknown or malformed payloads fail closed
+  into a friendly unavailable state and remain deletable.
+- Restore contract: History displays the stored outcome, evidence, findings,
+  and recommendations without network access, probe execution, or analyzer
+  reruns. Live and saved presentation reuse the same result components while
+  saved screens remain read-only.
+- Privacy: query strings, fragments, URL user-info, secrets, cookies,
+  authentication headers, response bodies, arbitrary headers, and exception
+  text are excluded. Redirect locations are redacted before persistence;
+  certificate storage is bounded to public diagnostic evidence.
+- Scope: Report/PDF/Share, Copy, Automatic Diagnosis integration, Device Detail
+  integration, and Port Scan history remain deferred. This decision does not
+  change the current application version or the v0.8 release gate.

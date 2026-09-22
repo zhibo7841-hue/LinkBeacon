@@ -6,5 +6,7 @@ enum class HistoryType {
     TCP,
     REPORT,
     LAN_SCAN,
+    TLS_CHECK,
+    WEBSITE_DIAGNOSTIC,
     UNKNOWN,
 }

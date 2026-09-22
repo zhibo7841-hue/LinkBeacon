@@ -78,14 +78,18 @@ object RecreationNetworkModule {
     @Provides fun traceroute(): TracerouteEngine = object : TracerouteEngine {
         override suspend fun run(request: TracerouteRequest): TracerouteResult = error("Unexpected Traceroute")
     }
-    @Provides fun tlsCheck(): RunTlsCheck = RunTlsCheck { _, _, _ ->
+    @Provides fun tlsCheck(f: RecreationFixture): RunTlsCheck = RunTlsCheck { _, _, _ ->
+        f.tlsStarts++
         error("Unexpected SSL/TLS Check in recreation test")
     }
-    @Provides fun websiteDiagnostics(): WebsiteDiagnosticUseCase = object : WebsiteDiagnosticUseCase {
+    @Provides fun websiteDiagnostics(f: RecreationFixture): WebsiteDiagnosticUseCase = object : WebsiteDiagnosticUseCase {
         override suspend fun run(
             request: WebsiteDiagnosticRequest,
             onProgress: (WebsiteDiagnosticProgress) -> Unit,
-        ): WebsiteDiagnosticSnapshot = error("Unexpected Website Diagnostics in recreation test")
+        ): WebsiteDiagnosticSnapshot {
+            f.websiteStarts++
+            error("Unexpected Website Diagnostics in recreation test")
+        }
     }
     @Provides fun analyzer(): DiagnosticAnalyzerV4 = DefaultDiagnosticAnalyzerV4()
     @Provides fun orchestrator(f: RecreationFixture): DiagnosticOrchestrator = object : DiagnosticOrchestrator {
@@ -115,6 +119,8 @@ class RecreationFixture {
     var scanStarts = 0
     var wakeSends = 0
     var diagnosticStarts = 0
+    var tlsStarts = 0
+    var websiteStarts = 0
     val finishScan = CompletableDeferred<Unit>()
     val finishDiagnostic = CompletableDeferred<Unit>()
     val profiles = MutableStateFlow((1..25).map { index ->

@@ -558,10 +558,41 @@ separate facts. Website results preserve DNS/TCP/direct-TLS evidence separately
 from the actual HTTP proxy/direct route, and HTTP responses including 4xx/5xx
 remain response evidence rather than generic network failure.
 
-This UI stage writes no History, Report/PDF/Share data and does not integrate
-with Automatic Diagnosis, Device Detail, or Port Scan. Task D History/optional
-Copy and Report scope remain a separate decision; Task E final performance and
-real-device regression remains pending.
+The original Task C UI stage wrote no History, Report/PDF/Share data and did not
+integrate with Automatic Diagnosis, Device Detail, or Port Scan. Task 113 now
+adds the separately authorized History boundary described below. Optional Copy,
+Report/PDF/Share, Automatic Diagnosis, Device Detail, and Port Scan integration
+remain deferred; Task E final performance and real-device regression remains.
+
+## SSL/TLS and Website Diagnostics History (Task 113)
+
+Completed TLS and Website runs persist through the existing shared path:
+
+`TlsCheckViewModel / WebsiteDiagnosticsViewModel -> HistoryRecorder ->
+HistoryRepository -> Room history_records`
+
+`history_records` remains the generic local table and Room schema version stays
+unchanged. Stable `TLS_CHECK` and `WEBSITE_DIAGNOSTIC` types each carry an
+immutable JSON payload with `schemaVersion = 1`. A run identifier plus a
+single-write guard enforces at most one row per completed run. Cancellation,
+stop, network change, and incomplete execution are excluded before persistence;
+internal stages and redirect hops never call `HistoryRecorder` independently.
+
+The snapshot mappers own serialization, redaction, status policy, and typed
+restoration. They retain only bounded public evidence and remove URL user-info,
+query, fragment, secrets, cookies, authentication headers, response bodies,
+arbitrary headers, and raw exception text. Redirect locations are redacted
+before storage. The saved flow is strictly read-only:
+
+`HistoryScreen -> history record id -> SavedWebDiagnosticsHistoryViewModel ->
+HistoryRepository -> snapshot resolver -> WebDiagnosticsHistoryScreen`
+
+The saved ViewModel has no Engine, probe, analyzer, or write dependency. It
+observes the exact row, restores stored findings/recommendations/outcome, and
+reuses the same TLS/Website result-content composables as the live screen.
+Unknown, corrupt, or deleted payloads show a friendly unavailable state without
+fallback network work. Legacy records and existing delete/clear behavior remain
+unchanged.
 
 ## Port Scan UI and Navigation Integration (Task 102)
 

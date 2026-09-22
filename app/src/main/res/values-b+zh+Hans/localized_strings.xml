@@ -13,6 +13,8 @@
     <string name="app_ui_type_tcp">TCP 端口检测</string>
     <string name="app_ui_type_report">网络诊断</string>
     <string name="app_ui_type_lan">局域网扫描</string>
+    <string name="app_ui_type_tls">SSL/TLS 检测</string>
+    <string name="app_ui_type_website">网站访问诊断</string>
     <string name="app_ui_type_other">其他</string>
     <string name="app_ui_version">版本 %1$s</string>
 </resources>
