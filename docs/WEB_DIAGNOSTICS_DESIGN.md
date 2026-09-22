@@ -996,7 +996,53 @@ Keep the implementation split small:
 Only after Tasks A-E pass should a separately authorized v0.8.0 RC Preparation
 change `versionName`/`versionCode`. Task C UI is complete. Task D History /
 optional Copy and Report scope remain pending a separately confirmed decision,
-and Task E final regression has not started.
+and the signed Android 12 portion of Task E is complete. Android 16 compatibility
+was not executed because no Android 16 device was available for this gate.
+
+### Signed Android 12 UI / functional regression (Task 112)
+
+Task 112 passed on 2026-09-22 using Sony XQ-AT72 / Android 12 (API 31). The
+locally signed validation artifact was installed in place over the existing app:
+
+- artifact: `LinkBeacon-v0.8-task112-signed-test.apk`;
+- SHA-256: `3CAA1B5C83645AE7B2769BDBD8A0C3DBF63C99750E2F027721A411DE15DA222A`;
+- package/version: `com.networktoolbox`, `0.7.1` (`versionCode` 8);
+- signing certificate SHA-256:
+  `9A7886F51465240ACEC594B25EDF7C1431425AC54FB6043C61DB0C66ED8EF4D1`;
+- the package user ID, first-install time, and credential-encrypted data inode
+  remained unchanged, confirming an in-place signed update without uninstall or
+  user-data clearing.
+
+The signed UI regression covered both independent Tools entries, idle/running/
+success/attention/cancelled states, trusted public TLS, certificate and SAN/chain
+details, HTTPS 200, real HTTP 404, controlled HTTP 302 and 500 fixtures,
+cleartext HTTP, Fake-IP notices, actual Wi-Fi/mobile network change, immediate
+cancellation, Back confirmation, rerun, rotation, English/Simplified-Chinese,
+light/dark themes, accessibility semantics, query redaction, and History/Report
+scope boundaries. Existing Ping, DNS, TCP, Port Scan, Automatic Diagnosis, LAN
+Scanner, Device Center, navigation, and persisted user data also passed smoke or
+regression checks. No SSL/TLS or Website Diagnostics History row or Automatic
+Diagnosis stage was added.
+
+Android instrumentation executed six deterministic real-socket/local-fixture
+tests on the same Android 12 device: open/closed TCP, TLS cancellation,
+trusted-versus-untrusted platform trust and hostname semantics, HTTP 200 body
+closure, manual redirect handling, and in-flight HTTP cancellation. All six
+passed. Public endpoints were used only for bounded normal/error smoke checks;
+redirect and server-error behavior used the local fixture. The run produced no
+observed crash, ANR, rejected executor task, out-of-memory failure, or socket
+leak. Validation screenshots and logs remain local under
+`build/task112-webdiagnostics/` and are not repository artifacts.
+
+The current network exposed Fake-IP DNS behavior but no configurable Android
+system VPN/proxy matrix, so proxy/VPN edge semantics continue to rely on the
+deterministic Core and presentation tests. Android 16 was not available and was
+not claimed as tested. No Runtime, Android resource, manifest, dependency,
+version, RC, tag, or release change was made for Task 112.
+
+History/optional Copy and Report/PDF/Share remain pending a separate maintainer
+scope decision. Therefore the signed Android 12 UI/functional regression is
+complete, but v0.8.0 is not yet declared feature-complete or release-ready.
 
 ### Task B implementation boundary
 
