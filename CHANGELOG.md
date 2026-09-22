@@ -6,6 +6,34 @@
 
 - Updated GitHub Actions dependencies to remove deprecated Node.js 20 runtime warnings.
 
+## 0.8.0
+
+### SSL/TLS Check
+
+- Added user-initiated TLS checks with system-trust validation, certificate
+  chain details, validity information, and conservative explanations.
+- Added cancellation and network-change protection without certificate pinning,
+  vulnerability claims, TLS scoring, or cipher enumeration.
+
+### Website Diagnostics
+
+- Added staged DNS, TCP, direct TLS, and HTTPS checks for focused website
+  access troubleshooting.
+- Added redirects, HTTP status, proxy/VPN/Fake-IP context, and evidence-based
+  partial-result presentation without claiming a single definitive root cause.
+
+### Local History
+
+- Added one versioned local snapshot for each completed TLS or Website run.
+- Saved results reopen without repeating network I/O or re-running analysis.
+- Sensitive URL components and response headers are excluded or redacted.
+
+### Compatibility
+
+- Room remains version 5 with no database migration.
+- Existing History and Device Center data remain on their established paths.
+- Report/PDF/Share and Automatic Diagnosis integration remain deferred.
+
 ## 0.7.1
 
 ### Device Center

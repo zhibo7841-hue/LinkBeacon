@@ -22,8 +22,8 @@ android {
         applicationId = "com.networktoolbox"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 8
-        versionName = "0.7.1"
+        versionCode = 9
+        versionName = "0.8.0"
 
         // Keep dependency locales from shadowing supported fallback languages.
         resourceConfigurations += listOf("en", "b+zh+Hans")

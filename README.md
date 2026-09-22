@@ -36,6 +36,21 @@ automatic termination when the active network changes.
 - Bounded concurrency, cancellable sockets, and network-change protection for
   safer scans.
 
+### Upcoming v0.8.0
+
+v0.8.0 is currently in release-candidate preparation. Its frozen scope adds:
+
+- SSL/TLS Check with system-trust validation, certificate-chain details, and
+  conservative result explanations.
+- Website Diagnostics with staged DNS, TCP, direct TLS, and HTTPS evidence.
+- Versioned, local-only TLS and Website History snapshots that reopen without
+  repeating network requests or analysis.
+
+This release is a network troubleshooting aid, not a vulnerability scanner or
+security rating product. Report/PDF/Share integration, Automatic Diagnosis
+integration, Port Scan-to-TLS shortcuts, Device Detail integration, cipher
+enumeration, HTTP/3/QUIC, and Wi-Fi Analyzer remain outside v0.8.0.
+
 ## Screenshots
 
 <p align="center">
@@ -158,6 +173,8 @@ maintainer-local and are not required for ordinary development builds.
 - [v0.7.0 release readiness](docs/V0.7_RELEASE_READINESS.md)
 - [v0.7.1 release notes](docs/V0.7.1_RELEASE_NOTES.md)
 - [v0.7.1 release readiness](docs/V0.7.1_RELEASE_READINESS.md)
+- [v0.8.0 release notes](docs/V0.8_RELEASE_NOTES.md)
+- [v0.8.0 release readiness](docs/V0.8_RELEASE_READINESS.md)
 - [Published v0.4.0 release notes](docs/releases/v0.4.0.md)
 - [Development workflow](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI design system](docs/UI_DESIGN_SYSTEM.md)

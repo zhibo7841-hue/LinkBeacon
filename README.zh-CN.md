@@ -33,6 +33,18 @@ v0.7.1 进一步完善设备中心，通过统一入口管理自定义名称、�
 - 展示开放端口，并提供明确标注为提示的常见用途信息。
 - 通过受控并发、可取消 Socket 和网络切换保护提升扫描安全性。
 
+### 即将发布的 v0.8.0
+
+v0.8.0 当前处于 Release Candidate 准备阶段，冻结范围新增：
+
+- SSL/TLS 检测：基于系统信任验证，展示证书链详情，并提供保守、准确的结果解释。
+- 网站访问诊断：分阶段收集 DNS、TCP、直连 TLS 与 HTTPS 证据。
+- 版本化、仅保存在本机的 TLS 与网站诊断历史快照；重新打开历史时不会重复发起网络请求或重新分析。
+
+本版本是网络排障辅助工具，不是漏洞扫描器或安全评分产品。报告/PDF/分享、
+自动诊断集成、端口扫描跳转 TLS、设备详情集成、密码套件枚举、HTTP/3/QUIC
+与 Wi-Fi Analyzer 均不属于 v0.8.0 范围。
+
 ## 截图
 
 <p align="center">
@@ -151,6 +163,8 @@ Windows 请使用 `gradlew.bat` 代替 `./gradlew`。Debug APK 生成在
 - [v0.7.0 发布就绪记录](docs/V0.7_RELEASE_READINESS.md)
 - [v0.7.1 Release Notes](docs/V0.7.1_RELEASE_NOTES.md)
 - [v0.7.1 发布就绪记录](docs/V0.7.1_RELEASE_READINESS.md)
+- [v0.8.0 Release Notes](docs/V0.8_RELEASE_NOTES.md)
+- [v0.8.0 发布就绪记录](docs/V0.8_RELEASE_READINESS.md)
 - [已发布的 v0.4.0 Release Notes](docs/releases/v0.4.0.md)
 - [开发流程](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI 设计系统](docs/UI_DESIGN_SYSTEM.md)
