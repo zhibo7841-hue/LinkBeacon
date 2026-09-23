@@ -19,31 +19,31 @@ NetworkToolbox 已在 v0.5.0 更名为 LinkBeacon。Android application ID
 
 ## 开发状态
 
-- **最新稳定版本：** [v0.7.1](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.1)
+- **最新稳定版本：** [v0.8.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)
+
+### v0.8.0 新增内容
+
+- SSL/TLS 检测展示 TLS 连接、系统信任、主机名验证、证书有效期，以及协商的
+  TLS 版本和密码套件证据。
+- 网站访问诊断分阶段检查 DNS、TCP、TLS、证书、HTTP 和重定向；若观察到
+  代理、VPN 或 Fake-IP 环境，会提供对应上下文。
+- 版本化的 SSL/TLS 与网站诊断历史保存在本机，恢复不可变快照时不会重新请求
+  网络或重新分析；敏感 URL 和响应信息在保存前经过遮盖。
+
+这些检测解释本次连接路径与检测时刻的证据。新工具的报告/PDF/分享和自动诊断
+集成留待后续版本。
+
+### 之前的 v0.7.1 版本
 
 v0.7.1 进一步完善设备中心，通过统一入口管理自定义名称、设备类型和备注。
 同时新增从工具页和设备详情进入的 TCP 端口扫描，支持快速扫描、自定义范围、
 开放端口结果、常见用途提示、停止扫描，以及网络切换时自动终止。
-
-### v0.7.1 新增内容
 
 - 在同一入口统一编辑设备的自定义名称、设备类型和备注。
 - 从工具页或设备详情执行 TCP 端口扫描。
 - 24 个常用端口快速扫描，以及 1 到 65535 的自定义连续范围。
 - 展示开放端口，并提供明确标注为提示的常见用途信息。
 - 通过受控并发、可取消 Socket 和网络切换保护提升扫描安全性。
-
-### 即将发布的 v0.8.0
-
-v0.8.0 当前处于 Release Candidate 准备阶段，冻结范围新增：
-
-- SSL/TLS 检测：基于系统信任验证，展示证书链详情，并提供保守、准确的结果解释。
-- 网站访问诊断：分阶段收集 DNS、TCP、直连 TLS 与 HTTPS 证据。
-- 版本化、仅保存在本机的 TLS 与网站诊断历史快照；重新打开历史时不会重复发起网络请求或重新分析。
-
-本版本是网络排障辅助工具，不是漏洞扫描器或安全评分产品。报告/PDF/分享、
-自动诊断集成、端口扫描跳转 TLS、设备详情集成、密码套件枚举、HTTP/3/QUIC
-与 Wi-Fi Analyzer 均不属于 v0.8.0 范围。
 
 ## 截图
 
@@ -92,7 +92,7 @@ LinkBeacon 展示检测事实、可能原因和排障建议。当现有证据无
 
 ## 语言支持
 
-v0.7.1 支持：
+v0.8.0 支持：
 
 - English。
 - 简体中文。
@@ -121,13 +121,13 @@ LinkBeacon 只会为了执行用户主动选择的检测而访问网络。这不
 
 ## 下载
 
-最新稳定版本为 **v0.7.1**：
+最新稳定版本为 **v0.8.0**：
 
-- [下载 LinkBeacon-v0.7.1.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.1/LinkBeacon-v0.7.1.apk)
-- [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.1/LinkBeacon-v0.7.1.apk.sha256)
-- [查看 v0.7.1 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.1)
+- [下载 LinkBeacon-v0.8.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.8.0/LinkBeacon-v0.8.0.apk)
+- [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.8.0/LinkBeacon-v0.8.0.apk.sha256)
+- [查看 v0.8.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)
 
-对应 SHA-256 校验文件与 Release 附件一同提供。现有 v0.7.0 安装可以直接
+对应 SHA-256 校验文件与 Release 附件一同提供。现有 v0.7.1 安装可以直接
 升级，无需清除本地数据。
 
 ## 构建与开发

@@ -20,14 +20,27 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 
 ## Development status
 
-- **Latest stable release:** [v0.7.1](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.1)
+- **Latest stable release:** [v0.8.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)
+
+### What's new in v0.8.0
+
+- SSL/TLS Check reports the TLS connection, system trust, hostname validation,
+  certificate validity, negotiated TLS version, and cipher evidence.
+- Website Diagnostics checks DNS, TCP, TLS, certificate, HTTP, and redirects in
+  stages, with proxy, VPN, and Fake-IP context when observed.
+- Versioned local SSL/TLS and Website Diagnostics History restores immutable
+  snapshots without repeating network requests or analysis. Sensitive URL and
+  response data is redacted before storage.
+
+These checks explain the observed path and moment. Report/PDF/Share and
+Automatic Diagnosis integration for the new tools remain future work.
+
+### Previous v0.7.1 release
 
 v0.7.1 polishes Device Center with one unified editor for Custom Name, Device
 Type, and Notes. It also adds TCP Port Scan from Tools and Device Detail, with
 Quick Scan, custom ranges, open-port results, common-service hints, Stop, and
 automatic termination when the active network changes.
-
-### What's new in v0.7.1
 
 - Unified editing for a device's Custom Name, Device Type, and Notes.
 - TCP Port Scan from Tools and Device Detail.
@@ -35,21 +48,6 @@ automatic termination when the active network changes.
 - Open-port results with clearly labelled common-service hints.
 - Bounded concurrency, cancellable sockets, and network-change protection for
   safer scans.
-
-### Upcoming v0.8.0
-
-v0.8.0 is currently in release-candidate preparation. Its frozen scope adds:
-
-- SSL/TLS Check with system-trust validation, certificate-chain details, and
-  conservative result explanations.
-- Website Diagnostics with staged DNS, TCP, direct TLS, and HTTPS evidence.
-- Versioned, local-only TLS and Website History snapshots that reopen without
-  repeating network requests or analysis.
-
-This release is a network troubleshooting aid, not a vulnerability scanner or
-security rating product. Report/PDF/Share integration, Automatic Diagnosis
-integration, Port Scan-to-TLS shortcuts, Device Detail integration, cipher
-enumeration, HTTP/3/QUIC, and Wi-Fi Analyzer remain outside v0.8.0.
 
 ## Screenshots
 
@@ -101,7 +99,7 @@ that the target device powered on or became reachable.
 
 ## Language support
 
-v0.7.1 supports:
+v0.8.0 supports:
 
 - English.
 - Simplified Chinese.
@@ -131,14 +129,14 @@ the user. This does not mean that diagnostic results are uploaded.
 
 ## Download
 
-The latest stable release is **v0.7.1**:
+The latest stable release is **v0.8.0**:
 
-- [Download LinkBeacon-v0.7.1.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.1/LinkBeacon-v0.7.1.apk)
-- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.7.1/LinkBeacon-v0.7.1.apk.sha256)
-- [View the v0.7.1 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.7.1)
+- [Download LinkBeacon-v0.8.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.8.0/LinkBeacon-v0.8.0.apk)
+- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.8.0/LinkBeacon-v0.8.0.apk.sha256)
+- [View the v0.8.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)
 
 The matching SHA-256 checksum is provided with the release assets. Existing
-v0.7.0 installations can upgrade directly without clearing local data.
+v0.7.1 installations can upgrade directly without clearing local data.
 
 ## Build and development
 
