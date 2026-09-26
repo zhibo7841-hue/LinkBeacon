@@ -4,6 +4,8 @@ import com.networktoolbox.core.designsystem.UiText
 import com.networktoolbox.feature.dashboard.R
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
+import com.networktoolbox.core.network.wifi.WifiSignalClassifier
+import com.networktoolbox.core.network.wifi.WifiSignalLevel
 import com.networktoolbox.core.designsystem.StatusVisualState
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -107,6 +109,8 @@ object NetworkStatusPresentation {
 
     fun networkIdentitySupportText(context: NetworkContext): UiText? {
         if (context.activeNetworkAvailable == false) return null
+        if (context.connectionType == ConnectionType.WIFI && context.vpnActive != true &&
+            displayableWifiName(context.wifiName) == null) return null
 
         val networkType = connectionTypeLabel(context.connectionType)
         return if (context.vpnActive == true) {
@@ -136,9 +140,19 @@ object NetworkStatusPresentation {
         else -> WifiSignalStrength.STRONG
     }
 
-    fun wifiSignalContentDescription(signalLevel: Int?): UiText = when (
-        wifiSignalStrength(signalLevel)
-    ) {
+    /** Raw current-link RSSI takes precedence over OEM level buckets when available. */
+    fun wifiSignalStrength(context: NetworkContext): WifiSignalStrength =
+        if (context.wifiRssiDbm != null) when (WifiSignalClassifier.fromRssi(context.wifiRssiDbm)) {
+            WifiSignalLevel.EXCELLENT, WifiSignalLevel.GOOD -> WifiSignalStrength.STRONG
+            WifiSignalLevel.FAIR -> WifiSignalStrength.MEDIUM
+            WifiSignalLevel.WEAK -> WifiSignalStrength.WEAK
+            WifiSignalLevel.UNKNOWN -> WifiSignalStrength.UNKNOWN
+        } else wifiSignalStrength(context.wifiSignalLevel)
+
+    fun wifiSignalContentDescription(signalLevel: Int?): UiText =
+        wifiSignalContentDescription(wifiSignalStrength(signalLevel))
+
+    private fun wifiSignalContentDescription(strength: WifiSignalStrength): UiText = when (strength) {
         WifiSignalStrength.UNKNOWN -> UiText(R.string.home_wifi_unknown)
         WifiSignalStrength.WEAK -> UiText(R.string.home_wifi_weak)
         WifiSignalStrength.MEDIUM -> UiText(R.string.home_wifi_medium)
@@ -149,7 +163,7 @@ object NetworkStatusPresentation {
         if (context.activeNetworkAvailable == false) return NetworkHeroIconKind.DISCONNECTED
 
         return when (context.connectionType) {
-            ConnectionType.WIFI -> when (wifiSignalStrength(context.wifiSignalLevel)) {
+            ConnectionType.WIFI -> when (wifiSignalStrength(context)) {
                 WifiSignalStrength.UNKNOWN -> NetworkHeroIconKind.WIFI_UNKNOWN
                 WifiSignalStrength.WEAK -> NetworkHeroIconKind.WIFI_WEAK
                 WifiSignalStrength.MEDIUM -> NetworkHeroIconKind.WIFI_MEDIUM
@@ -172,7 +186,7 @@ object NetworkStatusPresentation {
         NetworkHeroIconKind.WIFI_WEAK,
         NetworkHeroIconKind.WIFI_MEDIUM,
         NetworkHeroIconKind.WIFI_STRONG,
-        -> wifiSignalContentDescription(context.wifiSignalLevel)
+        -> wifiSignalContentDescription(wifiSignalStrength(context))
 
         NetworkHeroIconKind.CELLULAR -> UiText(R.string.home_mobile)
         NetworkHeroIconKind.ETHERNET -> UiText(R.string.home_ethernet)

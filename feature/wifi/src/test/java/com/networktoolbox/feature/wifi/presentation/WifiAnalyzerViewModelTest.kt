@@ -6,6 +6,8 @@ import com.networktoolbox.core.network.wifi.WifiAnalyzerUseCase
 import com.networktoolbox.core.network.wifi.WifiBand
 import com.networktoolbox.core.network.wifi.WifiBandFilter
 import com.networktoolbox.core.network.wifi.WifiChannelWidth
+import com.networktoolbox.core.network.wifi.WifiChannelObservationSummary
+import com.networktoolbox.core.network.wifi.WifiConnectionSnapshot
 import com.networktoolbox.core.network.wifi.WifiScanAccessStatus
 import com.networktoolbox.core.network.wifi.WifiScanBatch
 import com.networktoolbox.core.network.wifi.WifiScanFreshness
@@ -136,6 +138,64 @@ class WifiAnalyzerViewModelTest {
             assertFalse(vm.uiState.value.canRefresh)
         }
     }
+
+    @Test fun viewSwitchPreservesSelectionAndNeverRefreshes() = runTest(dispatcher) {
+        val fake = FakeRepository()
+        val vm = WifiAnalyzerViewModel(WifiAnalyzerUseCase(fake))
+        vm.selectView(WifiAnalyzerView.CHANNELS)
+        assertEquals(WifiAnalyzerView.CHANNELS, vm.uiState.value.selectedView)
+        vm.toggleExpanded("AA:BB:CC:DD:EE:FF:5180")
+        assertTrue("AA:BB:CC:DD:EE:FF:5180" in vm.uiState.value.expandedBssids)
+        vm.selectView(WifiAnalyzerView.NETWORKS)
+        assertEquals(WifiAnalyzerView.NETWORKS, vm.uiState.value.selectedView)
+        assertTrue("AA:BB:CC:DD:EE:FF:5180" in vm.uiState.value.expandedBssids)
+        assertEquals(0, fake.refreshes)
+    }
+
+    @Test fun channelBandFilterIgnoresNearbySearch() = runTest(dispatcher) {
+        val fake = FakeRepository()
+        fake.snapshots.value = fake.snapshots.value.copy(channelOverview = listOf(
+            WifiChannelObservationSummary(WifiBand.BAND_2_4_GHZ, 1, 3, -54, false),
+            WifiChannelObservationSummary(WifiBand.BAND_5_GHZ, 40, 2, -60, true),
+        ))
+        val vm = WifiAnalyzerViewModel(WifiAnalyzerUseCase(fake))
+        vm.setSearch("OpenWrt")
+        vm.selectView(WifiAnalyzerView.CHANNELS)
+        assertEquals(2, vm.uiState.value.visibleChannels.size)
+        vm.setFilter(WifiBandFilter.BAND_5_GHZ)
+        assertEquals(listOf(40), vm.uiState.value.visibleChannels.map { it.channel })
+        assertEquals(0, fake.refreshes)
+    }
+
+    @Test fun initialKnownSsidIsInFirstStateAndNetworkChangeNeverRetainsOldName() = runTest(dispatcher) {
+        val fake = FakeRepository()
+        fake.snapshots.value = fake.snapshots.value.copy(currentConnection = connection("OpenWrt", "A"))
+        val vm = WifiAnalyzerViewModel(WifiAnalyzerUseCase(fake))
+        assertEquals("OpenWrt", vm.uiState.value.snapshot.currentConnection?.ssid)
+        advanceUntilIdle()
+        fake.snapshots.value = fake.snapshots.value.copy(currentConnection = connection(null, "B"))
+        advanceUntilIdle()
+        assertEquals("B", vm.uiState.value.snapshot.currentConnection?.networkId)
+        assertEquals(null, vm.uiState.value.snapshot.currentConnection?.ssid)
+        fake.snapshots.value = fake.snapshots.value.copy(currentConnection = connection("Next", "B"))
+        advanceUntilIdle()
+        assertEquals("Next", vm.uiState.value.snapshot.currentConnection?.ssid)
+    }
+
+    @Test fun coldStartHasNoInventedSsid() = runTest(dispatcher) {
+        val fake = FakeRepository()
+        val vm = WifiAnalyzerViewModel(WifiAnalyzerUseCase(fake))
+        assertEquals(null, vm.uiState.value.snapshot.currentConnection?.ssid)
+        assertFalse(vm.uiState.value.ready)
+        fake.snapshots.value = fake.snapshots.value.copy(currentConnection = connection("OpenWrt", "A"))
+        advanceUntilIdle()
+        assertEquals("OpenWrt", vm.uiState.value.snapshot.currentConnection?.ssid)
+    }
+
+    private fun connection(ssid: String?, networkId: String) = WifiConnectionSnapshot(
+        ssid, null, -50, WifiSignalLevel.EXCELLENT, 5180, WifiBand.BAND_5_GHZ, 36,
+        100, WifiStandard.WIFI_6, setOf(WifiSecurityType.WPA2), networkId, true, false,
+    )
 
     private class FakeRepository : WifiScanRepository {
         override val snapshots = MutableStateFlow(WifiAnalyzerSnapshot(accessStatus = WifiScanAccessStatus.AVAILABLE))

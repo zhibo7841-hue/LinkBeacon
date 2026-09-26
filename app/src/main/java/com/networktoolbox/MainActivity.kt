@@ -801,6 +801,8 @@ class MainActivity : AppCompatActivity() {
                                 onRefresh = wifiAnalyzerViewModel::refresh,
                                 onSearch = wifiAnalyzerViewModel::setSearch,
                                 onFilter = wifiAnalyzerViewModel::setFilter,
+                                onSelectView = wifiAnalyzerViewModel::selectView,
+                                sharedNetworkContext = dashboardUiState.networkContext,
                                 onToggleAp = wifiAnalyzerViewModel::toggleExpanded,
                                 onGrantPermission = wifiAnalyzerViewModel::grantPermission,
                                 onOpenLocationSettings = wifiAnalyzerViewModel::openLocationSettings,

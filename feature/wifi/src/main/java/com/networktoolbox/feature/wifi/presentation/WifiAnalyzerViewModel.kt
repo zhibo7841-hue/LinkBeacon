@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 
 enum class WifiPermissionDisposition { REQUIRED, APPROXIMATE_ONLY, DENIED, PERMANENTLY_DENIED }
 enum class WifiAnalyzerEvent { REQUEST_FINE_LOCATION, OPEN_APP_SETTINGS, OPEN_LOCATION_SETTINGS, OPEN_WIFI_SETTINGS }
+enum class WifiAnalyzerView { NETWORKS, CHANNELS }
 
 object WifiPermissionPolicy {
     fun disposition(
@@ -39,6 +40,7 @@ object WifiPermissionPolicy {
 
 data class WifiAnalyzerUiState(
     val snapshot: WifiAnalyzerSnapshot = WifiAnalyzerSnapshot(),
+    val selectedView: WifiAnalyzerView = WifiAnalyzerView.NETWORKS,
     val search: String = "",
     val filter: WifiBandFilter = WifiBandFilter.ALL,
     val expandedBssids: Set<String> = emptySet(),
@@ -48,6 +50,10 @@ data class WifiAnalyzerUiState(
 ) {
     val visibleAccessPoints: List<WifiAccessPointObservation>
         get() = WifiObservations.query(snapshot.scanBatch?.observations.orEmpty(), filter, search)
+    /** Channel counts deliberately ignore the Nearby search term. */
+    val visibleChannels get() = snapshot.channelOverview.filter { channel ->
+        filter == WifiBandFilter.ALL || channel.band.name == filter.name
+    }
     val refreshing: Boolean get() = snapshot.scanState is WifiScanState.Requesting ||
         snapshot.scanState is WifiScanState.WaitingForResults
     val canRefresh: Boolean get() = observing && ready && !refreshing &&
@@ -58,7 +64,7 @@ data class WifiAnalyzerUiState(
 class WifiAnalyzerViewModel @Inject constructor(
     private val useCase: WifiAnalyzerUseCase,
 ) : ViewModel() {
-    private val mutableState = MutableStateFlow(WifiAnalyzerUiState())
+    private val mutableState = MutableStateFlow(WifiAnalyzerUiState(snapshot = useCase.snapshots.value))
     val uiState: StateFlow<WifiAnalyzerUiState> = mutableState.asStateFlow()
     private val eventChannel = Channel<WifiAnalyzerEvent>(Channel.BUFFERED)
     val events = eventChannel.receiveAsFlow()
@@ -76,7 +82,7 @@ class WifiAnalyzerViewModel @Inject constructor(
         mutableState.update { it.copy(observing = true, ready = false) }
         viewModelScope.launch {
             useCase.startObserving()
-            mutableState.update { it.copy(ready = true) }
+            mutableState.update { it.copy(snapshot = useCase.snapshots.value, ready = true) }
         }
     }
 
@@ -93,7 +99,7 @@ class WifiAnalyzerViewModel @Inject constructor(
         viewModelScope.launch {
             useCase.stopObserving()
             useCase.startObserving()
-            mutableState.update { it.copy(ready = true) }
+            mutableState.update { it.copy(snapshot = useCase.snapshots.value, ready = true) }
         }
     }
 
@@ -108,6 +114,7 @@ class WifiAnalyzerViewModel @Inject constructor(
     }
 
     fun setSearch(value: String) = mutableState.update { it.copy(search = value) }
+    fun selectView(value: WifiAnalyzerView) = mutableState.update { it.copy(selectedView = value) }
     fun setFilter(value: WifiBandFilter) = mutableState.update { it.copy(filter = value) }
     fun toggleExpanded(key: String) = mutableState.update { current ->
         current.copy(expandedBssids = if (key in current.expandedBssids) {

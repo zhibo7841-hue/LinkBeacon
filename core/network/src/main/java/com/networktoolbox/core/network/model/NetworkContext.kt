@@ -33,6 +33,8 @@ data class NetworkContext(
     val proxyPort: Int? = null,
     /** PAC URL configured for the active link, when exposed. */
     val proxyPacUrl: String? = null,
+    /** Current-link RSSI, when exposed; never substituted for cached scan observations. */
+    val wifiRssiDbm: Int? = null,
 ) {
     companion object {
         fun unknown(): NetworkContext = NetworkContext(

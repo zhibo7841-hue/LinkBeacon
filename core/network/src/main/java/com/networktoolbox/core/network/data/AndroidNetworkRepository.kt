@@ -23,23 +23,31 @@ class AndroidNetworkRepository(context: Context) : NetworkRepository {
         return callbackFlow {
             trySend(contextReader.readCurrentContext())
 
-            val callback = object : ConnectivityManager.NetworkCallback() {
+            // Existing location grant may expose SSID through the shared current-network
+            // source. This does not request permission or start a nearby scan.
+            val callback = object : ConnectivityManager.NetworkCallback(
+                ConnectivityManager.NetworkCallback.FLAG_INCLUDE_LOCATION_INFO,
+            ) {
                 override fun onAvailable(network: Network) {
-                    trySend(contextReader.readContext(network))
+                    if (manager.activeNetwork == network) trySend(contextReader.readContext(network))
                 }
 
                 override fun onCapabilitiesChanged(
                     network: Network,
                     networkCapabilities: NetworkCapabilities,
                 ) {
-                    trySend(contextReader.readContext(network, networkCapabilities))
+                    if (manager.activeNetwork == network) {
+                        trySend(contextReader.readContext(network, networkCapabilities))
+                    }
                 }
 
                 override fun onLinkPropertiesChanged(
                     network: Network,
                     linkProperties: LinkProperties,
                 ) {
-                    trySend(contextReader.readContext(network, linkProperties = linkProperties))
+                    if (manager.activeNetwork == network) {
+                        trySend(contextReader.readContext(network, linkProperties = linkProperties))
+                    }
                 }
 
                 override fun onLost(network: Network) {

@@ -4,6 +4,15 @@
     <string name="wifi_current">Current connection</string>
     <string name="wifi_not_connected">Not connected to Wi-Fi</string>
     <string name="wifi_nearby">Nearby networks</string>
+    <string name="wifi_view_networks">Networks</string>
+    <string name="wifi_view_channels">Channels</string>
+    <string name="wifi_scan_status">Scan results</string>
+    <string name="wifi_loading_connection">Reading Wi-Fi connection…</string>
+    <string name="wifi_ap_explanation">AP = wireless access point. Counts describe observations, not channel load.</string>
+    <string name="wifi_signal_accessibility">Signal %1$s, minus %2$s dBm</string>
+    <string name="wifi_signal_accessibility_unknown">Signal unavailable</string>
+    <string name="wifi_cached_seconds">Cached · %1$d sec ago</string>
+    <string name="wifi_cached_minutes">Cached · %1$d min ago</string>
     <string name="wifi_channels">Channel overview</string>
     <string name="wifi_refresh">Refresh</string>
     <string name="wifi_refreshing">Requesting scan results…</string>
@@ -59,11 +68,11 @@
     <string name="wifi_good">Good</string>
     <string name="wifi_fair">Fair</string>
     <string name="wifi_weak">Weak</string>
-    <string name="wifi_open">No Wi-Fi encryption</string>
+    <string name="wifi_open">Open</string>
     <string name="wifi_wpa_personal">WPA Personal</string>
     <string name="wifi_enterprise">Enterprise</string>
-    <string name="wifi_observed_count">%1$d observed networks</string>
-    <string name="wifi_channel_number">Channel %1$d</string>
+    <string name="wifi_observed_count">%1$d AP</string>
+    <string name="wifi_channel_number">CH %1$d</string>
     <string name="wifi_strongest">Strongest %1$d dBm</string>
     <string name="wifi_channel_accessibility">Channel %1$d, %2$d observed networks, strongest signal %3$d dBm</string>
     <string name="wifi_channel_accessibility_no_signal">Channel %1$d, %2$d observed networks</string>

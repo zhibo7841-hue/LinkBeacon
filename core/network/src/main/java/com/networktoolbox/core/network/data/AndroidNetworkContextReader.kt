@@ -10,6 +10,8 @@ import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
+import com.networktoolbox.core.network.wifi.WifiIdentity
+import com.networktoolbox.core.network.wifi.WifiSignalClassifier
 import java.net.Inet4Address
 
 /**
@@ -39,12 +41,25 @@ internal class AndroidNetworkContextReader(context: Context) {
         return try {
             val capabilities = networkCapabilities ?: manager.getNetworkCapabilities(network)
             val properties = linkProperties ?: manager.getLinkProperties(network)
-            val wifiInfo = capabilities?.transportInfo as? WifiInfo
+            val type = connectionType(capabilities)
+            val callbackWifiInfo = capabilities?.transportInfo as? WifiInfo
+            // Some Android 12 devices redact the synchronous capabilities read even
+            // after a location grant. A legacy connected-Wi-Fi fact is usable only
+            // when its IPv4 address matches this active Network's LinkProperties;
+            // otherwise it could be a stale SSID from the preceding connection.
+            @Suppress("DEPRECATION")
+            val connectedWifiInfo = if (type == ConnectionType.WIFI &&
+                manager.activeNetwork == network
+            ) wifiManager?.connectionInfo?.takeIf { info ->
+                properties?.findAddress(isIpv4 = true) == info.ipAddress.toIpv4Address()
+            } else null
+            val wifiInfo = callbackWifiInfo?.takeIf { WifiIdentity.ssid(it.ssid) != null }
+                ?: connectedWifiInfo ?: callbackWifiInfo
             val proxy = properties?.httpProxy
 
             NetworkContextMapper.map(
                 NetworkContextSnapshot(
-                    connectionType = connectionType(capabilities),
+                    connectionType = type,
                     ipv4Address = properties?.findAddress(isIpv4 = true),
                     ipv6Address = properties?.findAddress(isIpv4 = false),
                     ipv6Addresses = properties?.findAddresses(isIpv4 = false).orEmpty(),
@@ -70,11 +85,9 @@ internal class AndroidNetworkContextReader(context: Context) {
                     proxyPacUrl = proxy?.pacFileUrl
                         ?.toString()
                         ?.takeIf { it.isNotBlank() && it != "" },
-                    wifiName = wifiInfo?.ssid
-                        ?.takeUnless { it.isBlank() || it == WifiManager.UNKNOWN_SSID }
-                        ?.trim('"'),
-                    wifiSignalLevel = wifiInfo?.rssi
-                        ?.takeIf { it > -127 }
+                    wifiName = WifiIdentity.ssid(wifiInfo?.ssid),
+                    wifiRssiDbm = WifiSignalClassifier.validRssi(wifiInfo?.rssi),
+                    wifiSignalLevel = WifiSignalClassifier.validRssi(wifiInfo?.rssi)
                         ?.let { wifiManager?.calculateSignalLevel(it) },
                 ),
             )
@@ -142,4 +155,7 @@ internal class AndroidNetworkContextReader(context: Context) {
 
     private fun hostAddress(address: java.net.InetAddress): String? =
         address.hostAddress?.substringBefore('%')
+
+    private fun Int.toIpv4Address(): String =
+        (0..3).joinToString(".") { octet -> ((this ushr (octet * 8)) and 0xff).toString() }
 }

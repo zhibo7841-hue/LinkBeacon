@@ -1,6 +1,6 @@
 # LinkBeacon v0.9 Wi-Fi Analyzer — Design Audit
 
-Status: Task A Platform + Domain Core complete; Task B UI, minimal runtime permissions and Basic Channel Overview complete (2026-09-26). Android 12/16 development checks have been performed; Final Regression remains a separate pending gate. Full Channel Graph remains optional and pending decision. This document began as the Task 119 design audit; no version change or release claim is implied.
+Status: Task A Platform + Domain Core complete; Task B UI, minimal runtime permissions and Basic Channel Overview complete; Task 122 UX Polish complete (2026-09-27). Android 12/16 development checks are recorded separately from Final Regression, which remains pending. Full Channel Graph remains optional and pending decision. This document began as the Task 119 design audit; no version change or release claim is implied.
 
 ## 1. Product Scope
 
@@ -183,6 +183,41 @@ Wi-Fi History, Site Survey snapshots, Report/PDF and Automatic Diagnosis integra
 - XQ-AT72 / API 31: isolated debug QA package (not the installed signed app) verified Tools navigation, first denial/retry, approximate-only and precise grants, real 2.4/5 GHz observations, manual fresh results, cached results, search, band filters, basic channel counts, English/Chinese, light/dark, and Location Services/Wi-Fi-off states. A selected 6 GHz filter and cached results survived rotation without an automatic refresh. Location, Wi-Fi, rotation and theme were restored. Eight Wi-Fi instrumentation tests passed on this device.
 - XQ-FS72 / API 36: isolated QA package verified precise-location grant, SSID/BSSID unavailable before grant and available after it, real cached and fresh results, and Location Services-off state. Five Wi-Fi instrumentation tests passed before the final presentation-only test additions. Device foreground use interrupted further visual checks; its Wi-Fi and location switches were restored.
 - The observed environment did not provide a 6 GHz or 60 GHz AP. Scan throttling was not forced by repeated requests. Mobile-active/VPN, network switching and full cross-tool real-device regression remain for the separately authorized final regression. No missing case is claimed as a pass here.
+
+### Task 122 UX polish and evidence boundary
+
+The compact current-link summary and default AP rows prioritize SSID, a
+four-shape signal icon with raw dBm, band, `CH`, and short security terms.
+Technical data remain expandable from the whole card. Nearby and Channels
+are two top-level views inside the existing tool, sharing the scan batch,
+freshness, Refresh and band filter, but preserving independent list positions.
+Only Nearby applies SSID/BSSID search. Channels groups observed AP counts and
+strongest observed RSSI by band; `AP` means *wireless access point* / 无线接入点.
+The connected marker is not a recommended-channel mark. 60 GHz remains out
+of the 2.4/5/6 GHz overview. Full Channel Graph remains optional/pending;
+this polish does not provide utilization, interference or Best Channel.
+
+The authoritative display grade for valid RSSI is excellent at `>= -50 dBm`,
+good at `-51..-65`, fair at `-66..-75`, and weak below `-75` (down to the
+accepted `-126` minimum). These are presentation thresholds for received
+signal only, not throughput or Internet quality. Unknown/sentinel RSSI has
+an unknown grade. The same classifier handles current and scan readings,
+without replacing a cached AP RSSI with the live connection RSSI. Home uses
+the same classifier when its shared `NetworkContext` has raw RSSI. Cached
+age stays visible in compact form. An already-granted Fine Location may let
+the shared default-network callback expose an SSID on Home; Android 12 may
+still redact a synchronous capabilities read, so the shared reader accepts
+the connected-Wi-Fi fallback only if its IPv4 matches the active network.
+Home never asks for permission or scans. Initial Analyzer loading uses that shared current
+context when known rather than showing a false definite Wi-Fi name, and
+active-network transitions must not retain a prior SSID.
+
+AP vendor/model identification is a candidate for a separately authorized
+audit, not a v0.9 Must Have. `ScanResult` does not reliably provide a router
+model or administrative device name. A future local OUI/MAC registration
+lookup could at most identify a registered organization, not prove retail
+brand, exact model or user-visible device name. No OUI database, online MAC
+API, BSSID upload or active router probing is added here.
 
 ### Official references
 

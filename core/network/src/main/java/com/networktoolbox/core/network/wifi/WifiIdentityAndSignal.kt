@@ -13,8 +13,19 @@ object WifiIdentity {
         ?.takeUnless { it == "02:00:00:00:00:00" || it == "00:00:00:00:00:00" }
 }
 
-/** A zero system level is a valid weakest grade. No independent dBm scoring. */
+/** One conservative display grade for both live and scanned RSSI. Not a link-quality verdict. */
 object WifiSignalClassifier {
+    /** The platform level is not used when a valid dBm reading is present: some OEMs
+     * report a top level even for weak observations. Thresholds describe received
+     * signal only, not Internet health or throughput. */
+    fun fromRssi(rssiDbm: Int?): WifiSignalLevel = when (validRssi(rssiDbm)) {
+        null -> WifiSignalLevel.UNKNOWN
+        in -50..-1 -> WifiSignalLevel.EXCELLENT
+        in -65..-51 -> WifiSignalLevel.GOOD
+        in -75..-66 -> WifiSignalLevel.FAIR
+        else -> WifiSignalLevel.WEAK
+    }
+
     fun fromSystemLevel(level: Int?, maxLevel: Int?): WifiSignalLevel {
         if (level == null || maxLevel == null || maxLevel <= 0 || level !in 0..maxLevel) {
             return WifiSignalLevel.UNKNOWN

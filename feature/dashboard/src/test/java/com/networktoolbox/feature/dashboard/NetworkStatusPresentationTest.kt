@@ -291,6 +291,32 @@ class NetworkStatusPresentationTest {
         )
     }
 
+    @Test
+    fun homeUsesAvailableSsidAndFallsBackWithoutInventingOne() {
+        assertPresentationEquals("OpenWrt", NetworkStatusPresentation.networkIdentity(context(wifiName = "OpenWrt")))
+        assertPresentationEquals("Wi-Fi", NetworkStatusPresentation.networkIdentity(context(wifiName = null)))
+        assertPresentationEquals("Wi-Fi", NetworkStatusPresentation.networkIdentity(context(wifiName = "<unknown ssid>")))
+        assertPresentationEquals("移动网络", NetworkStatusPresentation.networkIdentity(
+            context(connectionType = ConnectionType.CELLULAR, wifiName = "Old-Wi-Fi")))
+        assertPresentationEquals("Wi-Fi", NetworkStatusPresentation.networkIdentitySupportText(context(wifiName = "OpenWrt")))
+        assertNull(NetworkStatusPresentation.networkIdentitySupportText(context(wifiName = null)))
+    }
+
+    @Test
+    fun homeSignalIconUsesSameRawRssiGradeAsAnalyzerWhenAvailable() {
+        val fairDespiteTopOemLevel = context(wifiSignalLevel = 4).copy(wifiRssiDbm = -72)
+        assertPresentationEquals(
+            com.networktoolbox.feature.dashboard.presentation.NetworkHeroIconKind.WIFI_MEDIUM,
+            NetworkStatusPresentation.networkHeroIconKind(fairDespiteTopOemLevel),
+        )
+        assertPresentationEquals("Wi-Fi 信号中等",
+            NetworkStatusPresentation.networkHeroIconContentDescription(fairDespiteTopOemLevel))
+        assertPresentationEquals(
+            com.networktoolbox.feature.dashboard.presentation.NetworkHeroIconKind.WIFI_STRONG,
+            NetworkStatusPresentation.networkHeroIconKind(context(wifiSignalLevel = 2).copy(wifiRssiDbm = -44)),
+        )
+    }
+
     private fun context(
         connectionType: ConnectionType = ConnectionType.WIFI,
         vpnActive: Boolean? = false,

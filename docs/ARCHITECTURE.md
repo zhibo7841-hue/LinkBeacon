@@ -825,3 +825,33 @@ observed AP counts and strongest RSSI for 2.4/5/6 GHz, not load, interference,
 throughput, recommendation or an RF spectrum graph. No Wi-Fi observation is
 stored in History/Room, Report, Device Center or Automatic Diagnosis. Full
 Channel Graph is optional; final regression remains a separate gate.
+
+## Wi-Fi Analyzer Compact Presentation (v0.9 Task 122)
+
+Task 122 keeps the same observer, permission and manual-scan boundaries. The
+screen's shared current-link/refresh/freshness/band controls lead to a
+ViewModel-owned `NETWORKS` or `CHANNELS` selection. The two lazy-list states
+are independent; changing views is presentation-only and never requests a
+scan. Nearby search filters AP rows only. Channel rows consume the complete
+batch's precomputed per-band overview, filtered by band but not search, and
+show observed AP counts rather than utilization or interference. Compact AP
+cards retain expandable technical facts and accessible signal/dBm semantics.
+
+Current-link RSSI and cached `ScanResult` RSSI remain separate facts. One
+`WifiSignalClassifier.fromRssi` maps valid raw readings to the same display
+grade for both; Home maps shared current-link RSSI through it when available.
+This supersedes Task A's unqualified OEM system-level grading after a real
+-72 dBm/top-grade mismatch. The system level remains a Home fallback if raw
+RSSI is unavailable. No signal grade claims overall network health.
+
+Home still receives facts through `NetworkRepository -> NetworkContext`.
+The shared default-network callback now opts into Android's location-sensitive
+transport-info delivery only under an already granted permission; Home neither
+requests Fine Location nor starts Wi-Fi scans. For an Android 12 synchronous
+read that still redacts SSID, the shared reader accepts the connected Wi-Fi
+fact only when its IPv4 matches the active network's LinkProperties. It drops
+late callbacks from a previous default network and shows the available SSID
+with Wi-Fi as the supporting type. Analyzer's current-link
+card may use that shared context for its loading frame; its observer owns
+Wi-Fi-only radio details. No second Home adapter or storage path is added.
+Full Channel Graph remains optional; final regression is pending.

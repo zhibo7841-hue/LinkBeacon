@@ -102,6 +102,31 @@ class WifiDomainTest {
         assertEquals(-80, WifiSignalClassifier.validRssi(-80))
     }
 
+    @Test fun rssiGradesAreSharedByCurrentAndCachedScanAndIgnoreOptimisticOemLevel() {
+        val cases = mapOf(-44 to WifiSignalLevel.EXCELLENT, -58 to WifiSignalLevel.GOOD,
+            -72 to WifiSignalLevel.FAIR, -82 to WifiSignalLevel.WEAK)
+        cases.forEach { (rssi, expected) ->
+            assertEquals(expected, WifiSignalClassifier.fromRssi(rssi))
+            val connection = WifiObservations.connection(RawWifiConnection(
+                "OpenWrt", "00:11:22:33:44:55", rssi, 4, 4, 5180, 36,
+                100, PlatformWifiSecurity.PSK, WifiStandard.WIFI_6, "network", true, false,
+            ))!!
+            val scanned = WifiObservations.map(listOf(raw("OpenWrt", "00:11:22:33:44:55", 5180, rssi)),
+                connection, 20_000).single()
+            assertEquals(expected, connection.signalLevel)
+            assertEquals(expected, scanned.signalLevel)
+        }
+        val current = WifiObservations.connection(RawWifiConnection(
+            "OpenWrt", "00:11:22:33:44:55", -44, 4, 4, 5180, 36,
+            100, PlatformWifiSecurity.PSK, WifiStandard.WIFI_6, "network", true, false,
+        ))!!
+        val cached = WifiObservations.map(listOf(raw("OpenWrt", "00:11:22:33:44:55", 5180, -72)),
+            current, 20_000).single()
+        assertEquals(-44, current.rssiDbm)
+        assertEquals(-72, cached.rssiDbm)
+        assertEquals(WifiSignalLevel.FAIR, cached.signalLevel)
+    }
+
     @Test fun securityStructuredAndFallbackPreserveUncertaintyAndTransitions() {
         assertEquals(setOf(WifiSecurityType.OPEN), WifiSecurityMapper.fromCapabilities("[ESS]"))
         assertEquals(setOf(WifiSecurityType.WEP), WifiSecurityMapper.fromCapabilities("[WEP][ESS]"))

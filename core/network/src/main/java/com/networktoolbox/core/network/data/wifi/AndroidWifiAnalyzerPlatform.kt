@@ -88,7 +88,14 @@ class AndroidWifiAnalyzerPlatform(context: Context) : WifiAnalyzerPlatform {
             }
 
             override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
-                runCatching { listener(mapConnection(network, caps) ?: readCurrentConnection()) }
+                // A late callback from the previous Wi-Fi network must not put its
+                // SSID back on screen after the active connection has changed.
+                runCatching {
+                    val current = readCurrentConnection()
+                    listener(if (current?.networkId == network.toString()) {
+                        mapConnection(network, caps) ?: current
+                    } else current)
+                }
             }
 
             override fun onLost(network: Network) {

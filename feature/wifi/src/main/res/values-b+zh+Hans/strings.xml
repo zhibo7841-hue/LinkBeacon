@@ -4,6 +4,15 @@
     <string name="wifi_current">当前连接</string>
     <string name="wifi_not_connected">当前未连接 Wi-Fi</string>
     <string name="wifi_nearby">附近网络</string>
+    <string name="wifi_view_networks">附近网络</string>
+    <string name="wifi_view_channels">信道</string>
+    <string name="wifi_scan_status">扫描结果</string>
+    <string name="wifi_loading_connection">正在读取 Wi-Fi 连接…</string>
+    <string name="wifi_ap_explanation">AP = 无线接入点。数量仅表示观测结果，不代表信道负载。</string>
+    <string name="wifi_signal_accessibility">信号%1$s，负%2$s dBm</string>
+    <string name="wifi_signal_accessibility_unknown">信号不可用</string>
+    <string name="wifi_cached_seconds">缓存 · %1$d 秒前</string>
+    <string name="wifi_cached_minutes">缓存 · %1$d 分钟前</string>
     <string name="wifi_channels">信道概览</string>
     <string name="wifi_refresh">刷新</string>
     <string name="wifi_refreshing">正在请求扫描结果…</string>
@@ -59,11 +68,11 @@
     <string name="wifi_good">良好</string>
     <string name="wifi_fair">一般</string>
     <string name="wifi_weak">较弱</string>
-    <string name="wifi_open">无 Wi-Fi 加密</string>
+    <string name="wifi_open">开放网络</string>
     <string name="wifi_wpa_personal">WPA 个人网络</string>
     <string name="wifi_enterprise">企业网络</string>
-    <string name="wifi_observed_count">观测到 %1$d 个网络</string>
-    <string name="wifi_channel_number">信道 %1$d</string>
+    <string name="wifi_observed_count">%1$d AP</string>
+    <string name="wifi_channel_number">CH %1$d</string>
     <string name="wifi_strongest">最强 %1$d dBm</string>
     <string name="wifi_channel_accessibility">信道 %1$d，观测到 %2$d 个网络，最强信号 %3$d dBm</string>
     <string name="wifi_channel_accessibility_no_signal">信道 %1$d，观测到 %2$d 个网络</string>

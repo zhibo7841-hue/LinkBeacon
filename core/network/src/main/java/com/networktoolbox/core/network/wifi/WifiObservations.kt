@@ -7,10 +7,7 @@ object WifiObservations {
             ssid = WifiIdentity.ssid(it.ssid),
             bssid = WifiIdentity.bssid(it.bssid),
             rssiDbm = WifiSignalClassifier.validRssi(it.rssiDbm),
-            signalLevel = WifiSignalClassifier.fromSystemLevel(
-                it.systemSignalLevel,
-                it.maxSystemSignalLevel,
-            ),
+            signalLevel = WifiSignalClassifier.fromRssi(it.rssiDbm),
             frequencyMhz = frequency,
             band = WifiRadioMapper.band(frequency),
             channel = WifiRadioMapper.channel(frequency, it.platformChannel),
@@ -41,11 +38,7 @@ object WifiObservations {
                 bssid = bssid,
                 isHidden = raw.ssid.isNullOrEmpty(),
                 rssiDbm = rssi,
-                signalLevel = if (rssi == null) WifiSignalLevel.UNKNOWN else
-                    WifiSignalClassifier.fromSystemLevel(
-                        raw.systemSignalLevel,
-                        raw.maxSystemSignalLevel,
-                    ),
+                signalLevel = WifiSignalClassifier.fromRssi(rssi),
                 frequencyMhz = frequency,
                 band = WifiRadioMapper.band(frequency),
                 channel = WifiRadioMapper.channel(frequency, raw.platformChannel),
