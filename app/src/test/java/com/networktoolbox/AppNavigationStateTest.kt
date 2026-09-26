@@ -31,6 +31,7 @@ class AppNavigationStateTest {
         ToolScreen.TLS_CHECK,
         ToolScreen.WEBSITE_DIAGNOSTICS,
         ToolScreen.LAN_SCAN,
+        ToolScreen.WIFI_ANALYZER,
         ToolScreen.REPORT,
         ToolScreen.HISTORY,
         ToolScreen.PRIVACY,

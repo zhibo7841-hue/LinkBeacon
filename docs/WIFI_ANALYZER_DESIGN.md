@@ -1,6 +1,6 @@
 # LinkBeacon v0.9 Wi-Fi Analyzer — Design Audit
 
-Status: Task A Platform + Domain Core implemented (2026-09-26); Task B UI and runtime permissions, Channel UI, and Android 12/16 real-device acceptance remain pending. This document began as the Task 119 design audit. Task A adds no manifest permission, user-facing page, version change or release claim.
+Status: Task A Platform + Domain Core complete; Task B UI, minimal runtime permissions and Basic Channel Overview complete (2026-09-26). Android 12/16 development checks have been performed; Final Regression remains a separate pending gate. Full Channel Graph remains optional and pending decision. This document began as the Task 119 design audit; no version change or release claim is implied.
 
 ## 1. Product Scope
 
@@ -174,9 +174,15 @@ Wi-Fi History, Site Survey snapshots, Report/PDF and Automatic Diagnosis integra
 ## 40. Implementation Tasks
 
 1. **Task A — Platform + Domain Core: Complete.** Typed platform adapter/models, monotonic freshness, channel/security/identity mapping, Fake Platform and unit tests are in `core:network`; Hilt provides the in-memory repository/use case. Manifest permissions are deliberately unchanged, so the production adapter returns a typed restriction until Task B adds the necessary user-facing permission flow.
-2. **Task B — UI + Permissions: Pending.** Tools entry, one bilingual page, Current/Nearby/Channels overview, user-initiated refresh, denial/settings and freshness UX, lifecycle and instrumentation tests.
+2. **Task B — UI + Permissions: Complete.** Tools entry, bilingual Current/Nearby/Basic Channel Overview, manual Refresh, Fine Location rationale/denial/Settings, typed scan freshness and page-scoped observation are implemented. The exact API set (`startScan`, `getScanResults`, location-sensitive `WifiInfo`) requires Fine Location, not `NEARBY_WIFI_DEVICES`; `CHANGE_WIFI_STATE` is declared for `startScan`. Android 12 requires `ACCESS_COARSE_LOCATION` to be declared and requested *alongside* Fine in a single runtime request; an approximate-only grant cannot unlock Wi-Fi scans. No automatic scan runs on entry. Android 12 and Android 16 observations must be reported from actual hardware, not inferred from fixtures.
 3. **Task C — Channel Visualization (optional): Pending.** Only if evidence/readability review justifies it; Compose Canvas with a text-equivalent view, no best-channel claim.
 4. **Task D — Real-device + Performance Regression: Pending.** Sony Android 12 and Android 16 development checks, permission/location-off restoration, cache/throttle/rotation/network-change cases, hundreds-of-AP fixture performance. Freeze/RC planning is a later authorization.
+
+### Task B development validation (2026-09-26)
+
+- XQ-AT72 / API 31: isolated debug QA package (not the installed signed app) verified Tools navigation, first denial/retry, approximate-only and precise grants, real 2.4/5 GHz observations, manual fresh results, cached results, search, band filters, basic channel counts, English/Chinese, light/dark, and Location Services/Wi-Fi-off states. A selected 6 GHz filter and cached results survived rotation without an automatic refresh. Location, Wi-Fi, rotation and theme were restored. Eight Wi-Fi instrumentation tests passed on this device.
+- XQ-FS72 / API 36: isolated QA package verified precise-location grant, SSID/BSSID unavailable before grant and available after it, real cached and fresh results, and Location Services-off state. Five Wi-Fi instrumentation tests passed before the final presentation-only test additions. Device foreground use interrupted further visual checks; its Wi-Fi and location switches were restored.
+- The observed environment did not provide a 6 GHz or 60 GHz AP. Scan throttling was not forced by repeated requests. Mobile-active/VPN, network switching and full cross-tool real-device regression remain for the separately authorized final regression. No missing case is claimed as a pass here.
 
 ### Official references
 

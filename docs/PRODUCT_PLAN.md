@@ -585,7 +585,8 @@ The confirmed version route after v0.7.0 is:
 - **v0.9.0 — Wi-Fi Analyzer:** Development in progress. The
   platform/permission, observation-freshness, and Phase 1 scope baseline is
   [WIFI_ANALYZER_DESIGN.md](WIFI_ANALYZER_DESIGN.md). Platform / Domain Core is
-  complete; UI / Permissions, Channel Overview UI, and Final Regression remain
+  complete; UI / Permissions and Basic Channel Overview are complete. Full
+  Channel Graph remains optional/pending decision, and Final Regression remains
   pending. This is not Feature Complete and implies no v0.9 release candidate.
 
 The v0.7.0 release scope is frozen to the Device Center Enhancement described

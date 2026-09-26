@@ -8,6 +8,7 @@ import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.WifiTethering
+import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.networktoolbox.core.designsystem.NetworkToolAccent
 
@@ -19,6 +20,7 @@ internal enum class DashboardToolId {
     TRACEROUTE,
     SUBNET,
     LAN_SCAN,
+    WIFI_ANALYZER,
     REPORT,
     TLS_CHECK,
     WEBSITE_DIAGNOSTICS,
@@ -32,6 +34,7 @@ internal data class DashboardNavigationCallbacks(
     val onOpenTraceroute: () -> Unit,
     val onOpenSubnet: () -> Unit,
     val onOpenLanScan: () -> Unit,
+    val onOpenWifiAnalyzer: () -> Unit = {},
     val onOpenReport: () -> Unit,
     val onOpenTlsCheck: () -> Unit = {},
     val onOpenWebsiteDiagnostics: () -> Unit = {},
@@ -112,6 +115,14 @@ internal fun dashboardToolDefinitions(
         onClick = callbacks.onOpenLanScan,
     ),
     DashboardToolDefinition(
+        id = DashboardToolId.WIFI_ANALYZER,
+        icon = Icons.Outlined.Wifi,
+        title = R.string.home_wifi_analyzer,
+        description = R.string.home_wifi_analyzer_help,
+        accent = NetworkToolAccent.CYAN,
+        onClick = callbacks.onOpenWifiAnalyzer,
+    ),
+    DashboardToolDefinition(
         id = DashboardToolId.REPORT,
         icon = Icons.Outlined.Assessment,
         title = R.string.home_diagnosis,
@@ -174,6 +185,7 @@ internal fun dashboardToolSections(
             tools = listOf(
                 definitions.getValue(DashboardToolId.SUBNET),
                 definitions.getValue(DashboardToolId.LAN_SCAN),
+                definitions.getValue(DashboardToolId.WIFI_ANALYZER),
             ),
         ),
         DashboardToolSection(

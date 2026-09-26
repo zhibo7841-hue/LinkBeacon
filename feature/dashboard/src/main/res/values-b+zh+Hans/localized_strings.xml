@@ -13,6 +13,8 @@
     <string name="home_subnet_help">计算网络地址</string>
     <string name="home_lan">局域网扫描</string>
     <string name="home_lan_help">发现局域网设备</string>
+    <string name="home_wifi_analyzer">Wi-Fi 分析</string>
+    <string name="home_wifi_analyzer_help">观察附近 Wi-Fi 网络</string>
     <string name="home_diagnosis">网络诊断</string>
     <string name="home_diagnosis_help">自动检查网络问题</string>
     <string name="home_tls_check">SSL/TLS 检查</string>

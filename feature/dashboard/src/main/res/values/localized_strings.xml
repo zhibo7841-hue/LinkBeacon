@@ -13,6 +13,8 @@
     <string name="home_subnet_help">Calculate network addresses</string>
     <string name="home_lan">LAN Scanner</string>
     <string name="home_lan_help">Discover local devices</string>
+    <string name="home_wifi_analyzer">Wi-Fi Analyzer</string>
+    <string name="home_wifi_analyzer_help">Observe nearby Wi-Fi networks</string>
     <string name="home_diagnosis">Network Diagnosis</string>
     <string name="home_diagnosis_help">Check for connection issues</string>
     <string name="home_tls_check">SSL/TLS Check</string>

@@ -6,9 +6,14 @@ import com.networktoolbox.feature.report.presentation.ReportLocalizationContext
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import android.content.ActivityNotFoundException
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.BackHandler
@@ -92,10 +97,15 @@ import com.networktoolbox.feature.webdiagnostics.history.WebDiagnosticsHistorySn
 import com.networktoolbox.feature.webdiagnostics.ui.TlsCheckScreen
 import com.networktoolbox.feature.webdiagnostics.ui.WebDiagnosticsHistoryScreen
 import com.networktoolbox.feature.webdiagnostics.ui.WebsiteDiagnosticsScreen
+import com.networktoolbox.feature.wifi.presentation.WifiAnalyzerEvent
+import com.networktoolbox.feature.wifi.presentation.WifiAnalyzerViewModel
+import com.networktoolbox.feature.wifi.presentation.WifiPermissionPolicy
+import com.networktoolbox.feature.wifi.ui.WifiAnalyzerScreen
 import com.networktoolbox.core.designsystem.NetworkToolboxTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -115,10 +125,71 @@ class MainActivity : AppCompatActivity() {
     private val tracerouteViewModel: TracerouteViewModel by viewModels()
     private val tlsCheckViewModel: TlsCheckViewModel by viewModels()
     private val websiteDiagnosticsViewModel: WebsiteDiagnosticsViewModel by viewModels()
+    private val wifiAnalyzerViewModel: WifiAnalyzerViewModel by viewModels()
     private val savedReportViewModel: SavedReportViewModel by viewModels()
     private val savedWebDiagnosticsHistoryViewModel: SavedWebDiagnosticsHistoryViewModel by viewModels()
     private val pdfExportViewModel: PdfExportViewModel by viewModels()
     private var pdfLauncher: ActivityResultLauncher<String>? = null
+    private val wifiPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { grants ->
+        val granted = grants[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        val coarseGranted = grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+        val permanentlyDenied = !granted && !canShowWifiPermissionRationale()
+        wifiAnalyzerViewModel.onPermissionResult(granted, coarseGranted, permanentlyDenied)
+    }
+
+    private fun handleWifiEvent(event: WifiAnalyzerEvent) {
+        when (event) {
+            WifiAnalyzerEvent.REQUEST_FINE_LOCATION -> {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                    PackageManager.PERMISSION_GRANTED) {
+                    wifiAnalyzerViewModel.onPermissionResult(true, false, false)
+                } else {
+                    getPreferences(MODE_PRIVATE).edit().putBoolean("wifi_fine_location_requested", true).apply()
+                    wifiPermissionLauncher.launch(arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                    ))
+                }
+            }
+            WifiAnalyzerEvent.OPEN_APP_SETTINGS -> openWifiSettings(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")),
+            )
+            WifiAnalyzerEvent.OPEN_LOCATION_SETTINGS -> openWifiSettings(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            WifiAnalyzerEvent.OPEN_WIFI_SETTINGS -> openWifiSettings(Intent(Settings.ACTION_WIFI_SETTINGS))
+        }
+    }
+
+    private fun openWifiSettings(intent: Intent) {
+        try { startActivity(intent) } catch (_: ActivityNotFoundException) { /* State remains visible. */ }
+    }
+
+    private fun canShowWifiPermissionRationale(): Boolean =
+        shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) ||
+            shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)
+
+    override fun onResume() {
+        super.onResume()
+        if (wifiAnalyzerViewModel.uiState.value.observing) {
+            syncWifiPermissionDisposition()
+            wifiAnalyzerViewModel.reobserve()
+        }
+    }
+
+    private fun syncWifiPermissionDisposition() {
+        val granted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+        val asked = getPreferences(MODE_PRIVATE).getBoolean("wifi_fine_location_requested", false)
+        val coarseGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+        wifiAnalyzerViewModel.setPermissionDisposition(WifiPermissionPolicy.disposition(
+            granted, coarseGranted, asked,
+            canShowWifiPermissionRationale(),
+        ))
+    }
 
     /** Same request key is re-registered after recreation, without launching again. */
     private fun registerPdfRequest(id: String): ActivityResultLauncher<String> {
@@ -230,6 +301,7 @@ class MainActivity : AppCompatActivity() {
             val tracerouteUiState by tracerouteViewModel.uiState.collectAsState()
             val tlsCheckUiState by tlsCheckViewModel.uiState.collectAsState()
             val websiteDiagnosticsUiState by websiteDiagnosticsViewModel.uiState.collectAsState()
+            val wifiAnalyzerUiState by wifiAnalyzerViewModel.uiState.collectAsState()
             var navigationState by rememberSaveable(stateSaver = AppNavigationState.Saver) {
                 mutableStateOf(AppNavigationState())
             }
@@ -249,6 +321,17 @@ class MainActivity : AppCompatActivity() {
             }
             val topLevelDestination = navigationState.topLevelDestination
             val toolScreen = navigationState.toolScreen
+            LaunchedEffect(toolScreen) {
+                if (toolScreen == ToolScreen.WIFI_ANALYZER) {
+                    syncWifiPermissionDisposition()
+                    wifiAnalyzerViewModel.enter()
+                    try {
+                        wifiAnalyzerViewModel.events.collect(::handleWifiEvent)
+                    } finally {
+                        wifiAnalyzerViewModel.leave()
+                    }
+                }
+            }
             // A drawer is transient chrome, not a destination to reopen on recreation.
             val drawerState = remember { DrawerState(initialValue = DrawerValue.Closed) }
             val drawerScope = rememberCoroutineScope()
@@ -545,6 +628,7 @@ class MainActivity : AppCompatActivity() {
                                     onOpenTraceroute = { openTool(ToolScreen.TRACEROUTE) },
                                     onOpenSubnet = { openTool(ToolScreen.SUBNET) },
                                     onOpenLanScan = { openTool(ToolScreen.LAN_SCAN) },
+                                    onOpenWifiAnalyzer = { openTool(ToolScreen.WIFI_ANALYZER) },
                                     onOpenReport = { openTool(ToolScreen.REPORT) },
                                     onOpenTlsCheck = { openTool(ToolScreen.TLS_CHECK) },
                                     onOpenWebsiteDiagnostics = { openTool(ToolScreen.WEBSITE_DIAGNOSTICS) },
@@ -710,6 +794,17 @@ class MainActivity : AppCompatActivity() {
                                 onRangeModeChanged = lanScannerViewModel::selectRangeMode,
                                 onCustomStartAddressChanged = lanScannerViewModel::onCustomStartAddressChanged,
                                 onCustomEndAddressChanged = lanScannerViewModel::onCustomEndAddressChanged,
+                            )
+                            ToolScreen.WIFI_ANALYZER -> WifiAnalyzerScreen(
+                                state = wifiAnalyzerUiState,
+                                onBack = ::goBack,
+                                onRefresh = wifiAnalyzerViewModel::refresh,
+                                onSearch = wifiAnalyzerViewModel::setSearch,
+                                onFilter = wifiAnalyzerViewModel::setFilter,
+                                onToggleAp = wifiAnalyzerViewModel::toggleExpanded,
+                                onGrantPermission = wifiAnalyzerViewModel::grantPermission,
+                                onOpenLocationSettings = wifiAnalyzerViewModel::openLocationSettings,
+                                onOpenWifiSettings = wifiAnalyzerViewModel::openWifiSettings,
                             )
                             ToolScreen.DEVICE_DETAIL -> DeviceDetailScreen(
                                 detail = lanScannerViewModel.resolveDeviceDetail(

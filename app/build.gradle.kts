@@ -47,6 +47,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Opt-in isolated device QA: never replace an installed signed release or its data.
+            if (providers.gradleProperty("wifiAnalyzerQa").isPresent) {
+                applicationIdSuffix = ".wifiqa"
+            }
+        }
         release {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
@@ -108,6 +114,7 @@ dependencies {
     implementation(project(":feature:lanscan"))
     implementation(project(":feature:traceroute"))
     implementation(project(":feature:webdiagnostics"))
+    implementation(project(":feature:wifi"))
     implementation(project(":feature:port"))
     implementation(project(":feature:ping"))
     implementation(project(":feature:report"))

@@ -40,6 +40,7 @@ internal enum class ToolScreen {
     PRIVACY,
     ABOUT,
     LAN_SCAN,
+    WIFI_ANALYZER,
     DEVICE_DETAIL,
     DEVICE_PROFILE_EDIT,
 }

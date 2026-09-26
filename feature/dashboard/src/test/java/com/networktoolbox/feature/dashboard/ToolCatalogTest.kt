@@ -24,12 +24,12 @@ class ToolCatalogTest {
                     DashboardToolId.PORT_SCAN,
                 ),
                 listOf(DashboardToolId.DNS, DashboardToolId.TLS_CHECK),
-                listOf(DashboardToolId.SUBNET, DashboardToolId.LAN_SCAN),
+                listOf(DashboardToolId.SUBNET, DashboardToolId.LAN_SCAN, DashboardToolId.WIFI_ANALYZER),
                 listOf(DashboardToolId.REPORT, DashboardToolId.WEBSITE_DIAGNOSTICS),
             ),
             sections.map { section -> section.tools.map(DashboardToolDefinition::id) },
         )
-        assertPresentationEquals(10, sections.flatMap { it.tools }.distinctBy(DashboardToolDefinition::id).size)
+        assertPresentationEquals(11, sections.flatMap { it.tools }.distinctBy(DashboardToolDefinition::id).size)
     }
 
     @Test
@@ -65,6 +65,7 @@ class ToolCatalogTest {
                 DashboardToolId.TRACEROUTE to "追踪目标网络路径",
                 DashboardToolId.SUBNET to "计算网络地址",
                 DashboardToolId.LAN_SCAN to "发现局域网设备",
+                DashboardToolId.WIFI_ANALYZER to "观察附近 Wi-Fi 网络",
                 DashboardToolId.REPORT to "自动检查网络问题",
                 DashboardToolId.TLS_CHECK to "检查服务器证书",
                 DashboardToolId.WEBSITE_DIAGNOSTICS to "诊断网站访问问题",
@@ -94,6 +95,7 @@ class ToolCatalogTest {
             onOpenTraceroute = { onClick(DashboardToolId.TRACEROUTE) },
             onOpenSubnet = { onClick(DashboardToolId.SUBNET) },
             onOpenLanScan = { onClick(DashboardToolId.LAN_SCAN) },
+            onOpenWifiAnalyzer = { onClick(DashboardToolId.WIFI_ANALYZER) },
             onOpenReport = { onClick(DashboardToolId.REPORT) },
             onOpenTlsCheck = { onClick(DashboardToolId.TLS_CHECK) },
             onOpenWebsiteDiagnostics = { onClick(DashboardToolId.WEBSITE_DIAGNOSTICS) },

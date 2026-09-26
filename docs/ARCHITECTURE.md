@@ -793,3 +793,35 @@ permission dialog, adds no Tools entry, and persists no SSID/BSSID in Room,
 History, Report, Saved Devices, files or analytics. Task B owns the bilingual
 screen and runtime permission flow; channel visualization and Android 12/16
 real-device acceptance remain pending.
+
+## Wi-Fi Analyzer UI and Runtime Permission Flow (v0.9 Task 121)
+
+`Tools -> WifiAnalyzerScreen -> WifiAnalyzerViewModel -> WifiAnalyzerUseCase ->
+WifiScanRepository -> AndroidWifiAnalyzerPlatform`. The feature module owns the
+English/简体中文 Compose screen and in-memory presentation state (local search,
+band filter, expanded AP cards). The Activity alone launches the standard
+Fine Location permission contract and system Settings intents; the ViewModel
+emits one-shot events and never retains an Activity. The app manifest declares
+`ACCESS_FINE_LOCATION`, Android-12-required paired `ACCESS_COARSE_LOCATION`,
+and `CHANGE_WIFI_STATE` beyond the existing Wi-Fi read permission, matching
+the actual `getScanResults`/`startScan` calls. Coarse-only access does **not**
+unlock nearby scans; it is included in the same runtime request because Android
+12's precise/approximate choice requires the pair. No
+`NEARBY_WIFI_DEVICES` or `neverForLocation` claim is made.
+Denial classification considers rationale for **both** permissions: Android 12
+may mark the first denial on Coarse while Fine still reports no rationale.
+
+Observation begins on entry and ends on exit. Entry reads the current Wi-Fi
+connection and latest platform cache but does not request a scan; only the
+Refresh action calls `requestRefresh()`. Rotation retains the Activity-scoped
+ViewModel and cannot initiate another scan. Permission denial, permanent
+denial, Location Services off, Wi-Fi off and platform restrictions are distinct
+presentation states. A cached batch remains labelled cached when a later
+restriction or rejected request occurs. Freshness and observation timestamps
+come from Core, not from a UI interpretation of raw `ScanResult.timestamp`.
+Nearby APs remain separate BSSID/radio observations, including same-SSID mesh
+members and hidden networks. Channel Overview is a text-accessible grouping of
+observed AP counts and strongest RSSI for 2.4/5/6 GHz, not load, interference,
+throughput, recommendation or an RF spectrum graph. No Wi-Fi observation is
+stored in History/Room, Report, Device Center or Automatic Diagnosis. Full
+Channel Graph is optional; final regression remains a separate gate.

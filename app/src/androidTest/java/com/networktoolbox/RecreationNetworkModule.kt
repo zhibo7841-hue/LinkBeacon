@@ -12,6 +12,7 @@ import com.networktoolbox.core.network.tcp.*
 import com.networktoolbox.core.network.traceroute.*
 import com.networktoolbox.core.network.wol.*
 import com.networktoolbox.core.network.website.*
+import com.networktoolbox.core.network.wifi.*
 import com.networktoolbox.feature.dashboard.domain.ObserveNetworkContextUseCase
 import com.networktoolbox.feature.lanscan.domain.*
 import com.networktoolbox.feature.lanscan.domain.model.*
@@ -34,6 +35,15 @@ import kotlinx.coroutines.flow.flowOf
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [NetworkModule::class])
 object RecreationNetworkModule {
+    @Provides @Singleton fun wifiScanRepository(): WifiScanRepository = object : WifiScanRepository {
+        override val snapshots = MutableStateFlow(WifiAnalyzerSnapshot(
+            accessStatus = WifiScanAccessStatus.PLATFORM_RESTRICTED,
+        ))
+        override suspend fun startObserving() = Unit
+        override suspend fun stopObserving() = Unit
+        override suspend fun requestRefresh() = Unit
+    }
+    @Provides @Singleton fun wifiAnalyzerUseCase(repository: WifiScanRepository) = WifiAnalyzerUseCase(repository)
     @Provides @Singleton fun fixture() = RecreationFixture()
     @Provides fun network(f: RecreationFixture): NetworkRepository = object : NetworkRepository {
         override fun observeNetworkContext() = f.network
