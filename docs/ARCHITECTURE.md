@@ -855,3 +855,22 @@ with Wi-Fi as the supporting type. Analyzer's current-link
 card may use that shared context for its loading frame; its observer owns
 Wi-Fi-only radio details. No second Home adapter or storage path is added.
 Full Channel Graph remains optional; final regression is pending.
+
+## Wi-Fi Analyzer Final Regression Boundary (v0.9 Task 123)
+
+The earlier pending statements above describe their task-time status. Final
+regression verified the existing `Platform -> Core -> permission -> manual
+scan -> presentation -> Home` boundary on Sony Android 12 (full regression)
+and Android 16 (compatibility regression). The analyzer observes the current
+connection and platform scan cache on entry; only an explicit Refresh requests
+a scan. Fine Location and enabled Location Services are required for the
+chosen nearby-scan APIs on both tested versions; an approximate-only grant
+does not unlock them. Denial, Wi-Fi off and location-off states retain an
+honestly labelled old batch rather than claiming fresh results. The shared
+Home `NetworkContext` never requests the permission or starts a Wi-Fi scan;
+network switching drops the former current SSID. `NETWORKS` and `CHANNELS`
+share one snapshot and band filter without creating another scan request.
+No Wi-Fi observation is persisted to Room, History, Report or Device Center.
+Basic Channel Overview is the final Phase 1 channel view; a Full Channel
+Graph and recommendation logic are deferred. No new architecture layer or
+runtime code was required by Task 123.

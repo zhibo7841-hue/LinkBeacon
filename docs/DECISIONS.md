@@ -762,3 +762,20 @@ This log records the confirmed project decisions. New scope or changes to these 
   validation gates. This decision changes neither current permissions nor
   runtime/version/release state; any new permission belongs to a later
   implementation task with user-facing rationale and tests.
+
+## Decision: Freeze v0.9 Wi-Fi Analyzer Phase 1 at Basic Channel Overview
+
+- Date: 2026-09-27
+- Status: Accepted after Task 123 Android 12 full and Android 16 compatibility
+  regression. This supersedes the earlier design-baseline pending status,
+  without changing the current app version or creating an RC.
+- Decision: Basic Channel Overview is the final v0.9 channel-analysis view.
+  It groups actual observed AP counts and strongest RSSI by channel, with
+  accessible text and no claim of channel load or interference. A Full
+  Channel Graph is deferred to a separate future decision because its visual
+  overlaps could imply unsupported spectrum or interference measurements.
+- Boundaries: no Best/Recommended Channel, score, Wi-Fi History, Report/PDF,
+  Automatic Diagnosis integration, AP favorite, vendor database, or scan-data
+  upload in v0.9 Phase 1. No permission is added merely for scope symmetry.
+- Consequence: v0.9 Wi-Fi Analyzer is Feature Complete and Scope Frozen;
+  v0.9 RC Preparation is the next distinct authorization and release gate.

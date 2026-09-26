@@ -1,6 +1,6 @@
 # LinkBeacon v0.9 Wi-Fi Analyzer — Design Audit
 
-Status: Task A Platform + Domain Core complete; Task B UI, minimal runtime permissions and Basic Channel Overview complete; Task 122 UX Polish complete (2026-09-27). Android 12/16 development checks are recorded separately from Final Regression, which remains pending. Full Channel Graph remains optional and pending decision. This document began as the Task 119 design audit; no version change or release claim is implied.
+Status: Task A Platform + Domain Core, Task B UI/permissions, Task 122 UX Polish, and Task 123 Final Regression complete (2026-09-27). v0.9 Phase 1 scope is frozen: Basic Channel Overview is final; Full Channel Graph is deferred. Android 12 full regression and Android 16 compatibility regression passed on isolated QA packages. This document began as the Task 119 design audit; Feature Complete is not an RC, version change, tag, or release claim.
 
 ## 1. Product Scope
 
@@ -175,8 +175,8 @@ Wi-Fi History, Site Survey snapshots, Report/PDF and Automatic Diagnosis integra
 
 1. **Task A — Platform + Domain Core: Complete.** Typed platform adapter/models, monotonic freshness, channel/security/identity mapping, Fake Platform and unit tests are in `core:network`; Hilt provides the in-memory repository/use case. Manifest permissions are deliberately unchanged, so the production adapter returns a typed restriction until Task B adds the necessary user-facing permission flow.
 2. **Task B — UI + Permissions: Complete.** Tools entry, bilingual Current/Nearby/Basic Channel Overview, manual Refresh, Fine Location rationale/denial/Settings, typed scan freshness and page-scoped observation are implemented. The exact API set (`startScan`, `getScanResults`, location-sensitive `WifiInfo`) requires Fine Location, not `NEARBY_WIFI_DEVICES`; `CHANGE_WIFI_STATE` is declared for `startScan`. Android 12 requires `ACCESS_COARSE_LOCATION` to be declared and requested *alongside* Fine in a single runtime request; an approximate-only grant cannot unlock Wi-Fi scans. No automatic scan runs on entry. Android 12 and Android 16 observations must be reported from actual hardware, not inferred from fixtures.
-3. **Task C — Channel Visualization (optional): Pending.** Only if evidence/readability review justifies it; Compose Canvas with a text-equivalent view, no best-channel claim.
-4. **Task D — Real-device + Performance Regression: Pending.** Sony Android 12 and Android 16 development checks, permission/location-off restoration, cache/throttle/rotation/network-change cases, hundreds-of-AP fixture performance. Freeze/RC planning is a later authorization.
+3. **Task C — Full Channel Graph: Deferred.** Basic Channel Overview is the final Phase 1 channel view. Any later graph needs a separately authorized design and accessible text equivalent, without a best-channel claim.
+4. **Task D — Final Regression: Complete.** Sony Android 12 full regression and Android 16 compatibility regression, permission/location-off/Wi-Fi-off restoration, cache/freshness, rotation, network-change, and 500-AP fixture checks passed. System scan throttling was not induced artificially; rejected scans and unknown freshness remain covered by Fake Platform tests. RC preparation requires a separate authorization.
 
 ### Task B development validation (2026-09-26)
 
@@ -194,7 +194,7 @@ freshness, Refresh and band filter, but preserving independent list positions.
 Only Nearby applies SSID/BSSID search. Channels groups observed AP counts and
 strongest observed RSSI by band; `AP` means *wireless access point* / 无线接入点.
 The connected marker is not a recommended-channel mark. 60 GHz remains out
-of the 2.4/5/6 GHz overview. Full Channel Graph remains optional/pending;
+of the 2.4/5/6 GHz overview. Full Channel Graph is deferred;
 this polish does not provide utilization, interference or Best Channel.
 
 The authoritative display grade for valid RSSI is excellent at `>= -50 dBm`,
@@ -218,6 +218,41 @@ model or administrative device name. A future local OUI/MAC registration
 lookup could at most identify a registered organization, not prove retail
 brand, exact model or user-visible device name. No OUI database, online MAC
 API, BSSID upload or active router probing is added here.
+
+### Task 123 final regression and Phase 1 freeze (2026-09-27)
+
+- **Android 12 / Sony XQ-AT72 / API 31 — Full Regression: PASS.** An isolated
+  QA package avoided any change to the formal app or its data. First
+  denial/retry, approximate-only
+  (Fine denied) and precise grant, real connection identity and radio detail,
+  manual fresh scan, stale cache, Location Services off/on, Wi-Fi off/on,
+  Wi-Fi-to-mobile-to-Wi-Fi Home/Analyzer identity, SSID and BSSID search,
+  2.4/5/6 filters, 2.4/5 GHz channel summaries, English/简体中文, light/dark,
+  rotation and cross-tool smoke checks passed. A later observed scan contained
+  26 APs (17 on 2.4 GHz, 9 on 5 GHz); no 6/60 GHz AP was observed. Signal
+  grades were not all full-strength. Wi-Fi observation alone added no History
+  row. Location, Wi-Fi, rotation and theme were restored.
+- **Android 16 / Sony XQ-FS72 / API 36 — Compatibility Regression: PASS.**
+  Before Fine Location, the current SSID was unavailable and nearby results
+  were blocked; after Fine, the expanded current BSSID was available.
+  approximate-only remained blocked; precise permission unlocked a real scan.
+  The observed batch contained 20 APs (14 on 2.4 GHz, 6 on 5 GHz), and manual
+  Refresh was labelled fresh. Location Services off and Wi-Fi off retained
+  explicitly cached results without pretending they were current; both were
+  restored. Current connection details, Home identity, Nearby/Channels,
+  English/简体中文, light/dark and rotation spot checks passed. The chosen scan
+  APIs worked without declaring `NEARBY_WIFI_DEVICES`.
+- **Automated gates:** `./gradlew test --no-daemon`, `lint`, and
+  `assembleDebug` passed. Wi-Fi screen instrumentation passed 17/17 on each
+  device, and network-core instrumentation passed 8/8 on each device. The
+  500-AP UI fixture and Fake Platform cases cover unavailable real-world
+  states such as rejected/throttled requests and unknown freshness. No
+  Wi-Fi runtime change, Room migration or version bump was made.
+- **Scope decision:** observed AP counts and strongest RSSI are observations,
+  not utilization, interference, network quality, or a recommended channel.
+  Basic Channel Overview is final for v0.9 Phase 1. Full Channel Graph,
+  Best Channel, Wi-Fi History, Report/PDF, and Automatic Diagnosis integration
+  remain deferred. Next authorized stage: v0.9 RC Preparation.
 
 ### Official references
 
