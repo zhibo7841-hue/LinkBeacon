@@ -582,10 +582,11 @@ The confirmed version route after v0.7.0 is:
   RC1 passed representative full regression on Sony XQ-AT72 / Android 12 / API
   31 without runtime changes. The published APK is byte-for-byte identical to
   that signed RC1. The next planned version remains v0.9.0 — Wi-Fi Analyzer.
-- **v0.9.0 — Wi-Fi Analyzer:** Design Audit Complete; Planning. The
+- **v0.9.0 — Wi-Fi Analyzer:** Development in progress. The
   platform/permission, observation-freshness, and Phase 1 scope baseline is
-  [WIFI_ANALYZER_DESIGN.md](WIFI_ANALYZER_DESIGN.md). No v0.9 runtime work or
-  release candidate is implied by this planning status.
+  [WIFI_ANALYZER_DESIGN.md](WIFI_ANALYZER_DESIGN.md). Platform / Domain Core is
+  complete; UI / Permissions, Channel Overview UI, and Final Regression remain
+  pending. This is not Feature Complete and implies no v0.9 release candidate.
 
 The v0.7.0 release scope is frozen to the Device Center Enhancement described
 above. It does not include SSL/TLS or Website Diagnostics, Wi-Fi Analyzer,

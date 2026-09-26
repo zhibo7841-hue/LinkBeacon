@@ -6,6 +6,7 @@ import com.networktoolbox.core.common.history.HistoryRecorder
 import com.networktoolbox.core.network.data.AndroidDnsEngine
 import com.networktoolbox.core.network.data.dns.AndroidDnsQueryEngine
 import com.networktoolbox.core.network.data.AndroidNetworkRepository
+import com.networktoolbox.core.network.data.wifi.AndroidWifiAnalyzerPlatform
 import com.networktoolbox.core.network.data.AndroidPingEngine
 import com.networktoolbox.core.network.data.AndroidPingSessionProbe
 import com.networktoolbox.core.network.data.AndroidTcpPortChecker
@@ -49,6 +50,10 @@ import com.networktoolbox.core.network.tls.TlsSocketFactoryProvider
 import com.networktoolbox.core.network.tls.TlsTrustManagerProvider
 import com.networktoolbox.core.network.wol.LanNetworkBindingProvider
 import com.networktoolbox.core.network.wol.WakeOnLanSender
+import com.networktoolbox.core.network.wifi.DefaultWifiScanRepository
+import com.networktoolbox.core.network.wifi.WifiAnalyzerPlatform
+import com.networktoolbox.core.network.wifi.WifiAnalyzerUseCase
+import com.networktoolbox.core.network.wifi.WifiScanRepository
 import com.networktoolbox.core.network.website.DefaultWebsiteDiagnosticAnalyzer
 import com.networktoolbox.core.network.website.DefaultWebsiteDiagnosticUseCase
 import com.networktoolbox.core.network.website.SystemWebsiteDiagnosticClock
@@ -110,6 +115,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -119,6 +127,26 @@ object NetworkModule {
     fun provideNetworkRepository(
         @ApplicationContext context: Context,
     ): NetworkRepository = AndroidNetworkRepository(context)
+
+    @Provides
+    @Singleton
+    fun provideWifiAnalyzerPlatform(
+        @ApplicationContext context: Context,
+    ): WifiAnalyzerPlatform = AndroidWifiAnalyzerPlatform(context)
+
+    @Provides
+    @Singleton
+    fun provideWifiScanRepository(
+        platform: WifiAnalyzerPlatform,
+        networkRepository: NetworkRepository,
+    ): WifiScanRepository = DefaultWifiScanRepository(
+        platform, networkRepository, CoroutineScope(SupervisorJob() + Dispatchers.Default),
+    )
+
+    @Provides
+    @Singleton
+    fun provideWifiAnalyzerUseCase(repository: WifiScanRepository): WifiAnalyzerUseCase =
+        WifiAnalyzerUseCase(repository)
 
     @Provides
     @Singleton

@@ -757,3 +757,39 @@ not with a mixture of an earlier composition body and later resource labels.
 Existing PDF request IDs, byte ownership, SAF callbacks and recreation remain
 unchanged. Tool History uses reliable typed result fields where present; otherwise
 saved natural-language prose remains unchanged, even in another language.
+
+## Wi-Fi Analyzer Platform and Domain Core (v0.9 Task 120)
+
+Task A adds a Core-only Wi-Fi observation path inside `core:network`:
+
+`WifiAnalyzerUseCase -> WifiScanRepository -> WifiAnalyzerPlatform -> AndroidWifiAnalyzerPlatform`
+
+`AndroidWifiAnalyzerPlatform` is the only new boundary that touches
+`WifiManager`, `ScanResult`, `WifiInfo`, `ConnectivityManager`, Location Services,
+and Android permission checks. A dedicated Wi-Fi network callback requests
+location-sensitive transport information only for an active Analyzer observer;
+the existing Home/default-network callback and `NetworkContext` behavior remain
+unchanged. The shared `NetworkRepository` still supplies IP, gateway, DNS and
+VPN context. Wi-Fi-only SSID/BSSID/radio facts stay in separate, nullable
+connection and AP-observation models. Domain mapping, deduplication, sorting,
+band/channel conversion, RSSI labels, conservative security interpretation and
+per-channel observed-AP counts use Android-free inputs and are unit-testable.
+
+The repository owns in-memory `StateFlow` snapshots and reference-counted
+callback registration. Collecting state never starts a scan. A later caller
+must explicitly start observation, request one manual Refresh, and stop
+observation. Each request has a generation; late callbacks cannot overwrite a
+newer request or a closed observer. A bounded wait ends without periodic
+scanning. `ScanResult.timestamp` is interpreted as microseconds since boot
+against monotonic elapsed time; an accepted request or callback alone does not
+prove freshness. Rejected requests retain correctly labelled cached data,
+while denied permission, disabled Location Services, Wi-Fi off and platform
+restriction are typed states. Nearby APs are distinct by BSSID/radio facts;
+observed AP count is not channel load, interference or a Best Channel score.
+
+Task A declares no new manifest permission and cannot run a production nearby
+scan until the later UI/permission task is authorized. The Core requests no
+permission dialog, adds no Tools entry, and persists no SSID/BSSID in Room,
+History, Report, Saved Devices, files or analytics. Task B owns the bilingual
+screen and runtime permission flow; channel visualization and Android 12/16
+real-device acceptance remain pending.
