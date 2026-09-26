@@ -737,3 +737,28 @@ This log records the confirmed project decisions. New scope or changes to these 
 - Scope: Report/PDF/Share, Copy, Automatic Diagnosis integration, Device Detail
   integration, and Port Scan history remain deferred. This decision does not
   change the current application version or the v0.8 release gate.
+
+## Decision: v0.9 Wi-Fi Analyzer Phase 1 evidence boundary
+
+- Date: 2026-09-26
+- Status: Accepted design baseline; implementation not started.
+- Product direction: v0.9 Phase 1 is a local, user-initiated observation of
+  the current Wi-Fi link and nearby APs, with band/channel, signal, security,
+  observed-channel overview, manual refresh, and bilingual progressive detail.
+- Platform honesty: Android permission, Location Services, throttling, cached
+  results and hardware/regional limits are explicit states. A scan request or
+  callback is not proof that results are fresh; stale AP data must be labelled.
+  `NEARBY_WIFI_DEVICES` alone does not replace Fine Location for the chosen
+  `startScan()`/`getScanResults()` APIs on Android 13+.
+- Interpretation: distinct BSSIDs under one SSID remain distinct AP
+  observations. Nearby AP count is not airtime utilization or interference
+  measurement. Phase 1 provides no Best/Recommended Channel or black-box
+  score, security/vulnerability verdict, or RF spectrum claim.
+- Privacy: SSID/BSSID observations stay local and transient, with no account,
+  upload, Room History, Site Survey snapshot, PDF/Report, AP favorite, Device
+  Center identity merge, or automatic Diagnostic integration in Phase 1.
+- Consequence: implementation must follow the separately documented
+  [WIFI_ANALYZER_DESIGN.md](WIFI_ANALYZER_DESIGN.md) and its Android 12/16
+  validation gates. This decision changes neither current permissions nor
+  runtime/version/release state; any new permission belongs to a later
+  implementation task with user-facing rationale and tests.
