@@ -582,17 +582,23 @@ The confirmed version route after v0.7.0 is:
   RC1 passed representative full regression on Sony XQ-AT72 / Android 12 / API
   31 without runtime changes. The published APK is byte-for-byte identical to
   that signed RC1. The next planned version remains v0.9.0 — Wi-Fi Analyzer.
-- **v0.9.0 — Wi-Fi Analyzer:** **Feature Complete; Scope Frozen; RC1 Prepared;
-  Representative RC Pending.** The
+- **v0.9.0 — Wi-Fi Analyzer:** **Feature Complete; Scope Frozen; Release Ready
+  (not Released).** The
   platform/permission, observation-freshness, and Phase 1 scope baseline is
   [WIFI_ANALYZER_DESIGN.md](WIFI_ANALYZER_DESIGN.md). Platform / Domain Core,
   UI / Permissions, UX Polish, Basic Channel Overview, and Final Regression
   are complete on the Android 12 full-regression and Android 16 compatibility
   devices. Basic Channel Overview is the final v0.9 Phase 1 channel view;
   Full Channel Graph, Best Channel, Wi-Fi History, and Report integration are
-  deferred. The signed RC1 has been prepared for the separately authorized
-  representative-device regression; this is not a Release Ready or Released
-  claim. Its exact artifact must pass the RC gate before publication.
+  deferred. The frozen signed RC1 completed representative full regression on
+  Sony XQ-AT72 / Android 12 / API 31 in Task 125. Task 126 repaired the six
+  independent test-only instrumentation blockers and passed repeat/full QA,
+  scoped/full JVM, lint and Debug gates without production Runtime changes or
+  changing RC1 bytes. Representative Full RC and Release Gate are PASS; see
+  [V0.9_RELEASE_READINESS.md](V0.9_RELEASE_READINESS.md). Publication requires
+  a separately authorized Final GitHub Release task; no tag or Release is
+  created by this approval. Android 16 Task 123 compatibility evidence remains
+  supplemental development evidence, not an exact-RC1 full regression.
 
 The v0.7.0 release scope is frozen to the Device Center Enhancement described
 above. It does not include SSL/TLS or Website Diagnostics, Wi-Fi Analyzer,
