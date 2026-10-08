@@ -1,9 +1,14 @@
 package com.networktoolbox
 
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.text.AnnotatedString
+import androidx.activity.compose.setContent
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -13,7 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
 import com.networktoolbox.core.common.favorites.DeviceNotes
 import com.networktoolbox.core.common.favorites.DeviceType
 import com.networktoolbox.core.designsystem.NetworkToolboxTheme
@@ -26,15 +32,18 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
+@HiltAndroidTest
 class DeviceProfileEditScreenTest {
-    @get:Rule
-    val composeRule = createComposeRule()
+    @get:Rule(order = 0)
+    val hilt = HiltAndroidRule(this)
+    @get:Rule(order = 1)
+    val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Test
     fun unifiedEditor_loadsNameTypeNotes_andSavesOnce() {
         var saveCalls = 0
         var savedState: DeviceProfileEditUiState? = null
-        composeRule.setContent {
+        composeRule.activity.setContent {
             var current by remember {
                 mutableStateOf(state(customNameInput = "Old name", notesInput = "Old note"))
             }
@@ -56,10 +65,12 @@ class DeviceProfileEditScreenTest {
         }
 
         composeRule.onNodeWithTag("device_profile_name")
-            .assertTextEquals(text(LanR.string.device_name_title), "Old name")
+            .assertTextContains(text(LanR.string.device_name_title))
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("Old name")))
         composeRule.onNodeWithText(text(LanR.string.device_type_server)).assertExists()
         composeRule.onNodeWithTag("device_profile_notes")
-            .assertTextEquals(text(LanR.string.device_notes_label), "Old note")
+            .assertTextContains(text(LanR.string.device_notes_label))
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("Old note")))
 
         composeRule.onNodeWithTag("device_profile_name").performTextReplacement("Rack host")
         composeRule.onNodeWithTag("device_profile_type").performClick()
@@ -76,7 +87,7 @@ class DeviceProfileEditScreenTest {
     @Test
     fun restoreAutomatic_clearsOnlyTheNameDraft() {
         var changedName: String? = null
-        composeRule.setContent {
+        composeRule.activity.setContent {
             NetworkToolboxTheme {
                 DeviceProfileEditScreen(
                     uiState = state(customNameInput = "Rack host"),
@@ -97,7 +108,7 @@ class DeviceProfileEditScreenTest {
 
     @Test
     fun notesOver500CodePoints_disableSave() {
-        composeRule.setContent {
+        composeRule.activity.setContent {
             NetworkToolboxTheme {
                 DeviceProfileEditScreen(
                     uiState = state(notesInput = "😀".repeat(DeviceNotes.MAX_CODE_POINTS + 1)),
@@ -118,7 +129,7 @@ class DeviceProfileEditScreenTest {
 
     @Test
     fun dirtyBackConfirmation_offersKeepEditingAndDiscard() {
-        composeRule.setContent {
+        composeRule.activity.setContent {
             NetworkToolboxTheme {
                 DeviceProfileEditScreen(
                     uiState = state(discardConfirmationVisible = true),
@@ -155,5 +166,5 @@ class DeviceProfileEditScreenTest {
     )
 
     private fun text(resource: Int): String =
-        InstrumentationRegistry.getInstrumentation().targetContext.getString(resource)
+        composeRule.activity.getString(resource)
 }

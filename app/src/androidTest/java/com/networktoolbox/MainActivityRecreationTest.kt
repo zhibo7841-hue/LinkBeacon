@@ -18,6 +18,8 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import com.networktoolbox.feature.lanscan.R as LanR
+import com.networktoolbox.core.common.favorites.DeviceType
 
 /** Genuine ActivityScenario recreation; requires a device. No network checks are started. */
 @HiltAndroidTest
@@ -173,6 +175,19 @@ class MainActivityRecreationTest {
         compose.onNodeWithText(name).performClick()
     }
 
+    private fun text(resource: Int): String = compose.activity.getString(resource)
+
+    private fun assertDeviceDetailName(name: String = "Fixture device 1", typeIcon: Int = LanR.string.device_type_generic_icon) {
+        compose.onNodeWithText(text(LanR.string.device_detail_title)).assertExists()
+        // The primary identity card has a type icon; the Local Profile value row does not.
+        // Do not arbitrarily pick the first of the two legitimate copies of the custom name.
+        compose.onNode(
+            hasText(name) and hasAnySibling(
+                hasContentDescription(text(typeIcon)),
+            ),
+        ).assertExists()
+    }
+
     @Test fun deviceDetailPingAndTcpKeepCallerAndEditedInputsAfterRecreation() {
         openDevice()
         for ((label, value) in listOf("Ping" to "edited-ping.example", "端口检测" to "edited-tcp.example")) {
@@ -184,10 +199,13 @@ class MainActivityRecreationTest {
             recreateAndVerifyInstance()
             compose.onNodeWithText(value).assertExists()
             compose.onNodeWithContentDescription("返回").performScrollTo().performClick()
-            compose.onNodeWithText("Fixture device 1").assertExists()
+            assertDeviceDetailName()
         }
         compose.onNodeWithContentDescription("返回").performScrollTo().performClick()
         assertEquals(0, fixture.scanStarts)
+        assertEquals(0, fixture.pingStarts)
+        assertEquals(0, history.writes)
+        compose.onNode(hasText(text(R.string.shell_devices)) and isSelectable()).assertIsSelected()
     }
 
     @Test fun filteredListAnchorAndProfileDataSurviveDetailRecreation() {
@@ -297,11 +315,53 @@ class MainActivityRecreationTest {
     @Test fun unconfirmedNameDraftSurvivesRecreationWithoutSaving() {
         openDevice()
         val original = fixture.profiles.value.toList()
-        compose.onNodeWithContentDescription("编辑设备名称").performClick()
-        compose.onNode(hasSetTextAction()).performTextReplacement("unsaved draft")
+        compose.onNodeWithContentDescription(text(LanR.string.device_detail_edit_name_description))
+            .performScrollTo().performClick()
+        compose.onNodeWithTag("device_profile_name").performTextReplacement("unsaved draft")
         recreateAndVerifyInstance()
         compose.onNodeWithText("unsaved draft").assertExists()
-        compose.onNodeWithText("取消").performClick()
+        compose.onNodeWithTag("device_profile_name").assertTextContains("unsaved draft")
         assertEquals(original, fixture.profiles.value)
+        compose.onNodeWithText(text(LanR.string.device_profile_cancel)).performScrollTo().performClick()
+        compose.onNodeWithText(text(LanR.string.device_profile_discard_title)).assertExists()
+        compose.onNodeWithText(text(LanR.string.device_profile_discard)).performClick()
+        assertDeviceDetailName()
+        assertEquals(original, fixture.profiles.value)
+        assertEquals(0, history.writes)
+        assertEquals(0, fixture.pingStarts)
+        assertEquals(0, fixture.scanStarts)
+        assertEquals(0, fixture.profileWrites)
+    }
+
+    @Test fun savedUnifiedProfileSurvivesRecreationWithoutChangingFavoriteOrWake() {
+        openDevice()
+        val original = fixture.profiles.value.single { it.id == 1L }
+        val otherProfiles = fixture.profiles.value.filterNot { it.id == 1L }
+        compose.onNodeWithContentDescription(text(LanR.string.device_detail_edit_name_description))
+            .performScrollTo().performClick()
+        compose.onNodeWithTag("device_profile_name").performTextReplacement("Rack host")
+        compose.onNodeWithTag("device_profile_type").performScrollTo().performClick()
+        compose.onNodeWithText(text(LanR.string.device_type_nas)).performClick()
+        compose.onNodeWithTag("device_profile_notes").performScrollTo().performTextReplacement("Primary host")
+        recreateAndVerifyInstance()
+        compose.onNodeWithTag("device_profile_name").assertTextContains("Rack host")
+        compose.onNodeWithTag("device_profile_notes").assertTextContains("Primary host")
+        compose.onNodeWithTag("device_profile_save").performScrollTo().performClick()
+        compose.waitUntil { fixture.profileWrites == 1 }
+        compose.waitForIdle()
+        assertDeviceDetailName("Rack host", LanR.string.device_type_nas)
+        assertEquals(original.copy(customName = "Rack host", userDeviceType = DeviceType.NAS, notes = "Primary host"),
+            fixture.profiles.value.single { it.id == 1L })
+        assertEquals(otherProfiles, fixture.profiles.value.filterNot { it.id == 1L })
+        recreateAndVerifyInstance()
+        assertDeviceDetailName("Rack host", LanR.string.device_type_nas)
+        compose.onNodeWithContentDescription(text(com.networktoolbox.core.designsystem.R.string.common_back))
+            .performScrollTo().performClick()
+        compose.onNode(hasText(text(R.string.shell_devices)) and isSelectable()).assertIsSelected()
+        assertEquals(1, fixture.profileWrites)
+        assertEquals(0, fixture.pingStarts)
+        assertEquals(0, fixture.scanStarts)
+        assertEquals(0, fixture.wakeSends)
+        assertEquals(0, history.writes)
     }
 }

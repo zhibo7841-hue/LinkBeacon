@@ -131,6 +131,7 @@ class RecreationFixture {
     var diagnosticStarts = 0
     var tlsStarts = 0
     var websiteStarts = 0
+    var profileWrites = 0
     val finishScan = CompletableDeferred<Unit>()
     val finishDiagnostic = CompletableDeferred<Unit>()
     val profiles = MutableStateFlow((1..25).map { index ->
