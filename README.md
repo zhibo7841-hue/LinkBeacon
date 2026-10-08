@@ -22,6 +22,22 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 
 - **Latest stable release:** [v0.8.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)
 
+### Upcoming v0.9.0 — Wi-Fi Analyzer
+
+The upcoming release adds current Wi-Fi connection details and nearby access-
+point observations provided by Android. It shows signal strength in dBm,
+available band/channel/security details, and a basic channel overview of
+observed AP counts and strongest signals. A manual Refresh requests new
+results; the screen distinguishes fresh, cached, and unknown freshness. Search
+and 2.4/5/6 GHz band filters help explore the available observations. 6 GHz
+networks appear only when the device and Android provide those scan results.
+
+Android requires precise location permission and enabled system Location
+Services to expose nearby Wi-Fi scan information. Approximate-only permission
+does not unlock this scan. Wi-Fi observations, including SSIDs and BSSIDs, are
+processed locally and are not uploaded or saved to History. This is not a
+real-time RF spectrum, interference, channel-utilization, or best-channel tool.
+
 ### What's new in v0.8.0
 
 - SSL/TLS Check reports the TLS connection, system trust, hostname validation,
@@ -173,6 +189,8 @@ maintainer-local and are not required for ordinary development builds.
 - [v0.7.1 release readiness](docs/V0.7.1_RELEASE_READINESS.md)
 - [v0.8.0 release notes](docs/V0.8_RELEASE_NOTES.md)
 - [v0.8.0 release readiness](docs/V0.8_RELEASE_READINESS.md)
+- [Upcoming v0.9.0 release notes](docs/V0.9_RELEASE_NOTES.md)
+- [v0.9.0 RC readiness](docs/V0.9_RELEASE_READINESS.md)
 - [Published v0.4.0 release notes](docs/releases/v0.4.0.md)
 - [Development workflow](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI design system](docs/UI_DESIGN_SYSTEM.md)

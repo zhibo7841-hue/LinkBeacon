@@ -21,6 +21,19 @@ NetworkToolbox 已在 v0.5.0 更名为 LinkBeacon。Android application ID
 
 - **最新稳定版本：** [v0.8.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)
 
+### 即将发布 v0.9.0 — Wi-Fi 分析
+
+即将发布的版本新增当前 Wi-Fi 连接详情和 Android 提供的附近接入点观测。
+可查看信号强度（dBm）、可用的频段、信道与安全类型，以及按信道汇总的
+已观测 AP 数量和最强信号。用户手动点击刷新才会请求新的扫描结果；页面
+区分新结果、缓存结果与新鲜度未知的结果，并支持搜索及 2.4/5/6 GHz
+频段筛选。只有设备和 Android 实际提供扫描结果时才会显示 6 GHz 网络。
+
+Android 要求精确位置权限和已开启的系统定位服务，才能提供附近 Wi-Fi
+扫描信息；仅授予大致位置权限不足以解锁扫描。SSID、BSSID 等 Wi-Fi
+观测数据只在本机处理，不上传，也不写入历史记录。本功能不测量实时
+无线电频谱、干扰或信道占用率，也不推荐“最佳信道”。
+
 ### v0.8.0 新增内容
 
 - SSL/TLS 检测展示 TLS 连接、系统信任、主机名验证、证书有效期，以及协商的
@@ -165,6 +178,8 @@ Windows 请使用 `gradlew.bat` 代替 `./gradlew`。Debug APK 生成在
 - [v0.7.1 发布就绪记录](docs/V0.7.1_RELEASE_READINESS.md)
 - [v0.8.0 Release Notes](docs/V0.8_RELEASE_NOTES.md)
 - [v0.8.0 发布就绪记录](docs/V0.8_RELEASE_READINESS.md)
+- [即将发布的 v0.9.0 Release Notes](docs/V0.9_RELEASE_NOTES.md)
+- [v0.9.0 RC 就绪记录](docs/V0.9_RELEASE_READINESS.md)
 - [已发布的 v0.4.0 Release Notes](docs/releases/v0.4.0.md)
 - [开发流程](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI 设计系统](docs/UI_DESIGN_SYSTEM.md)

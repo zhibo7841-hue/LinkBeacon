@@ -6,6 +6,38 @@
 
 - Updated GitHub Actions dependencies to remove deprecated Node.js 20 runtime warnings.
 
+## 0.9.0
+
+### Wi-Fi Analyzer
+
+- Added current Wi-Fi connection details and Android-provided nearby AP
+  observations, including signal strength in dBm, band/channel, security, and
+  available Wi-Fi standard and radio details.
+- Added local SSID/BSSID search and 2.4/5/6 GHz band filters; 6 GHz visibility
+  depends on actual device and platform scan results.
+
+### Channel Overview
+
+- Added observed AP counts and strongest observed RSSI by channel, with a
+  marker for the confirmed connected channel.
+- No best-channel score, channel utilization, or interference claim is made.
+
+### Reliability
+
+- Kept manual Refresh separate from page entry and view switching.
+- Distinguished fresh, cached, and unknown scan-result freshness; retained
+  labelled cached results when a new request could not complete.
+- Added bilingual permission and Location Services guidance, validated during
+  development on Android 12 and Android 16.
+
+### UX
+
+- Added compact expandable AP cards and top-level Nearby/Channels views.
+- Added current SSID presentation on Home when Android exposes it, with a
+  Wi-Fi fallback when unavailable.
+- Nearby Wi-Fi observations remain local and transient, with no Wi-Fi History
+  or Report integration.
+
 ## 0.8.0
 
 ### SSL/TLS Check
