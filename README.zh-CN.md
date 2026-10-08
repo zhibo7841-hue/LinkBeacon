@@ -20,10 +20,11 @@ NetworkToolbox 已在 v0.5.0 更名为 LinkBeacon。Android application ID
 ## 开发状态
 
 - **最新稳定版本：** [v0.8.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)
+- **待发布正式版本：** v0.9.0 — 正式签名制品已就绪，GitHub 发布待完成。
 
-### 即将发布 v0.9.0 — Wi-Fi 分析
+### v0.9.0 — Wi-Fi 分析
 
-即将发布的版本新增当前 Wi-Fi 连接详情和 Android 提供的附近接入点观测。
+v0.9.0 新增当前 Wi-Fi 连接详情和 Android 提供的附近接入点观测。
 可查看信号强度（dBm）、可用的频段、信道与安全类型，以及按信道汇总的
 已观测 AP 数量和最强信号。用户手动点击刷新才会请求新的扫描结果；页面
 区分新结果、缓存结果与新鲜度未知的结果，并支持搜索及 2.4/5/6 GHz
@@ -34,7 +35,7 @@ Android 要求精确位置权限和已开启的系统定位服务，才能提供
 观测数据只在本机处理，不上传，也不写入历史记录。本功能不测量实时
 无线电频谱、干扰或信道占用率，也不推荐“最佳信道”。
 
-### v0.8.0 新增内容
+### 之前的 v0.8.0 版本
 
 - SSL/TLS 检测展示 TLS 连接、系统信任、主机名验证、证书有效期，以及协商的
   TLS 版本和密码套件证据。
@@ -73,6 +74,7 @@ v0.7.1 进一步完善设备中心，通过统一入口管理自定义名称、�
 - 单目标、单端口 TCP Port Check。
 - 提供逐跳探测结果的 IPv4 Traceroute。
 - LAN Scanner：支持当前网络或受限的 RFC1918 自定义 IPv4 范围。
+- 待发布的 v0.9.0 制品包含 Wi-Fi 分析：当前连接详情、附近 AP 观测和基础信道概览。
 
 ## 网络诊断
 
@@ -105,7 +107,7 @@ LinkBeacon 展示检测事实、可能原因和排障建议。当现有证据无
 
 ## 语言支持
 
-v0.8.0 支持：
+v0.9.0 支持：
 
 - English。
 - 简体中文。
@@ -134,13 +136,15 @@ LinkBeacon 只会为了执行用户主动选择的检测而访问网络。这不
 
 ## 下载
 
-最新稳定版本为 **v0.8.0**：
+**v0.9.0** 正式制品已就绪，GitHub 发布待完成。以下是预备的正式发布链接，
+只有发布完成后才可使用。在此之前，当前已发布的最新稳定版本仍为
+[v0.8.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)。
 
-- [下载 LinkBeacon-v0.8.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.8.0/LinkBeacon-v0.8.0.apk)
-- [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.8.0/LinkBeacon-v0.8.0.apk.sha256)
-- [查看 v0.8.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)
+- [下载 LinkBeacon-v0.9.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk)
+- [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk.sha256)
+- [查看 v0.9.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)
 
-对应 SHA-256 校验文件与 Release 附件一同提供。现有 v0.7.1 安装可以直接
+对应 SHA-256 校验文件已与正式 APK 一同准备。已验证从正式 v0.8.0 安装原位
 升级，无需清除本地数据。
 
 ## 构建与开发
@@ -178,8 +182,8 @@ Windows 请使用 `gradlew.bat` 代替 `./gradlew`。Debug APK 生成在
 - [v0.7.1 发布就绪记录](docs/V0.7.1_RELEASE_READINESS.md)
 - [v0.8.0 Release Notes](docs/V0.8_RELEASE_NOTES.md)
 - [v0.8.0 发布就绪记录](docs/V0.8_RELEASE_READINESS.md)
-- [即将发布的 v0.9.0 Release Notes](docs/V0.9_RELEASE_NOTES.md)
-- [v0.9.0 RC 就绪记录](docs/V0.9_RELEASE_READINESS.md)
+- [v0.9.0 Release Notes](docs/V0.9_RELEASE_NOTES.md)
+- [v0.9.0 发布就绪记录](docs/V0.9_RELEASE_READINESS.md)
 - [已发布的 v0.4.0 Release Notes](docs/releases/v0.4.0.md)
 - [开发流程](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI 设计系统](docs/UI_DESIGN_SYSTEM.md)

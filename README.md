@@ -21,10 +21,11 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 ## Development status
 
 - **Latest stable release:** [v0.8.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)
+- **Prepared release:** v0.9.0 — final signed package ready; GitHub publication pending.
 
-### Upcoming v0.9.0 — Wi-Fi Analyzer
+### v0.9.0 — Wi-Fi Analyzer
 
-The upcoming release adds current Wi-Fi connection details and nearby access-
+v0.9.0 adds current Wi-Fi connection details and nearby access-
 point observations provided by Android. It shows signal strength in dBm,
 available band/channel/security details, and a basic channel overview of
 observed AP counts and strongest signals. A manual Refresh requests new
@@ -38,7 +39,7 @@ does not unlock this scan. Wi-Fi observations, including SSIDs and BSSIDs, are
 processed locally and are not uploaded or saved to History. This is not a
 real-time RF spectrum, interference, channel-utilization, or best-channel tool.
 
-### What's new in v0.8.0
+### Previous v0.8.0 release
 
 - SSL/TLS Check reports the TLS connection, system trust, hostname validation,
   certificate validity, negotiated TLS version, and cipher evidence.
@@ -80,6 +81,8 @@ automatic termination when the active network changes.
 - TCP Port Check for a single host and port.
 - IPv4 Traceroute with per-hop probe results.
 - LAN Scanner for the current network or a bounded custom RFC1918 IPv4 range.
+- Wi-Fi Analyzer with current connection details, nearby AP observations, and
+  Basic Channel Overview in the prepared v0.9.0 package.
 
 ## Diagnostics
 
@@ -115,7 +118,7 @@ that the target device powered on or became reachable.
 
 ## Language support
 
-v0.8.0 supports:
+v0.9.0 supports:
 
 - English.
 - Simplified Chinese.
@@ -145,14 +148,17 @@ the user. This does not mean that diagnostic results are uploaded.
 
 ## Download
 
-The latest stable release is **v0.8.0**:
+The final **v0.9.0** package is ready. GitHub publication is pending; the links
+below are prepared release links and become available only after publication.
+Until then, the latest published stable release remains
+[v0.8.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0).
 
-- [Download LinkBeacon-v0.8.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.8.0/LinkBeacon-v0.8.0.apk)
-- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.8.0/LinkBeacon-v0.8.0.apk.sha256)
-- [View the v0.8.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)
+- [Download LinkBeacon-v0.9.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk)
+- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk.sha256)
+- [View the v0.9.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)
 
-The matching SHA-256 checksum is provided with the release assets. Existing
-v0.7.1 installations can upgrade directly without clearing local data.
+The matching SHA-256 checksum is prepared alongside the final APK. An in-place
+upgrade from the formal v0.8.0 installation was verified without clearing local data.
 
 ## Build and development
 
@@ -189,8 +195,8 @@ maintainer-local and are not required for ordinary development builds.
 - [v0.7.1 release readiness](docs/V0.7.1_RELEASE_READINESS.md)
 - [v0.8.0 release notes](docs/V0.8_RELEASE_NOTES.md)
 - [v0.8.0 release readiness](docs/V0.8_RELEASE_READINESS.md)
-- [Upcoming v0.9.0 release notes](docs/V0.9_RELEASE_NOTES.md)
-- [v0.9.0 RC readiness](docs/V0.9_RELEASE_READINESS.md)
+- [v0.9.0 release notes](docs/V0.9_RELEASE_NOTES.md)
+- [v0.9.0 release readiness](docs/V0.9_RELEASE_READINESS.md)
 - [Published v0.4.0 release notes](docs/releases/v0.4.0.md)
 - [Development workflow](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI design system](docs/UI_DESIGN_SYSTEM.md)
