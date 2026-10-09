@@ -19,8 +19,7 @@ NetworkToolbox 已在 v0.5.0 更名为 LinkBeacon。Android application ID
 
 ## 开发状态
 
-- **最新稳定版本：** [v0.8.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)
-- **待发布正式版本：** v0.9.0 — 正式签名制品已就绪，GitHub 发布待完成。
+- **最新稳定版本：** [v0.9.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)
 
 ### v0.9.0 — Wi-Fi 分析
 
@@ -74,7 +73,7 @@ v0.7.1 进一步完善设备中心，通过统一入口管理自定义名称、�
 - 单目标、单端口 TCP Port Check。
 - 提供逐跳探测结果的 IPv4 Traceroute。
 - LAN Scanner：支持当前网络或受限的 RFC1918 自定义 IPv4 范围。
-- 待发布的 v0.9.0 制品包含 Wi-Fi 分析：当前连接详情、附近 AP 观测和基础信道概览。
+- Wi-Fi 分析：当前连接详情、附近 AP 观测和基础信道概览。
 
 ## 网络诊断
 
@@ -136,15 +135,13 @@ LinkBeacon 只会为了执行用户主动选择的检测而访问网络。这不
 
 ## 下载
 
-**v0.9.0** 正式制品已就绪，GitHub 发布待完成。以下是预备的正式发布链接，
-只有发布完成后才可使用。在此之前，当前已发布的最新稳定版本仍为
-[v0.8.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)。
+最新稳定版本为 **v0.9.0**：
 
 - [下载 LinkBeacon-v0.9.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk)
 - [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk.sha256)
 - [查看 v0.9.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)
 
-对应 SHA-256 校验文件已与正式 APK 一同准备。已验证从正式 v0.8.0 安装原位
+对应 SHA-256 校验文件与 Release 附件一同提供。已验证从正式 v0.8.0 安装原位
 升级，无需清除本地数据。
 
 ## 构建与开发

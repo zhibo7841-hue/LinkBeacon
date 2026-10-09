@@ -581,9 +581,8 @@ The confirmed version route after v0.7.0 is:
   integration remain deferred to separately authorized work. The exact signed
   RC1 passed representative full regression on Sony XQ-AT72 / Android 12 / API
   31 without runtime changes. The published APK is byte-for-byte identical to
-  that signed RC1. The next planned version remains v0.9.0 — Wi-Fi Analyzer.
-- **v0.9.0 — Wi-Fi Analyzer:** **Feature Complete; Scope Frozen; Release Ready
-  (not Released).** The
+  that signed RC1. The subsequent v0.9.0 — Wi-Fi Analyzer release is recorded below.
+- **v0.9.0 — Wi-Fi Analyzer:** **Feature Complete; Scope Frozen; Released.** The
   platform/permission, observation-freshness, and Phase 1 scope baseline is
   [WIFI_ANALYZER_DESIGN.md](WIFI_ANALYZER_DESIGN.md). Platform / Domain Core,
   UI / Permissions, UX Polish, Basic Channel Overview, and Final Regression
@@ -594,11 +593,14 @@ The confirmed version route after v0.7.0 is:
   Sony XQ-AT72 / Android 12 / API 31 in Task 125. Task 126 repaired the six
   independent test-only instrumentation blockers and passed repeat/full QA,
   scoped/full JVM, lint and Debug gates without production Runtime changes or
-  changing RC1 bytes. Representative Full RC and Release Gate are PASS; see
-  [V0.9_RELEASE_READINESS.md](V0.9_RELEASE_READINESS.md). Publication requires
-  a separately authorized Final GitHub Release task; no tag or Release is
-  created by this approval. Android 16 Task 123 compatibility evidence remains
-  supplemental development evidence, not an exact-RC1 full regression.
+  changing RC1 bytes. Representative Full RC and Release Gate are PASS. The
+  formal GitHub Release was published at `2026-10-09T13:31:54Z`; Task 128
+  downloaded and verified its APK and checksum. The published APK is
+  byte-for-byte identical to the frozen signed RC1 that passed representative
+  full regression; the `v0.9.0` tag remains on `b124719`. See
+  [V0.9_RELEASE_READINESS.md](V0.9_RELEASE_READINESS.md). Android 16 Task 123
+  compatibility evidence remains supplemental development evidence, not an
+  exact-RC1 full regression. The next version scope remains unconfirmed.
 
 The v0.7.0 release scope is frozen to the Device Center Enhancement described
 above. It does not include SSL/TLS or Website Diagnostics, Wi-Fi Analyzer,
@@ -613,8 +615,9 @@ invalidates that candidate and requires a newly built RC number.
 
 **v0.7.1 — Device Center Polish + Port Scan** is released. It is a focused
 continuation of the v0.7 Device Center line and does not change the released
-v0.7.0 scope. **v0.8.0 — SSL/TLS + Website Diagnostics** is released; the next
-planned version is **v0.9.0 — Wi-Fi Analyzer**.
+v0.7.0 scope. **v0.8.0 — SSL/TLS + Website Diagnostics** and
+**v0.9.0 — Wi-Fi Analyzer** are released with frozen scopes. The next version
+scope remains unconfirmed.
 
 The v0.8.0 design audit is complete. Its planning baseline is
 [WEB_DIAGNOSTICS_DESIGN.md](WEB_DIAGNOSTICS_DESIGN.md): two user-initiated

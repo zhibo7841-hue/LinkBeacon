@@ -20,8 +20,7 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 
 ## Development status
 
-- **Latest stable release:** [v0.8.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0)
-- **Prepared release:** v0.9.0 — final signed package ready; GitHub publication pending.
+- **Latest stable release:** [v0.9.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)
 
 ### v0.9.0 — Wi-Fi Analyzer
 
@@ -82,7 +81,7 @@ automatic termination when the active network changes.
 - IPv4 Traceroute with per-hop probe results.
 - LAN Scanner for the current network or a bounded custom RFC1918 IPv4 range.
 - Wi-Fi Analyzer with current connection details, nearby AP observations, and
-  Basic Channel Overview in the prepared v0.9.0 package.
+  Basic Channel Overview.
 
 ## Diagnostics
 
@@ -148,16 +147,13 @@ the user. This does not mean that diagnostic results are uploaded.
 
 ## Download
 
-The final **v0.9.0** package is ready. GitHub publication is pending; the links
-below are prepared release links and become available only after publication.
-Until then, the latest published stable release remains
-[v0.8.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.8.0).
+The latest stable release is **v0.9.0**:
 
 - [Download LinkBeacon-v0.9.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk)
 - [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk.sha256)
 - [View the v0.9.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)
 
-The matching SHA-256 checksum is prepared alongside the final APK. An in-place
+The matching SHA-256 checksum is provided with the release assets. An in-place
 upgrade from the formal v0.8.0 installation was verified without clearing local data.
 
 ## Build and development
