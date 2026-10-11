@@ -1,6 +1,7 @@
 # GP-05 / GP-05R / GP-05P / GP-06A — Privacy Policy Review and Deployment Record
 
-Status: **Deployed**. Data Safety and Android in-app full-policy access remain pending.
+Status: **Deployed**. Data Safety remains pending; GP-06B in-app implementation
+and verification are recorded in section 15.
 
 Effective date: **2026-10-11**.
 
@@ -8,8 +9,9 @@ Review date: **2026-10-11**. Source baseline: `6f3d968c0367303b90a3c0b2e006853de
 
 Scope: LinkBeacon v0.9.0 / LanYun Studio / `com.networktoolbox`. This record is not legal certification, Google approval or a finalized Data Safety submission.
 
-**Current checkpoint: section 13 (GP-06A deployment closeout); section 14 is
-a read-only application audit and unapproved maintenance proposal.** Sections
+**Current checkpoint: section 15 (GP-06B approved in-app maintenance).** Section
+13 is the actual deployment closeout; section 14 preserves its then-unapproved
+read-only maintenance proposal. Sections
 1–12 preserve the earlier review, approval and deployment checkpoints, including
 their historical pending statements. They do not override the subsequent
 successful deployment and independent checks recorded in section 13.
@@ -550,3 +552,132 @@ policy choice before application implementation. Resolve Data Safety separately.
 GP-06A changes only this deployment/audit document; Runtime/resources/Manifest,
 Gradle/signing, Room, version, PRODUCT_PLAN, DECISIONS, site files, APK/AAB,
 v0.9.0 Tag/Release and all Google Play submission/signing operations are untouched.
+
+## 15. GP-06B — approved in-app compliance maintenance (2026-10-11)
+
+### Authorization and implementation
+
+The maintainer approved **v0.9.1 — Google Play Compliance Maintenance** in
+GP-06B. PRODUCT_PLAN and DECISIONS now record this narrow scope; v0.9.0 remains
+Released and v0.10.0 is not approved. Current source version stays **0.9.0 /
+code 10**; the future 0.9.1 / code 11 change requires separate RC Preparation.
+
+Privacy & Data remains the existing caller-aware Drawer destination. Its local
+summaries distinguish supported local History/snapshots/profiles, necessary
+off-device tests, no automatic report/history/profile upload to LanYun Studio,
+location-related Wi-Fi access, no scheduled background Wi-Fi scans, account-free
+use and deliberate export/share with recipient-controlled copies. The earlier
+unqualified local-only summary is no longer used on this page.
+
+The full policy uses ordinary ACTION_VIEW / CATEGORY_BROWSABLE only when the
+user clicks. One localized URL resource is resolved from effective app resources
+at click time (AppCompat language, system-list/script/fallback matching). No
+browser-language guessing, prefetch, connectivity check, queries permission,
+WebView, SDK or network Engine is added. Missing handler, denied launch and
+runtime launch failure show bundled localized instructions, URL and contact.
+Copy uses the standard clipboard with visible live-region success/failure
+feedback. Opening an external Activity does not prove its page loaded.
+
+The strategy is online full policy plus accurate offline summary and URL copy;
+there is **no bundled full offline policy**. Existing navigation/cancellation
+and Wi-Fi permission rationale/timing are unchanged. No Room, History, profile,
+identity, Last Seen, Favorite, WoL, network tool, Manifest, dependency or signing
+change is part of this implementation.
+
+### Published policy recheck and later version wording
+
+Read-only HTTPS checks in GP-06B returned **200** for both published URLs,
+with the approved contact and 2026-10-11 date:
+
+- EN: <https://zhibo7841-hue.github.io/LinkBeacon/privacy/>.
+- ZH: <https://zhibo7841-hue.github.io/LinkBeacon/privacy/zh-CN/>.
+
+The three site-file hashes and formal v0.9.0 APK/AAB hashes match section 13.
+No site/date/URL change or deployment is performed here. The published policy
+still explicitly references v0.9.0. Before a v0.9.1 RC/publication, separately
+review whether to extend its version coverage to this behavior-preserving
+maintenance release; preserve handling facts and obtain approval for any public
+policy wording/date/deployment change. GP-06B does not silently edit that policy.
+
+Data Safety is still **Draft / Pending Maintainer Review**. Section 11's
+deletion/contact/support-email discrepancies, classification, encryption,
+third-party retention and Console declarations remain separate gates. In-app
+policy access is not Google acceptance or approval to submit an AAB.
+
+### Implementation verification complete — RC Preparation pending
+
+Final GP-06B implementation verification on 2026-10-11:
+
+- Scoped app / Wi-Fi JVM and AndroidTest compile: PASS. Seven new
+  `PrivacyPolicyResourceTest` identities cover fixed URLs, resource parity,
+  explicit bilingual actions, qualified local/export claims, necessary requests,
+  bundled errors/offline text and Wi-Fi location-related wording.
+- Full `test --no-daemon`: PASS; 1,041 unique test identities, 2,082 Debug/Release
+  executions, zero failures/errors/skips. No LAN flake recurred.
+- `lint --no-daemon`: PASS; zero errors and 28 existing warnings, none in new
+  Privacy sources.
+- `assembleDebug` and `:app:assembleDebugAndroidTest --no-daemon`: PASS.
+  Final combined gate rerun completed in 1 minute 13 seconds; local evidence:
+  `build/gp06b-resume-final-gates.log` (ignored, not a release artifact).
+  Current ordinary Debug SHA-256:
+  `9963218B5938169299302CE83DEA1ECAE898FAC28CBAF5F3A06F3972121515F2`.
+- Sony XQ-AT72 / Android 12 / API 31: safely installed existing `.wifiqa`
+  Debug/Test variants with `adb install -r`, same Debug certificate as the
+  previously installed QA package. Official `com.networktoolbox` was not
+  installed over, uninstalled or cleared; version 0.9.0 / code 10 and official
+  last-update timestamp `2026-10-08 17:24:45` remain unchanged.
+  The actually installed QA app/test APKs were read back into ignored
+  `build/gp06b/LinkBeacon-GP06B-qa.apk` and `LinkBeacon-GP06B-qa-test.apk`;
+  the QA app SHA-256 is
+  `45B4C9EC6D4FA2578513304BB9ECEB1825C82D44CD98D99B5AABD98448AD2399`.
+  These are separate `.wifiqa` packages, not replacement formal artifacts.
+- New `PrivacyPolicyScreenTest`: **11/11 PASS** in 18.859 seconds, including
+  the added permission-denied / Location Services-off isolated test. Covers real
+  resource script/list/fallback matching, plain intent/failure handling, click
+  only, no replay on recomposition/recreation, fake offline context, actual
+  clipboard, caller return, AppCompat EN/Hans/System, action semantics/minimum
+  48dp height and 320dp/1.6-font-scale light/dark bilingual layouts. Network and
+  storage are fake; no probe or History/profile writes are permitted. Evidence:
+  `build/gp06b/privacy-instrumentation-final.log` (ignored).
+- Additional LanguageSettings/Wi-Fi/Core UI group: initial run **interrupted**
+  after repeated `No compose hierarchies` failures. At inspection the phone was
+  Asleep; after waking, keyguard was still showing. The failed log is preserved
+  under ignored `build/gp06b/compat-instrumentation.log`. Only the QA process was
+  force-stopped to end this invalid run (runner then reports process termination,
+  not evidence of a production crash). No unrelated Runtime/test was changed.
+  After the maintainer unlocked the phone, a fresh rerun passed in 82.055 seconds:
+  **27 reported tests, 26 executed PASS and one API 33+ locale-override test
+  not applicable on API 31**. The Wi-Fi group (17 tests), Core UI group (6 tests)
+  and applicable LanguageSettings tests (3 tests) cover existing permission
+  states/timing, Home/Tools/Devices/History/Settings/Privacy/About navigation,
+  caller return, locale/recreation and no unintended probe/storage effects.
+  Evidence: `build/gp06b/compat-instrumentation-rerun.log` (ignored).
+- Manual QA package checks: English and Simplified Chinese Privacy summaries,
+  both copy actions and localized success messages, effective Follow system,
+  actual Chrome launch and return to Privacy / caller: **PASS**. Chrome initially
+  required first-use setup; the maintainer completed that choice. The app then
+  opened the exact language-specific URLs, and the real pages displayed the
+  policy title, effective date, contact and body. No browser account/privacy
+  choice or TLS bypass was made by the agent. Intent dispatch alone was not
+  counted as successful page loading.
+- Layout checks: portrait/light/both languages and landscape/dark/English with
+  actual system font scale 1.3: **PASS**; content and both actions remain
+  scrollable, long URL and copy feedback readable. The isolated instrumentation
+  additionally covers both languages/themes at 320dp and font scale 1.6. System
+  night mode, font scale and rotation were restored to their prior values, and
+  the QA app language was restored to Follow system. TalkBack-compatible heading,
+  button and polite feedback semantics were checked; spoken TalkBack traversal
+  was not performed or claimed. Genuine UI screenshots are retained only under
+  ignored `build/gp06b/`; no published screenshot was replaced.
+- Android 16: no connected device; **not verified**, not claimed as PASS.
+
+The approved implementation gate is complete. PRODUCT_PLAN now records
+**Implementation Complete / RC Preparation Pending**, not Release Ready or
+Released. Formal v0.9.0 APK/AAB, tag and three policy site-file hashes remain
+unchanged. The Debug / separate QA builds are not signed RC artifacts or a
+formal v0.9.1 upgrade acceptance; production data was not modified to run tests.
+
+Next phase: separately authorized **v0.9.1 RC Preparation**, including version
+transition, frozen signed artifact and representative full RC. No RC build,
+PEPK, Upload Key registration, Play Console submission, Tag or Release is
+performed by GP-06B.

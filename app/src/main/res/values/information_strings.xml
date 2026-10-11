@@ -6,9 +6,24 @@
     <string name="info_version_support">Installed app version</string>
     <string name="info_privacy_title">Privacy &amp; Data</string>
     <string name="info_local_first_title">Local-first</string>
-    <string name="info_local_first_description">Diagnostic data, test history, and saved device metadata stay on your device.</string>
-    <string name="info_upload_title">Data upload</string>
-    <string name="info_upload_description">LinkBeacon does not upload diagnostic results or history to a server.</string>
+    <string name="info_local_first_description">Supported test history, saved report snapshots, and managed device profiles are stored locally. Exported copies and system device transfers are separate.</string>
+    <string name="info_upload_title">Network tests</string>
+    <string name="info_upload_description">LinkBeacon does not automatically upload diagnostic reports, history, or device profiles to LanYun Studio servers. Tests make necessary requests to selected targets, Android DNS resolvers, public probes, or local devices; these requests leave your device.</string>
     <string name="info_account_title">No account required</string>
     <string name="info_account_description">You can use the core features without an account.</string>
+    <string name="info_wifi_title">Wi-Fi permissions</string>
+    <string name="info_wifi_description">Android requires precise location permission and enabled Location Services for nearby Wi-Fi observations. SSIDs and BSSIDs can be sensitive and location-related. LinkBeacon does not schedule background Wi-Fi scans.</string>
+    <string name="info_share_title">Export and share</string>
+    <string name="info_share_description">Copy, PDF export, and sharing happen at your request. Review reports before sharing: recipient apps and document providers may retain or upload their own copies.</string>
+    <string name="info_policy_title">Privacy policy</string>
+    <string name="info_policy_description">The full policy opens in your browser and requires an internet connection. This summary is available offline; copy the link to read the full policy later.</string>
+    <string name="info_policy_open">View full privacy policy</string>
+    <string name="info_policy_copy">Copy policy link</string>
+    <string name="info_policy_no_browser">No app can open this link. Copy the policy link and open it in a browser when available.</string>
+    <string name="info_policy_open_failed">Unable to open the privacy policy. Copy the link and try a browser later.</string>
+    <string name="info_policy_copied">Policy link copied.</string>
+    <string name="info_policy_copy_failed">Unable to copy the link. The policy URL is shown below.</string>
+    <string name="info_policy_contact">Public support: lydd8086@gmail.com</string>
+    <!-- Resolved with the same Android app-resource matching as the page, not browser/system guesses. -->
+    <string name="info_policy_url">https://zhibo7841-hue.github.io/LinkBeacon/privacy/</string>
 </resources>

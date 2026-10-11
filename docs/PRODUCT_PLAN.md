@@ -600,7 +600,8 @@ The confirmed version route after v0.7.0 is:
   full regression; the `v0.9.0` tag remains on `b124719`. See
   [V0.9_RELEASE_READINESS.md](V0.9_RELEASE_READINESS.md). Android 16 Task 123
   compatibility evidence remains supplemental development evidence, not an
-  exact-RC1 full regression. The next version scope remains unconfirmed.
+  exact-RC1 full regression. The approved next maintenance scope is v0.9.1
+  below; v0.10.0 remains unapproved.
 
 The v0.7.0 release scope is frozen to the Device Center Enhancement described
 above. It does not include SSL/TLS or Website Diagnostics, Wi-Fi Analyzer,
@@ -616,8 +617,8 @@ invalidates that candidate and requires a newly built RC number.
 **v0.7.1 — Device Center Polish + Port Scan** is released. It is a focused
 continuation of the v0.7 Device Center line and does not change the released
 v0.7.0 scope. **v0.8.0 — SSL/TLS + Website Diagnostics** and
-**v0.9.0 — Wi-Fi Analyzer** are released with frozen scopes. The next version
-scope remains unconfirmed.
+**v0.9.0 — Wi-Fi Analyzer** are released with frozen scopes. GP-06B approves
+only the v0.9.1 compliance-maintenance scope below. v0.10.0 remains unapproved.
 
 The v0.8.0 design audit is complete. Its planning baseline is
 [WEB_DIAGNOSTICS_DESIGN.md](WEB_DIAGNOSTICS_DESIGN.md): two user-initiated
@@ -680,3 +681,44 @@ v0.7.1 does not include SSL/TLS, Website Diagnostics, Wi-Fi Analyzer, UDP or
 SYN scanning, service fingerprinting, banner grabbing, Port Scan History, or
 Automatic Diagnosis integration. **v0.8.0** is reserved for SSL/TLS + Website
 Diagnostics, and **v0.9.0** is reserved for Wi-Fi Analyzer.
+
+## v0.9.1 — Google Play Compliance Maintenance
+
+Status: **Implementation Complete / RC Preparation Pending** (GP-06B,
+2026-10-11; approved scope, automated gates and representative Android 12
+implementation verification complete).
+v0.9.0 remains **Released**. v0.10.0 is **not approved**.
+
+This maintenance release closes in-app full-policy access without changing
+the network-tool scope or data handling. Must Have:
+
+- Full-policy access in the existing Privacy & Data secondary page.
+- English / Simplified Chinese URLs matched to effective app resources,
+  including Follow system, script/list matching and unsupported-language fallback.
+- Accurate bundled summaries distinguishing local History/report snapshots and
+  managed profiles, developer uploads, necessary functional network requests,
+  Wi-Fi/location-related access, and deliberate export/share.
+- Standard browser launch with no-handler/denied-launch feedback; offline
+  summaries and localized policy-URL copy with success/failure feedback.
+- Bilingual, navigation, recreation, permission-boundary, accessibility and
+  Android compatibility tests using isolated QA data where applicable.
+
+The strategy is the published online full policy plus concise offline summaries,
+not a bundled duplicate of the complete policy. No automatic browser launch,
+URL prefetch, new probe, collection, permission or SDK is authorized.
+
+Excluded: new network tools, Device Center expansion, Saved Device deletion,
+History expansion, Room migrations, Billing, Play Console operations, PEPK,
+Upload Key registration and signing changes. Public policy maintenance is a
+separate reviewed action; existing pages/date/URLs remain unchanged here.
+
+Development version stays **0.9.0 / versionCode 10**. Target **0.9.1 /
+versionCode 11** is reserved for separately authorized RC Preparation. An
+implementation pass is not Release Ready or Released: final signed-artifact
+RC regression, Data Safety reconciliation and maintainer/Console gates remain.
+
+The implementation gate passed full JVM tests, lint, Debug/AndroidTest builds,
+isolated bilingual Privacy and Wi-Fi/navigation/locale instrumentation, and
+actual browser/copy/return/layout checks on Sony XQ-AT72 / Android 12. Android
+16 was unavailable and is not claimed as verified. The QA package is not a
+frozen signed release candidate; no RC Preparation is started by this status.

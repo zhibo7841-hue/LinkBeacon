@@ -167,6 +167,17 @@ class MainActivity : AppCompatActivity() {
         try { startActivity(intent) } catch (_: ActivityNotFoundException) { /* State remains visible. */ }
     }
 
+    private val privacyPolicyLauncher = PrivacyPolicyLauncher { startActivity(it) }
+
+    private fun copyPrivacyPolicyLink(url: String): Boolean = try {
+        getSystemService(ClipboardManager::class.java).setPrimaryClip(
+            ClipData.newPlainText(getString(R.string.info_policy_title), url),
+        )
+        true
+    } catch (_: RuntimeException) {
+        false
+    }
+
     private fun canShowWifiPermissionRationale(): Boolean =
         shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) ||
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -654,7 +665,11 @@ class MainActivity : AppCompatActivity() {
                                     deviceDetailEvents = lanScannerViewModel.deviceDetailEvents,
                                 )
                             }
-                            ToolScreen.PRIVACY -> PrivacyScreen(onBack = ::goBack)
+                            ToolScreen.PRIVACY -> PrivacyScreen(
+                                onBack = ::goBack,
+                                onOpenPolicy = privacyPolicyLauncher::open,
+                                onCopyPolicy = ::copyPrivacyPolicyLink,
+                            )
                             ToolScreen.SETTINGS -> LanguageSettingsScreen(onBack = ::goBack)
                             ToolScreen.ABOUT -> AboutScreen(onBack = ::goBack)
                             ToolScreen.SUBNET -> SubnetScreen(

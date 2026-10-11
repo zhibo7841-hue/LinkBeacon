@@ -6,9 +6,23 @@
     <string name="info_version_support">当前应用版本</string>
     <string name="info_privacy_title">隐私与数据</string>
     <string name="info_local_first_title">本地优先</string>
-    <string name="info_local_first_description">诊断数据、检测历史和已保存的设备资料仅保存在设备本地。</string>
-    <string name="info_upload_title">数据上传</string>
-    <string name="info_upload_description">LinkBeacon 不会将诊断结果和历史记录上传到服务器。</string>
+    <string name="info_local_first_description">支持的检测历史、已保存报告快照和已管理设备资料保存在本机。导出副本和系统设备迁移属于独立行为。</string>
+    <string name="info_upload_title">网络检测</string>
+    <string name="info_upload_description">LinkBeacon 不会自动将诊断报告、历史记录或设备资料上传到 LanYun Studio 服务器。检测会向所选目标、Android DNS 解析服务、公共探测目标或本地设备发出必要请求；这些请求会离开本机。</string>
     <string name="info_account_title">无需账号</string>
     <string name="info_account_description">核心功能无需账号即可使用。</string>
+    <string name="info_wifi_title">Wi-Fi 权限</string>
+    <string name="info_wifi_description">Android 要求精确位置权限和已开启的定位服务，才能提供附近 Wi-Fi 观测。SSID 和 BSSID 可能属于敏感、与位置相关的信息。LinkBeacon 不执行定时后台 Wi-Fi 扫描。</string>
+    <string name="info_share_title">导出与分享</string>
+    <string name="info_share_description">复制、PDF 导出和分享由您主动操作。分享前请检查报告：接收应用和文档提供方可能保留或上传自己的副本。</string>
+    <string name="info_policy_title">隐私政策</string>
+    <string name="info_policy_description">完整政策将在浏览器中打开，需要网络连接。本页摘要可离线查看；也可以复制链接，稍后阅读完整政策。</string>
+    <string name="info_policy_open">查看完整隐私政策</string>
+    <string name="info_policy_copy">复制隐私政策链接</string>
+    <string name="info_policy_no_browser">没有应用可以打开此链接。请复制政策链接，待浏览器可用时打开。</string>
+    <string name="info_policy_open_failed">无法打开隐私政策。请复制链接，稍后在浏览器中重试。</string>
+    <string name="info_policy_copied">已复制隐私政策链接。</string>
+    <string name="info_policy_copy_failed">无法复制链接。政策网址显示在下方。</string>
+    <string name="info_policy_contact">公开支持邮箱：lydd8086@gmail.com</string>
+    <string name="info_policy_url">https://zhibo7841-hue.github.io/LinkBeacon/privacy/zh-CN/</string>
 </resources>

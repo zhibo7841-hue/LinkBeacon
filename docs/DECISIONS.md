@@ -1,5 +1,26 @@
 # Decision Log
 
+## Decision: v0.9.1 Google Play Compliance Maintenance — in-app policy access
+
+- Date: 2026-10-11
+- Status: Accepted (maintainer authorization: GP-06B)
+- Decision: approve v0.9.1 solely for the existing Privacy & Data page's complete
+  policy entry, accurate bilingual summaries and necessary compatibility tests.
+  v0.9.0 remains Released; v0.10.0 is not approved.
+- Content strategy: published online English/Chinese policy plus concise bundled
+  offline summaries and a standard browser action. Do not bundle a second complete
+  offline policy in this phase, avoiding parallel text/date drift. Offer URL copy
+  for later access and localized feedback for browser/clipboard failures.
+- Language: current app-resource matching, including AppCompat and Follow system;
+  do not infer policy language from the browser or first raw locale tag.
+- Boundary: no new permission, collection, automatic probe, web prefetch,
+  account, database/history/device feature, SDK, signing or Console operation.
+  Functional requests and user sharing are not hidden by a blanket local-only
+  claim; no automatic report/history/profile upload to LanYun Studio is stated.
+- Version gate: source stays 0.9.0 / code 10; 0.9.1 / code 11 belongs only to
+  separately authorized RC Preparation. Implementation completion does not
+  approve a signed candidate, policy-site changes or Google Play submission.
+
 This log records the confirmed project decisions. New scope or changes to these decisions require an explicit update.
 
 ## D001: 网络工具箱定位调整

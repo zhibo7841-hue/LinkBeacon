@@ -101,6 +101,20 @@ discovery protocols, IPv6 LAN scanning, new permissions, or new Room data;
 those boundaries are refined by the separately approved Phase 2A foundation
 below.
 
+### Privacy policy access (GP-06B)
+
+The existing Privacy & Data route owns bundled summaries and explicit Open/Copy
+actions only. One localized URL resource is resolved from current app resources
+at click time; AppCompat/Android resource matching remains the language authority.
+MainActivity owns `PrivacyPolicyLauncher`, which dispatches plain HTTPS
+ACTION_VIEW / CATEGORY_BROWSABLE and classifies missing-handler/launch failures.
+Clipboard copy uses the standard platform service with localized feedback.
+Neither action depends on an Engine, Repository, database, connectivity probe or
+background job. Entry, recomposition and recreation never open the browser
+automatically. The summary is not a second complete policy, and intent-dispatch
+success does not prove page availability. Caller navigation and Wi-Fi permission
+rules are unchanged.
+
 ## LAN Device Center Phase 1
 
 The top-level Devices route is implemented as a small presentation boundary
