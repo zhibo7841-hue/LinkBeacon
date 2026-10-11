@@ -375,9 +375,10 @@ scope and does not approve a candidate policy's public deployment or Console
 declaration.
 
 GP-09P (2026-10-12) separately authorizes publication of the reviewed bilingual
-unified policy through the existing manual Pages workflow. This policy-only
-approval does not approve Data Safety answers or Play submission, release
-v0.9.1, or authorize v0.10.0. See the current
+unified policy through the existing manual Pages workflow. It is now
+**Deployed / Verified**, run 38155546033, with both public HTML/CSS response hashes
+matching approved files. This policy-only approval does not approve Data Safety
+answers or Play submission, release v0.9.1, or authorize v0.10.0. See the current
 [policy deployment checkpoint](play/PRIVACY_POLICY_REVIEW_AND_DEPLOYMENT.md#18-gp-09p--approved-unified-policy-publication-2026-10-12).
 
 ### V0.5 Phase 2C-A — LAN Scanner and Device Center role separation
@@ -758,7 +759,7 @@ Tested**, not a second Full RC blocker or an exact-artifact PASS.
 
 Next, only under separate authorization: release finalization with the accepted
 unchanged Signed RC1. **Google Play Submission Gate remains PENDING**: public
-policy revision approval/deployment, Data Safety reconciliation, Play App Signing, Upload
+Data Safety reconciliation, Play App Signing, Upload
 Certificate, Upload-Key-signed AAB, store listing and testing track are separate
 unfinished gates. No v0.9.1 Tag, Release, policy deployment, Play submission or
 v0.10.0 feature work is authorized or performed by this RC acceptance.

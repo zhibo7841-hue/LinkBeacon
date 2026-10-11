@@ -20,9 +20,9 @@ fixed URL. Browser/hosting traffic is distinct from report upload.
 This is not a submitted or legally approved declaration. Read the
 [historical source/artifact audit](PLAY_COMPLIANCE_AUDIT.md) and the
 [current policy review record](PRIVACY_POLICY_REVIEW_AND_DEPLOYMENT.md).
-The existing policies are public and effective; GP-09P (2026-10-12) approves the
-GP-09R unified revision for publication. Actual deployment/verification status
-is recorded separately in the current policy review record. This worksheet
+The GP-09P unified revision was deployed and independently verified on
+2026-10-12 (Asia/Shanghai), workflow 38155546033. Approval and exact deployment
+evidence are recorded separately in the current policy review record. This worksheet
 supersedes the historical audit's Saved Device deletion overstatement and
 contact/support-mail gaps; that audit is not a current Console answer sheet.
 No telemetry SDK/backend was found; that alone does not settle off-device

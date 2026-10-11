@@ -1,8 +1,8 @@
 # LinkBeacon — Privacy Policy Review and Deployment Record
 
-Status: **Unified revision approved / Pending Deployment** (GP-09P, 2026-10-12).
-The prior approved policy remains live until the new revision is deployed and
-its actual response content is independently verified.
+Status: **Deployed / Verified** (GP-09P unified revision, 2026-10-12).
+Both public language versions match the approved deployment bytes, verified
+independently after the successful manual Pages workflow.
 Data Safety remains Draft / Pending Maintainer Review.
 
 Effective date: **2026-10-11**.
@@ -999,11 +999,12 @@ v0.9.0 remains Released, v0.9.1 Release Ready/not Released, v0.10.0 unapproved.
 
 - Approval date: **2026-10-12 (Asia/Shanghai)**.
 - Original effective date: **2026-10-11**, unchanged in both `<time>` values.
-- Proposed deployment-day Last updated: **2026-10-12**. Reconfirm the current
-  Asia/Shanghai day immediately before dispatch. If publication is delayed to
-  another day, correct only the update date and commit before final dispatch.
-  While Pending Deployment, this field is not claimed as an effective public
-  update or evidence that deployment has already happened.
+- Actual deployment-day Last updated: **2026-10-12 (Asia/Shanghai)**. The day was
+  rechecked before the manual-dispatch handoff and confirmed by actual deployment
+  at 00:28:03. Original effective date remains separate and unchanged.
+  Future deployments crossing a date boundary must correct the update field in
+  both languages and commit/push before final dispatch; a prepared date alone
+  does not prove publication.
 - Existing workflow: **Publish approved privacy policy**,
   `.github/workflows/privacy-pages.yml`, manual `workflow_dispatch`, `main` only.
   It uploads exactly the three files under `site`; no docs, evidence or artifacts.
@@ -1013,9 +1014,13 @@ v0.9.0 remains Released, v0.9.1 Release Ready/not Released, v0.10.0 unapproved.
   **docs: publish unified LinkBeacon privacy policy**.
 - Push to `origin/main`: **PASS**; main and origin/main match at the publication
   checkpoint. Exactly the six approved policy/document files are committed.
-- Workflow Run ID / URL: **not dispatched for this revision**.
-- Workflow Build / Deploy: **not run / Pending Deployment**, not failed or passed.
-- Online revision hashes / actual content verification: **Pending Deployment**.
+- Workflow Run ID: **38155546033**;
+  <https://github.com/zhibo7841-hue/LinkBeacon/actions/runs/38155546033>.
+- Workflow source: `30c7ce25380f208bb17097629c2e5fb57a234384`, `main`,
+  `workflow_dispatch`, attempt 1. This adds only the pre-deployment record to the
+  approved publication commit; policy bytes are identical.
+- Workflow Build / Deploy: **PASS / PASS**; independent job details below.
+- Online revision hashes / actual content verification: **PASS** for EN/ZH/CSS.
 
 ### Pre-deployment checks and actual public baseline
 
@@ -1089,8 +1094,59 @@ v0.9.0 remains Released, v0.9.1 Release Ready/not Released, v0.10.0 unapproved.
   **Draft / Pending Maintainer Review**, MR1–MR8 unresolved, v0.9.1 remains
   **Release Ready**, and Google Play submission remains **Pending**.
 
-Unified privacy policy changes are prepared,
-but public deployment remains pending.
+The then-current 00:26 checkpoint was: "Unified privacy policy changes are
+prepared, but public deployment remains pending." This is retained as a
+historical handoff state, superseded by the completed verification below.
+
+### Actual deployment and independent content verification
+
+- The first link supplied after handoff, run **38128990028**, was checked and
+  rejected as evidence for this revision: source `9bec9f0`, 2026-10-11, attempt 1.
+  The maintainer then created the new run **38155546033**, not a rerun of the old
+  source. No token, authentication workaround or Pages setting change was used.
+- Approval: **2026-10-12 Asia/Shanghai**, final GP-09P text/publication authority.
+  Actual publication/update date: **2026-10-12 Asia/Shanghai**. The run started
+  at **00:27:36** and finished at **00:28:03** (UTC 2026-10-11 16:27:36–16:28:03).
+- Build job **114517665920**: **success**, 00:27:40–00:27:48.
+  Checkout, public-artifact/approval gate, Configure Pages and the upload of
+  approved `site` files all pass. The unchanged workflow requires exactly
+  `site/privacy/index.html`, `site/privacy/zh-CN/index.html` and
+  `site/privacy/policy.css`, no symlinks and no unresolved publication banner.
+- Deploy job **114517702552**: **success**, 00:27:53–00:28:03.
+  The existing GitHub Pages source, workflow and website URLs are unchanged.
+- Independent response-byte checks after completion, at **00:28:19**:
+  both exact policy URLs and the CSS URL return **HTTP 200 over HTTPS**, no
+  login/404 redirect, and hashes match the approved files byte-for-byte:
+  - EN: `D8BC13953C6F39DC0315CF3AE224EF21A4A7D1DE3B75FFF8D8CBA4484AF2D055`.
+  - ZH: `3B52001804B0492BAC3E5BAC167035CC9524ADCB2B6E69CEAB9E9B57614F4FCF`.
+  - CSS: `5678F330D1356B047521F5AB2A6FCEB215544DBC7B45FA233D07CB96AE65C736`.
+  Each HTML has 16 chapters, dates **2026-10-11 / 2026-10-12**, the unified-policy
+  introduction and approved revision note, three consistent approved mailto
+  links, and no scripts/images. No mechanical v0.9.0/v0.9.1 scope list remains.
+- Actual online browser acceptance: reload shows the new English policy;
+  **EN -> ZH -> EN PASS** through the existing relative links. Both metadata
+  dates, chapter 15 revision paragraphs, approved contact and rendered CSS
+  match. At 390 px each document is 375 px wide without horizontal overflow;
+  light/dark styles are readable. Genuine online screenshots and DOM/network
+  evidence are saved only in ignored `build/gp09p/`.
+- Captured public browser requests include only the two policy URLs and local
+  CSS, all 200; no external statistics script, SDK, tracking pixel or unexpected
+  resource appears. Events are complete, not truncated. This evidence and exact
+  hashes, **not Workflow Success alone**, establish current content publication.
+  No all-device/provider traffic certification or physical-phone test is claimed.
+- Viewport/media overrides are reset and task-owned browser tabs are closed.
+  The loopback preview server was already safely stopped. Site-only checks
+  required no App build, RC rebuild, signing or Android resource change.
+- Final states: **Privacy Policy Deployed / Verified**; **Data Safety Draft /
+  Pending Maintainer Review** (MR1–MR8 unresolved); **v0.9.1 Release Ready**,
+  not Released; **Google Play Submission Pending**; v0.10.0 remains unapproved.
+  Final evidence-record changes are committed/pushed separately from the policy
+  source. No Runtime, version, Tag, GitHub Release or Google Play action follows.
+
+LinkBeacon unified privacy policy published successfully.
+Both language versions are verified online.
+Privacy policy maintenance is based on actual data practices, not version numbers.
+The signed v0.9.1 RC1 remains unchanged.
 
 Frozen Signed RC1 is checked at task start: **52,912,635 bytes**; SHA-256
 `FC97F206389E5BBD16CCF0E260DE0600DCE366A0B6C3DBD96883F6C6949B09DD`.
