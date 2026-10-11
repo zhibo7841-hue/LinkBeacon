@@ -758,7 +758,7 @@ passed; no Runtime or artifact change. Android 16 spot remains **Pending / Not
 Tested**, not a second Full RC blocker or an exact-artifact PASS.
 
 Next, only under separate authorization: release finalization with the accepted
-unchanged Signed RC1. **Google Play Submission Gate remains PENDING**: public
+unchanged Signed RC1. **Google Play Submission Gate remains PENDING**:
 Data Safety reconciliation, Play App Signing, Upload
 Certificate, Upload-Key-signed AAB, store listing and testing track are separate
 unfinished gates. No v0.9.1 Tag, Release, policy deployment, Play submission or
