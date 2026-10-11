@@ -1,6 +1,6 @@
 # GP-05 / GP-05R / GP-05P — Privacy Policy Review and Deployment Record
 
-Status: **Approved for publication — public deployment Pending**
+Status: **Approved and pushed — Pages setup/dispatch Pending; not publicly deployed**
 
 Review date: **2026-10-11**. Source baseline: `6f3d968c0367303b90a3c0b2e006853de9cec82c`.
 
@@ -254,7 +254,7 @@ via the public contact, without a fixed deadline or third-party erasure promise.
 - `git fetch origin` confirmed main was synchronized before publication;
   `git diff --check` passed. No unrelated changes were overwritten or staged.
 
-### Deployment checkpoint — Pending
+### Deployment checkpoint — Pending (verified 2026-10-11)
 
 - Workflow: `.github/workflows/privacy-pages.yml`, manual `workflow_dispatch`
   only; build is guarded by `refs/heads/main`; official GitHub Pages Actions;
@@ -265,15 +265,35 @@ via the public contact, without a fixed deadline or third-party erasure promise.
   Settings/Pages view is inaccessible. No authenticated Pages-management
   channel was established; no new token or login credential was created or
   requested, and no GitHub permissions were bypassed.
-- Public Pages configuration, workflow run ID/conclusion, deployment commit,
-  actual HTTPS/HTTP status, deployed CSS/language-switch/mobile checks:
-  **Pending**, not inferred from a successful push or local HTTP preview.
+- Publication commit: `9fe526685abc0ab0eeeac6cfc424eead7955d1ae`
+  (`docs: publish LinkBeacon privacy policy`), pushed successfully to
+  `origin/main`. It contains only the six prepared policy/workflow/checker/
+  deployment-record files. Push is not a successful Pages deployment.
+- Public GitHub API after push: repository `has_pages=false`, Pages endpoint
+  HTTP **404**, and the privacy workflow's manual-run list has **0** runs.
+  Workflow Run ID/conclusion and deployed commit: **not available / not run**.
+- Real requests to both intended HTTPS URLs returned HTTP **404**, without
+  redirecting to a login page or changing the requested URL. TLS requests
+  completed without certificate-validation bypass; these were GitHub error
+  pages, **not** verified public policies or successful publication.
+- Deployed CSS, language switching, mobile rendering and resource requests:
+  **Pending**. The browser results above are explicitly local preview evidence.
+  The approved date is retained in the candidate pages but is not claimed as
+  an effective public policy before successful deployment; reconfirm the date
+  if deployment occurs after 2026-10-11.
 - Intended EN URL: `https://zhibo7841-hue.github.io/LinkBeacon/privacy/`.
 - Intended ZH URL: `https://zhibo7841-hue.github.io/LinkBeacon/privacy/zh-CN/`.
 - Maintainer setup path, if needed: repository **Settings → Pages → Build and
   deployment → Source: GitHub Actions**. After the approved files are pushed,
   **Actions → Publish approved privacy policy → Run workflow → main**. The
   workflow must actually succeed, followed by public URL verification.
+- Existing signed artifacts were rehashed without rebuilding/re-signing and
+  remain identical: APK `C90A80F70DCC4879221483ADC10B9191945A5620377342911E236C80FDED5C93`;
+  AAB `F49E9A510D74FC265D131EE60589A8EA7EE00A8F1590959E32F7D7EF12CE3B7E`.
+  PRODUCT_PLAN, DECISIONS and the historical audit/worksheet file hashes also
+  match the pre-task baseline. Publication waits for maintainer Pages setup
+  and workflow dispatch; no different hosting destination or credential
+  workaround was used.
 
 ### Remaining compliance gates and unchanged application
 
