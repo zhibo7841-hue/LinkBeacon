@@ -1,17 +1,18 @@
-# GP-05 / GP-05R / GP-05P — Privacy Policy Review and Deployment Record
+# GP-05 / GP-05R / GP-05P / GP-06A — Privacy Policy Review and Deployment Record
 
-Status: **Approved and pushed — Pages setup/dispatch Pending; not publicly deployed**
+Status: **Deployed**. Data Safety and Android in-app full-policy access remain pending.
+
+Effective date: **2026-10-11**.
 
 Review date: **2026-10-11**. Source baseline: `6f3d968c0367303b90a3c0b2e006853de9cec82c`.
 
 Scope: LinkBeacon v0.9.0 / LanYun Studio / `com.networktoolbox`. This record is not legal certification, Google approval or a finalized Data Safety submission.
 
-**Current checkpoint: section 12 (GP-05P).** Sections 1–11 preserve the earlier
-GP-05/GP-05R review and pre-publication evidence, including their historical
-pending-approval statements; they do not override the subsequent explicit
-publication approval in GP-05P. The approved effective date is 2026-10-11;
-public deployment has not yet been verified at this checkpoint. If deployment
-does not complete on that date, reconfirm the date before claiming it effective.
+**Current checkpoint: section 13 (GP-06A deployment closeout); section 14 is
+a read-only application audit and unapproved maintenance proposal.** Sections
+1–12 preserve the earlier review, approval and deployment checkpoints, including
+their historical pending statements. They do not override the subsequent
+successful deployment and independent checks recorded in section 13.
 
 ## 1. Approval and public contact
 
@@ -309,3 +310,243 @@ No Runtime, navigation, Android resources/Manifest, Gradle/signing, Room,
 version, PRODUCT_PLAN, DECISIONS, README/screenshots, APK/AAB, tag or release
 was modified. No Android build, Google Play submission, PEPK export, upload-key
 registration or next application task was performed.
+
+## 13. GP-06A — deployed policy closeout (2026-10-11)
+
+### Actual deployment and maintainer confirmation
+
+- Status: **Deployed**; effective date: **2026-10-11**.
+- English URL: <https://zhibo7841-hue.github.io/LinkBeacon/privacy/>.
+- Simplified Chinese URL:
+  <https://zhibo7841-hue.github.io/LinkBeacon/privacy/zh-CN/>.
+- [Publish approved privacy policy #1](https://github.com/zhibo7841-hue/LinkBeacon/actions/runs/38128990028):
+  Workflow Run ID **38128990028**, event `workflow_dispatch`, branch `main`,
+  status `completed`, conclusion `success`. Public API independently verified
+  build job **114439200949** and deploy job **114439233396** as `success`.
+- Deployed source commit: `9bec9f0472a90c1f934441c9ad368f77f371fbc9`.
+  Deployment job completed **2026-10-11 09:37:10 UTC / 17:37:10 +08:00**.
+  Policy publication commit remains `9fe526685abc0ab0eeeac6cfc424eead7955d1ae`;
+  the later source commit changes the checkpoint record, not the policy files.
+- **Maintainer confirmation:** GP-06A explicitly reports successful Build and
+  Deploy, actual opening of both pages, and working language switches. This is
+  the maintainer's own observation, separate from the independent checks below.
+- No workflow was dispatched again, Pages setting changed or credential/token
+  requested in GP-06A. Only public read-only API/website requests were made.
+
+### Independent deployment verification
+
+Verified on **2026-10-11**, with direct HTTPS checks recorded at
+**17:53:55 +08:00**, followed by browser inspection:
+
+| Resource | HTTP / final URL | Content verification |
+| --- | --- | --- |
+| English policy | 200; unchanged HTTPS URL above | UTF-8 HTML, `lang=en`, 16 chapters, approved contact/date; 16,108 bytes |
+| Chinese policy | 200; unchanged HTTPS URL above | UTF-8 HTML, `lang=zh-CN`, 16 chapters, approved contact/date; 14,395 bytes |
+| [Shared CSS](https://zhibo7841-hue.github.io/LinkBeacon/privacy/policy.css) | 200; same HTTPS origin/path | UTF-8 CSS; 1,863 bytes |
+
+Downloaded response-byte SHA-256 values match the existing approved local
+files exactly, without re-encoding, rebuilding or editing the site:
+
+- English HTML: `F4AE399790872E67F1A0EA906AA40076A9C67FD5F1B6E1C8BABFE856F4A12D8A`.
+- Chinese HTML: `037E84E281FDCD38E306F57F67C564715C8D3D321A18EDE434CD2DA499F95C90`.
+- CSS: `5678F330D1356B047521F5AB2A6FCEB215544DBC7B45FA233D07CB96AE65C736`.
+
+TLS validation was not bypassed. Neither policy redirected to login/404/error
+content, and neither contains the removed review notice. Public repository
+metadata now reports `has_pages=true`. The unauthenticated Pages-management
+endpoint still returns 404; that does not establish the management settings,
+and is not treated as proof that the live site is absent. Successful public
+run/jobs and actual policy responses independently establish this deployment.
+The web-retrieval tool could not fetch these project URLs; the successful
+direct HTTPS and actual browser checks, not that failed retrieval, are the
+website evidence.
+
+In the actual deployed browser page, the header language links were clicked
+EN -> ZH -> EN successfully. Both displayed the approved body, correct title,
+effective date and contact; the shared stylesheet loaded with 21 CSS rules.
+An English-page screenshot showed the styled readable article; measured
+document width and content width were both 1,265 pixels, with no horizontal
+overflow at that default desktop viewport. An observed English reload requested
+only that HTML and local CSS, both 200; its event reader returned `hasMore=false`
+and `truncated=false`. No external resource request appeared in that captured reload.
+This is not an all-browser/global-reachability, physical-phone, traffic-capture
+or GitHub server-logging certification. The earlier responsive/light/dark
+results in section 12 remain explicitly local-preview evidence, not newly
+executed deployed-mobile tests.
+
+`Test-PrivacyPolicy.ps1 -RequirePublishable`: **PASS** for the unchanged
+three-file site. No Android test/lint/build, installation, APK/AAB creation,
+re-signing or Google Play action was performed. The existing APK/AAB hashes
+still match section 12. PRODUCT_PLAN, DECISIONS, the draft Data Safety worksheet
+and historical compliance audit also retain their baseline hashes.
+
+### Still-open compliance gates
+
+- **Data Safety: Draft / Pending Maintainer Review**, not Final or submitted.
+  Preserve section 11's deletion-control, outdated-contact and voluntary-support
+  email discrepancies, plus request/provider/retention/encryption classification
+  review. Deployment does not resolve these questions or attest Console answers.
+- **Android in-app full-policy access: Pending.** The public website is live,
+  but the current v0.9.0 application has not gained a policy link or full text.
+- Historical GP-04 drafts still contain pre-publication and contact placeholders.
+  Use this closeout for current deployment facts; do not treat those drafts as
+  final Console values. Their separate reconciliation is not performed here.
+- No approval of v0.9.1, Google Play publication, signing import, upload-key
+  registration, Data Safety submission, Tag or Release is implied.
+
+## 14. GP-06A — Android in-app privacy audit and candidate maintenance
+
+**Read-only audit of baseline `9bec9f0`; design only, not implemented or
+approved.** Current version remains **0.9.0 / versionCode 10**, minSdk 31,
+targetSdk 36. All source references below were inspected in GP-06A.
+
+### Current page, navigation, locale and theme
+
+- [PrivacyScreen / information components](../../app/src/main/java/com/networktoolbox/AppInformationScreens.kt)
+  has a back header and three bundled blocks: Local-first, Data upload, No
+  account required. It has no full policy, public contact, date or external-link
+  action. The page itself calls no repository, engine or History writer and its
+  text is available offline; that is source evidence, not new device validation.
+- [Presentation mappings](../../app/src/main/java/com/networktoolbox/AppInformationPresentation.kt)
+  point to the [English](../../app/src/main/res/values/information_strings.xml)
+  and [Simplified Chinese](../../app/src/main/res/values-b+zh+Hans/information_strings.xml)
+  strings. The existing local-only/server-upload summaries are narrower than
+  the complete formal policy and need the qualifications below.
+- [Drawer](../../app/src/main/java/com/networktoolbox/AppShellDrawer.kt),
+  [navigation state](../../app/src/main/java/com/networktoolbox/AppNavigationModels.kt)
+  and [MainActivity](../../app/src/main/java/com/networktoolbox/MainActivity.kt)
+  already expose Privacy & Data as a secondary destination from Home, Tools and
+  Devices, with return to the caller. Settings is the existing language page,
+  not another privacy route. Keep this entry and back behavior; no new bottom
+  tab, Activity, onboarding or forced consent screen is proposed. Existing
+  Drawer navigation stops active work for non-Settings destinations; preserve
+  that behavior rather than claiming entry has no lifecycle side effects.
+- [LanguageSettingsScreen](../../app/src/main/java/com/networktoolbox/LanguageSettingsScreen.kt)
+  uses AppCompat application locales, with English / `zh-Hans` / Follow system.
+  [AppLanguage](../../app/src/main/java/com/networktoolbox/AppLanguage.kt) is a
+  preference projection, not a full multi-locale resource matcher. The current
+  [Manifest](../../app/src/main/AndroidManifest.xml) and
+  [locale config](../../app/src/main/res/xml/locales_config.xml) retain AppCompat
+  `autoStoreLocales` for Android 12 and the declared EN/Hans platform locales.
+- [Material3 theme](../../core/designsystem/src/main/java/com/networktoolbox/core/designsystem/Theme.kt)
+  supplies shared typography, shapes and light/dark colors. The current
+  `ToolScreenLayout`/information blocks use that design system. Any future link
+  should reuse it, with visible wrapping text, button semantics and adequate
+  touch/focus/contrast support, not a new theme or browser SDK.
+
+### Necessary summary consistency — proposed, not final copy
+
+1. **Local-first:** retain local Room History and Saved Devices as the primary
+   storage. Qualify “stay on your device / 仅保存在设备本地”: user-requested
+   export/share, document providers and system/OEM transfer can create separate
+   copies. Do not claim guaranteed local-only handling for every operation.
+2. **Data upload:** qualify the receiver and automatic behavior: no automatic
+   diagnostic-history/profile upload to a **LanYun Studio server**. Necessary
+   DNS/target/public-probe requests still occur; a webpage or selected mail/share
+   provider may handle request metadata or voluntarily supplied information.
+   Never translate this into “no network traffic”, “no data collected”, universal
+   encryption or anonymous data. The approved policy remains authoritative.
+3. **No account:** keep the current account-free core-feature statement. Do not
+   add account deletion, consent to new processing, analytics or login.
+4. Keep the page short; add the formal policy action and a brief online-access
+   explanation, with the approved public contact readily visible. Full policy
+   details cover Wi-Fi/location, request paths, retention/deletion, sharing,
+   support mail and providers. Do not invent a Delete Saved Device action,
+   secure-erasure guarantee, fixed support-mail expiry or guaranteed encrypted
+   DNS/TCP. The existing Wi-Fi permission rationale remains separately relevant;
+   a policy link does not replace a required contextual permission disclosure.
+
+### Minimal integration proposal
+
+- Retain Privacy & Data. Add exactly the clear action **“View full privacy
+  policy / 查看完整隐私政策”**, using the section-13 EN/ZH URLs. Opening is
+  user-initiated; do not prefetch the site or launch it automatically.
+- **Locale choice:** recommend one policy-URL resource key with EN/default and
+  Hans values, resolved from the current Activity/app resources at click time,
+  alongside the localized label. This reuses Android's existing script and
+  language-list matching, including Follow system and fallback. Do not use only
+  `Locale.getDefault()`, browser language, or the first raw preference tag.
+  Explicit English must open EN on a Chinese system, and explicit Hans must
+  open ZH on an English system. Unsupported/Hant and multi-locale lists must
+  follow the existing UI resource contract. No second locale-preference store.
+- **External opening:** no reusable general HTTPS `ACTION_VIEW` launcher was
+  found in the current Kotlin sources. MainActivity already owns Settings
+  intent launching and PDF sharing with failure handling; reuse that UI ->
+  platform ownership pattern, not those unrelated actions themselves. A small
+  launcher callback can open only the fixed HTTPS policy URI with normal
+  `ACTION_VIEW` / `CATEGORY_BROWSABLE`, without reports, targets, IDs or private
+  data attached. No WebView, Custom Tabs dependency or third-party browser SDK.
+- **No handler / launch failure:** catch `ActivityNotFoundException` and relevant
+  launch-denied failures at the platform boundary. Show a localized, accessible
+  explanation plus readable policy URL/contact; keep the page/back action
+  available. Do not silently discard the failure, crash, install a browser or
+  bypass a browser TLS warning. Failure behavior is not implemented/tested yet.
+- **Offline:** keep bundled summaries available and explain that the complete
+  online policy requires a network connection. Do not equate successful intent
+  dispatch with HTTP/page success or require a connectivity probe before click.
+  No network-status permission request or fake download-complete state. Browser
+  offline/server/TLS errors belong to the external browser; retry later remains
+  possible. The current summaries are not a full offline policy.
+- **Local full policy:** not required for this minimum proposal: Google's
+  current User Data wording permits in-app policy **link or text** and requires
+  a public policy URL. A bundled full copy is useful for complete offline access
+  but adds duplicate-text/date drift and a synchronization/rendering/test gate.
+  Recommend link + bundled accurate summary first; whether to bundle the full
+  EN/ZH text is a separate maintainer choice, not an implementation in GP-06A
+  or a guarantee of Play/legal approval. Do not copy unapproved Markdown drafts.
+- **Permissions/storage:** no new Android permission, `<queries>`, broad package
+  visibility, database change or migration is needed for direct URL launch with
+  caught failure. No History row, profile write, identity/Last Seen change or
+  analyzer/Ping/DNS/TCP/scan execution is part of the proposed policy action.
+  Existing data and navigation lifecycle remain unchanged; the external website
+  request is ordinary GitHub Pages access as disclosed by the policy.
+
+### v0.9.1 assessment and expected gates — approval still pending
+
+**Recommend considering v0.9.1 Google Play Compliance Maintenance**, limited to
+the in-app formal-policy entry, necessary summary corrections, bilingual and
+accessibility tests, and compatibility/release regression. No other tool,
+storage, protocol, SDK or account feature belongs to this candidate. The
+maintainer must approve the version, exact scope and proposed text separately;
+GP-06A does not modify versionName/versionCode, PRODUCT_PLAN or DECISIONS.
+
+Existing test sources reviewed:
+
+- [AppInformationPresentationTest](../../app/src/test/java/com/networktoolbox/AppInformationPresentationTest.kt):
+  Drawer/information-resource mappings, not full policy content or link launch.
+- [AppNavigationStateTest](../../app/src/test/java/com/networktoolbox/AppNavigationStateTest.kt):
+  secondary-destination return/saved-state behavior, including Privacy.
+- [AppLanguageTest](../../app/src/test/java/com/networktoolbox/AppLanguageTest.kt),
+  [CoreUiResourceParityTest](../../app/src/test/java/com/networktoolbox/CoreUiResourceParityTest.kt)
+  and [LanguageSettingsTest](../../app/src/androidTest/java/com/networktoolbox/LanguageSettingsTest.kt):
+  locale selection/persistence, EN/Hans resource parity, recreation/caller
+  restoration and no unintended data/probe effects. The language UI test checks
+  Drawer privacy labels, not opening a full policy. No dedicated policy-launch,
+  no-browser, offline full-policy or privacy-accessibility regression was found.
+
+Before any proposed maintenance release:
+
+| Gate | Expected evidence; not executed in GP-06A |
+| --- | --- |
+| Source/unit/resource | Correct fixed URLs; EN/Hans key parity and copy; Follow system/script/list fallback; injected launcher success/no-handler/denied outcomes without private extras |
+| Compose/instrumentation | Entry/back from Home/Tools/Devices; policy action/accessible error; real locale change, Activity recreation and restart persistence; no new History/profile writes or engine starts |
+| Accessibility/layout | EN/ZH, light/dark, large font, small width, TalkBack/focus semantics and at least 48dp action target; long URL wraps; no clipping |
+| Browser/offline | Actual EN/ZH pages and both switches; offline summary still usable; missing handler simulated without removing the maintainer's browser/data; launch success never claimed as page success |
+| Automated build | `./gradlew test --no-daemon`, `./gradlew lint --no-daemon`, `./gradlew assembleDebug --no-daemon`, and relevant instrumentation after implementation authorization |
+| Upgrade/release | Preserve v0.9.0 data and signing identity in-place; validate History, Saved Devices, Favorite, custom fields, WoL and existing tools; create a new signed candidate only in separately authorized RC work |
+| Final artifact | Existing representative-device policy: complete full regression on at least one representative final signed artifact device, preferably Android 12 for locale-persistence risk; Android 13/16 compatibility evidence supplements it, with expanded coverage if actual platform risk requires |
+| Compliance | Reconcile the draft Data Safety worksheet and approved policy facts; maintainer approves final declarations and separate Console actions; no approval inferred from website HTTP 200 |
+
+Android sources checked on 2026-10-11:
+[per-app languages](https://developer.android.com/guide/topics/resources/app-languages),
+[URL intents and package visibility](https://developer.android.com/training/package-visibility/use-cases).
+The latter documents direct URL launching without additional `<queries>` and
+handling a missing handler. The minimum-policy-access assessment is based on
+the [Google User Data policy](https://support.google.com/googleplay/android-developer/answer/10144311?hl=en),
+not a legal opinion or acceptance guarantee.
+
+**Stop gate:** approve the maintenance scope/version/copy and optional offline
+policy choice before application implementation. Resolve Data Safety separately.
+GP-06A changes only this deployment/audit document; Runtime/resources/Manifest,
+Gradle/signing, Room, version, PRODUCT_PLAN, DECISIONS, site files, APK/AAB,
+v0.9.0 Tag/Release and all Google Play submission/signing operations are untouched.
