@@ -358,6 +358,28 @@ SSH/Telnet-related scope is limited to service discovery, port detection, and ba
 - Do not include advertising or hidden tracking as part of the product principles.
 - Do not present network observations as more certain than the available evidence supports.
 
+### Unified privacy-policy maintenance
+
+Maintain one bilingual privacy policy based on actual data practices, not
+mechanically on App `versionName`. Version-only releases, UI polish, bug fixes,
+performance improvements and internal refactoring normally require no policy
+change when data practices stay the same. Changes to sensitive permissions,
+collection/external transmission, ads/analytics/remote-log SDKs, accounts/cloud
+sync, retention/deletion, export/share rules, third-party services or probe
+payloads/recipients must trigger privacy review. Decide from the actual impact
+whether to update the policy, Google Play Data Safety, in-app disclosures and
+related documents; review does not automatically require rewriting them all.
+Disclose material differences between app versions in the relevant clauses,
+including retained legacy-data risks. This maintenance principle adds no feature
+scope and does not approve a candidate policy's public deployment or Console
+declaration.
+
+GP-09P (2026-10-12) separately authorizes publication of the reviewed bilingual
+unified policy through the existing manual Pages workflow. This policy-only
+approval does not approve Data Safety answers or Play submission, release
+v0.9.1, or authorize v0.10.0. See the current
+[policy deployment checkpoint](play/PRIVACY_POLICY_REVIEW_AND_DEPLOYMENT.md#18-gp-09p--approved-unified-policy-publication-2026-10-12).
+
 ### V0.5 Phase 2C-A — LAN Scanner and Device Center role separation
 
 - LAN Scanner is a one-shot scan tool and shows only observations produced by
@@ -736,7 +758,7 @@ Tested**, not a second Full RC blocker or an exact-artifact PASS.
 
 Next, only under separate authorization: release finalization with the accepted
 unchanged Signed RC1. **Google Play Submission Gate remains PENDING**: public
-policy version wording, Data Safety reconciliation, Play App Signing, Upload
+policy revision approval/deployment, Data Safety reconciliation, Play App Signing, Upload
 Certificate, Upload-Key-signed AAB, store listing and testing track are separate
 unfinished gates. No v0.9.1 Tag, Release, policy deployment, Play submission or
 v0.10.0 feature work is authorized or performed by this RC acceptance.

@@ -1,15 +1,19 @@
-# GP-05 / GP-05R / GP-05P / GP-06A — Privacy Policy Review and Deployment Record
+# LinkBeacon — Privacy Policy Review and Deployment Record
 
-Status: **Deployed**. Data Safety remains pending; GP-06B in-app implementation
-and verification are recorded in section 15.
+Status: **Unified revision approved / Pending Deployment** (GP-09P, 2026-10-12).
+The prior approved policy remains live until the new revision is deployed and
+its actual response content is independently verified.
+Data Safety remains Draft / Pending Maintainer Review.
 
 Effective date: **2026-10-11**.
 
 Review date: **2026-10-11**. Source baseline: `6f3d968c0367303b90a3c0b2e006853de9cec82c`.
 
-Scope: LinkBeacon v0.9.0 / LanYun Studio / `com.networktoolbox`. This record is not legal certification, Google approval or a finalized Data Safety submission.
+Scope: LinkBeacon unified-policy maintenance / LanYun Studio / `com.networktoolbox`; reviewed behavior: v0.9.0 and frozen v0.9.1 RC1. This record is not legal certification, Google approval or a finalized Data Safety submission.
 
-**Current checkpoint: section 15 (GP-06B approved in-app maintenance).** Section
+**Current checkpoint: section 18 (GP-09P approved publication).** Section 17
+preserves GP-09R's then-local-only approval boundary. Section 16
+preserves the superseded, unpublished GP-09 version-list candidate. Section
 13 is the actual deployment closeout; section 14 preserves its then-unapproved
 read-only maintenance proposal. Sections
 1–12 preserve the earlier review, approval and deployment checkpoints, including
@@ -681,3 +685,377 @@ Next phase: separately authorized **v0.9.1 RC Preparation**, including version
 transition, frozen signed artifact and representative full RC. No RC build,
 PEPK, Upload Key registration, Play Console submission, Tag or Release is
 performed by GP-06B.
+
+## 16. GP-09 — v0.9.1 policy alignment prepared (2026-10-11)
+
+### Evidence and approval boundary
+
+Baseline: `a60ac33adb7b347af1009141c6e32dd27267dabb` (GP-08). Initial worktree
+was clean; fetch confirmed `main` equals `origin/main`. The complete formal
+baseline, both policy pages/CSS, GP-06B privacy sources and GP-08 acceptance
+record were read before edits.
+
+v0.9.0 remains the stable public release. v0.9.1 / code 11 is an accepted frozen
+Signed RC1, not a released version. No new diagnostic permissions, targets,
+storage, SDKs or automatic report/profile upload were introduced by this
+maintenance. Its added fixed-URL browser action and policy-link clipboard copy
+are deliberate external-browser/clipboard operations already covered by policy
+sections 9/10, not zero traffic or new diagnostic collection. This is a narrow
+source/RC-evidence assessment, not an all-device packet capture or legal opinion.
+
+**No new approval to publish this revision has been received.** Only the two
+local HTML files, the Data Safety worksheet and this review record are changed.
+No staging, commit, push, Pages dispatch/settings change or Play Console action
+is performed. Static `-RequirePublishable` PASS means technical readiness only;
+it does not grant approval. The online v0.9.0 article remains the approved policy.
+
+### Complete proposed public-text change set
+
+There are exactly four changed paragraphs per language. Only the following
+version clauses and corresponding English grammar change; the rest of each
+paragraph and all other chapters are unchanged. Review the complete file diff
+with `git diff -- site/privacy/index.html site/privacy/zh-CN/index.html`.
+
+| Chapter | Existing English | Proposed English |
+| --- | --- | --- |
+| 1 / identity | This policy describes the data handling of version 0.9.0. | This policy describes the data handling of LinkBeacon v0.9.0 and v0.9.1. |
+| 4 / permissions | Version 0.9.0 does not request background location, contacts, camera, microphone or broad storage access. | LinkBeacon v0.9.0 and v0.9.1 do not request background location, contacts, camera, microphone or broad storage access. |
+| 10 / providers | Version 0.9.0 uses Android/AndroidX, Kotlin, Room, Hilt and OkHttp/Okio for its interface, storage and network operations. It contains no advertising, analytics, dedicated tracking or automatic remote crash-reporting integration. | LinkBeacon v0.9.0 and v0.9.1 use Android/AndroidX, Kotlin, Room, Hilt and OkHttp/Okio for their interface, storage and network operations. They contain no advertising, analytics, dedicated tracking or automatic remote crash-reporting integration. |
+| 12 / deletion | Version 0.9.0 does not provide a dedicated Delete Saved Device control. | LinkBeacon v0.9.0 and v0.9.1 do not provide a dedicated Delete Saved Device control. |
+
+| Chapter | 现有中文 | 建议中文 |
+| --- | --- | --- |
+| 1 / identity | 本政策说明 0.9.0 版本的数据处理方式。 | 本政策说明 LinkBeacon v0.9.0 和 v0.9.1 的数据处理方式。 |
+| 4 / permissions | 0.9.0 版本不请求后台位置、通讯录、相机、麦克风或广泛存储访问权限。 | LinkBeacon v0.9.0 和 v0.9.1 不请求后台位置、通讯录、相机、麦克风或广泛存储访问权限。 |
+| 10 / providers | 0.9.0 版本使用 Android/AndroidX、Kotlin、Room、Hilt、OkHttp/Okio 完成界面、存储及网络操作，没有集成广告、统计、专用追踪或自动远程崩溃报告。 | LinkBeacon v0.9.0 和 v0.9.1 使用 Android/AndroidX、Kotlin、Room、Hilt、OkHttp/Okio 完成界面、存储及网络操作，没有集成广告、统计、专用追踪或自动远程崩溃报告。 |
+| 12 / deletion | 0.9.0 版本没有独立的“删除已保存设备”入口。 | LinkBeacon v0.9.0 和 v0.9.1 没有独立的“删除已保存设备”入口。 |
+
+Effective date stays **2026-10-11** in both languages. No Last Updated label or
+date is added. For this explanatory coverage correction, no extra date is
+needed in the local candidate; if the maintainer prefers a separate update
+label, approve its text/date at actual publication, not an invented publication
+date now. Chapter 15's existing update-language is not silently rewritten.
+
+Wi-Fi precise/approximate permission and SSID/BSSID sensitivity; local history
+and profiles; normal requests and DNS routing limits; HTTP risk and TCP/TLS
+distinction; EmojiCompat/Pages; support purpose/retention/deletion; deliberate
+exports and independent copies; no standalone Saved Device delete control;
+History single delete/confirmed clear/no date expiry all remain unchanged.
+The version scope is not extended to unreviewed future releases.
+
+### Data Safety worksheet reconciliation
+
+[Updated local worksheet](DATA_SAFETY_WORKSHEET.md) remains **Draft / Pending
+Maintainer Review**, not a form submission. Six known factual gaps are resolved:
+confirmed public contact; no dedicated Saved Device delete UI; voluntary support
+mail; deliberate sharing vs automatic uploads; no History date expiry; external
+copies not erased by Clear History. Historical GP-04 drafts are not rewritten
+or mistaken for current Console answers.
+
+The worksheet separates A local, B selected targets, C internal public probes,
+D export/share, E support mail and F library/system/browser requests. Current
+Google primary guidance was read; each unresolved row links the implementation,
+official basis and concrete maintainer question. MR1–MR8 cover data categories /
+sharing exceptions, export attribution, support-mail scope, provider behavior,
+encryption, remote ephemerality, deletion mechanism and optionality/purposes.
+The absence of an analytics SDK does not settle voluntary bug-log purposes.
+No new claim that all data is uncollected, encrypted, anonymous, ephemeral or
+deleted everywhere is introduced. Sensitive plaintext handling, if a classified
+flow establishes it, needs separate compliance review, not a Runtime change in
+this task.
+
+### Local technical verification
+
+- Existing `Test-PrivacyPolicy.ps1 -RequirePublishable`: **PASS**, no checker
+  weakening or change. Exactly three public files, strict UTF-8, full matching
+  16 chapters, approved email/date, language/CSS links and no placeholder,
+  Preview/Draft banner or external tracking/asset script. CSS is unchanged.
+- Bilingual semantic comparison: the only public-text differences are the
+  four version clauses above. Permissions, purposes, email, retention/deletion
+  and effective date remain parallel. No private credentials/account/payment
+  data or private screenshots were added.
+- Actual local browser responsive checks: **8/8 PASS** (EN/ZH × 320/390px ×
+  light/dark). All 16 chapters and 21 CSS rules load; document content widths
+  are 305/375px after scrollbars, equal to scroll widths (no horizontal overflow).
+  Text wraps and themes render; EN -> ZH -> EN header links work.
+- A captured English reload requested only the local HTML and stylesheet;
+  browser response events report both 200 (CSS from cache; the preview server
+  logs a conditional HTML 304). Events were not truncated and no external
+  request was observed in that capture. The browser's initial optional
+  `/favicon.ico` request returned 404; no favicon is declared or added to the
+  intentionally three-file artifact. Policy HTML/CSS and language navigation
+  still loaded. This is not global/browser/provider traffic certification.
+- Genuine preview images, layout JSON, network events and the full public-text
+  diff are confined to ignored `build/gp09/`; none enters the Pages artifact or
+  Git. Temporary browser viewport/media overrides are reset and the owned
+  preview tab/server closed. No App screenshot or RC artifact is generated.
+- `git diff --check`: **PASS**. No Android test/lint/build was necessary or run
+  for this documentation-only task; GP-08 Runtime gates are retained evidence,
+  not newly executed tests here.
+
+### Online policy and frozen artifact checks
+
+Direct HTTPS checks on 2026-10-11 returned **200** at both unchanged URLs and
+the CSS URL, without disabling TLS verification. Response-byte hashes match
+the originally approved v0.9.0 site in section 13:
+
+- EN: `F4AE399790872E67F1A0EA906AA40076A9C67FD5F1B6E1C8BABFE856F4A12D8A`.
+- ZH: `037E84E281FDCD38E306F57F67C564715C8D3D321A18EDE434CD2DA499F95C90`.
+- CSS: `5678F330D1356B047521F5AB2A6FCEB215544DBC7B45FA233D07CB96AE65C736`.
+
+Public read-only Actions checks show exactly **one** privacy-pages run, still
+**38128990028**, successful `workflow_dispatch` at source `9bec9f0`, unchanged
+from section 13. No additional deployment was started. Reachability applies to
+this environment, not a worldwide availability guarantee. The local candidate
+is not represented as live and does not change the frozen App RC gate.
+
+`build/release-assets/v0.9.1/LinkBeacon-v0.9.1-RC1.apk` still has **52,912,635
+bytes** and SHA-256
+`FC97F206389E5BBD16CCF0E260DE0600DCE366A0B6C3DBD96883F6C6949B09DD`.
+Production sources/resources/Manifest/Gradle/dependencies/Room/signing/version,
+PRODUCT_PLAN and DECISIONS are unchanged. No rebuild, re-sign, key export,
+AAB upload, tag/release modification or Data Safety submission occurred.
+
+**Next approval gate:** maintainer reviews the full EN/ZH public-text diff and
+explicitly approves publication in a separately authorized step. Any decision
+to add Last Updated needs its own approved actual date. Resolve MR1–MR8 before
+final Data Safety approval/Console use. GP-09 leaves the four files unstaged and
+uncommitted; it does not automatically perform that next step.
+
+LinkBeacon v0.9.1 privacy policy alignment prepared.
+Public policy update remains pending maintainer approval.
+Data Safety remains subject to final review.
+The signed v0.9.1 RC1 remains unchanged.
+
+## 17. GP-09R — unified privacy policy prepared (2026-10-11)
+
+### Authorization, inherited work and maintenance principle
+
+The full GP-09R specification and required baseline documents/pages/CSS were
+read before edits. `main` was synchronized with the local `origin/main` ref at
+`a60ac33adb7b347af1009141c6e32dd27267dabb`. Four unstaged GP-09 files were
+present: both HTML pages, the worksheet and this record. Their starting diff is
+preserved in ignored `build/gp09r/inherited-gp09.diff`; no reset, discard or
+unrelated overwrite occurred. This checkpoint supersedes section 16's proposed
+version-list text, not its factual corrections or historical evidence.
+
+**Accepted:** one bilingual privacy policy maintained according to actual data
+practices, not App version numbers. Version-only, UI, bug, performance or internal
+refactoring changes without different data practices normally require no policy
+edit. Changes to sensitive permissions, collection/external transmission,
+ads/analytics/remote-log SDKs, accounts/cloud sync, retention/deletion,
+export/share, third-party services or probe data/recipients trigger review.
+Actual impact determines which policy, Data Safety, in-app disclosures and
+related documentation need updating; a review is not automatic approval or a
+mandatory rewrite of every document. Disclose material version differences in
+the appropriate clauses rather than concealing historical risks.
+
+**Not accepted yet:** publication of the final revised article. No staging,
+commit, push, Pages Workflow or Console action is performed. The existing online
+policy remains effective; this unified draft is not represented as live.
+
+### Final proposed public-text diff
+
+Both languages change only five paragraphs in chapters **1, 4, 10, 12 and 15**
+relative to the deployed/HEAD policy. All other sections and the complete
+metadata are unchanged. The first four replace GP-09's mechanical two-version
+list; chapter 15 now separates original effectiveness from actual updates.
+The following table gives every changed clause; all surrounding paragraph
+content is preserved. Full Git patches are retained locally in ignored
+`build/gp09r/final-public-policy.diff`, with one-language patches beside it.
+
+| Chapter | Published English clause | Final local English clause |
+| --- | --- | --- |
+| 1 | This policy describes the data handling of version 0.9.0. | This Privacy Policy describes how LinkBeacon accesses, processes, stores and shares information when providing network analysis and troubleshooting services. Where data practices materially differ between app versions, those differences will be explained in the relevant sections. |
+| 4 | Version 0.9.0 does not request background location, contacts, camera, microphone or broad storage access. | LinkBeacon currently does not request background location, contacts, camera, microphone or broad storage access. |
+| 10 | Version 0.9.0 uses Android/AndroidX, Kotlin, Room, Hilt and OkHttp/Okio for its interface, storage and network operations. It contains no advertising, analytics, dedicated tracking or automatic remote crash-reporting integration. | LinkBeacon uses Android/AndroidX, Kotlin, Room, Hilt and OkHttp/Okio for its interface, storage and network operations. It currently contains no advertising, analytics, dedicated tracking or automatic remote crash-reporting integration. |
+| 12 | Version 0.9.0 does not provide a dedicated Delete Saved Device control. | LinkBeacon currently does not provide a dedicated Delete Saved Device control. |
+| 15 | Changes will be published on these English and Simplified Chinese policy pages with an updated effective date. | When this policy changes, we will explain the changes on these English and Simplified Chinese policy pages and record the actual update date. The original effective date will remain recorded separately. Material changes to data practices require the necessary policy disclosures and Google Play Data Safety review before those changes are implemented. |
+
+| Chapter | 公开中文条款 | 最终本地中文条款 |
+| --- | --- | --- |
+| 1 | 本政策说明 0.9.0 版本的数据处理方式。 | 本隐私政策说明 LinkBeacon 在提供网络分析与故障诊断服务过程中如何访问、处理、保存和分享信息。如果不同应用版本的数据处理方式存在实质差异，我们会在相关条款中明确说明。 |
+| 4 | 0.9.0 版本不请求后台位置、通讯录、相机、麦克风或广泛存储访问权限。 | LinkBeacon 目前不申请后台位置、通讯录、相机、麦克风或广泛存储访问权限。 |
+| 10 | 0.9.0 版本使用 Android/AndroidX、Kotlin、Room、Hilt、OkHttp/Okio 完成界面、存储及网络操作，没有集成广告、统计、专用追踪或自动远程崩溃报告。 | LinkBeacon 使用 Android/AndroidX、Kotlin、Room、Hilt、OkHttp/Okio 完成界面、存储及网络操作，目前没有集成广告、统计、专用追踪或自动远程崩溃报告。 |
+| 12 | 0.9.0 版本没有独立的“删除已保存设备”入口。 | LinkBeacon 目前没有独立的“删除已保存设备”入口。 |
+| 15 | 变更会在这两份英文及简体中文政策页面公布，并更新生效日期。 | 本政策发生修改时，我们会在这两份英文及简体中文公开政策页面说明更新内容，并记录实际更新日期。原始生效日期将单独保留。如果数据处理方式发生重大变化，我们会在实施前完成必要的政策披露与 Google Play Data Safety 审查。 |
+
+“Currently / 目前” describes verified present behavior, not a guarantee that no
+future permissions, integrations or controls can change. Such changes require
+review and accurate disclosure. Chapter 15 promises publication-page change
+information, not an unimplemented automatic App notification or a separate
+notice for every App release.
+
+### Dates, product governance and Data Safety
+
+- **Original Effective date: 2026-10-11**, unchanged in both text and `datetime`.
+  No Last updated metadata/date is added in this local-only task. Recommend a
+  separate **Last updated / 最后更新** field using the actual revision-publication
+  date, only after the maintainer approves the final wording and deployment.
+  The local review date is not a fabricated public update date.
+- [PRODUCT_PLAN](../PRODUCT_PLAN.md) adds only a unified-maintenance subsection
+  under Privacy principles and replaces the obsolete pending “version wording”
+  gate with policy revision approval/deployment. v0.9.0 Released, v0.9.1 Release
+  Ready/not Released, the frozen scope and unapproved v0.10 direction are intact.
+- [DECISIONS](../DECISIONS.md) adds **Unified privacy policy based on actual data
+  practices**, dated 2026-10-11: rationale, review triggers, material legacy
+  differences, separate dates and separate publication approval. No feature
+  scope, Runtime or release-state decision is changed.
+- [DATA_SAFETY_WORKSHEET](DATA_SAFETY_WORKSHEET.md) retains all six GP-09 factual
+  corrections, six flow classes and **MR1–MR8 Needs Manual Review**. It adds the
+  maintenance rule without approving Collection/Sharing/Encryption answers.
+  Audited versions remain an evidence scope, not a public version-list mandate.
+  **Draft / Pending Maintainer Review** remains the form status.
+- The official [Data Safety guidance](https://support.google.com/googleplay/android-developer/answer/10787469?hl=en)
+  and [User Data policy](https://support.google.com/googleplay/android-developer/answer/10144311?hl=en-GB)
+  were rechecked on 2026-10-11 for the narrow consistency boundary. No new form
+  classification, legal certification or Google acceptance is asserted.
+
+### Bilingual and local-page verification
+
+- Existing `Test-PrivacyPolicy.ps1`, ordinary and `-RequirePublishable` modes:
+  **PASS**. No checker or CSS change. Technical publishability does not override
+  the explicit public-text approval gate.
+- XML section/metadata comparison confirms only the five specified chapters
+  change, with no v0.9.0/v0.9.1 list in either public article. Both keep 16 matching
+  chapter IDs, approved support email `lydd8086@gmail.com` and original date.
+  Permissions, deletion/retention, providers and new update clauses are parallel.
+- All real legacy differences remain, including older diagnostic History with
+  Wi-Fi names and newer reduced snapshots without that field; upgrades do not
+  erase old rows. DNS routing/HTTP/TCP/TLS protection, precise/approximate Wi-Fi
+  access, EmojiCompat off-device requests, local logs, GitHub Pages logs, support
+  correspondence retention/deletion, user exports and independent-copy limits
+  are unchanged. No unverified perpetual provider or universal-encryption claim.
+- Actual local browser: EN/ZH × 320/390px × light/dark = **8/8 PASS**. Each has
+  16 chapters and 21 loaded CSS rules. Content/scroll widths match at 305/375px
+  after desktop scrollbars; no horizontal overflow. Genuine screenshots show
+  readable text and both themes; header language links work ZH -> EN -> ZH.
+- A captured Chinese reload requests only the loopback HTML/CSS; browser events
+  report 200, CSS from cache and the server logs conditional HTML 304. Events
+  are not truncated. Initial optional `/favicon.ico` returns 404; it is not a
+  declared policy asset or a broken language/CSS link. No external request
+  appears in that capture; static checks exclude scripts/trackers/external
+  assets and placeholders. This is not universal browser/provider certification.
+- Preview screenshots/layout/network evidence are confined to ignored
+  `build/gp09r/`, not the three-file public artifact. Temporary viewport/media
+  overrides are reset; the owned preview tab and loopback server are closed.
+  **No physical-phone check or Android test/lint/build is performed or claimed.**
+
+### Public site, artifact and stop gate
+
+Read-only HTTPS requests still return 200 for both existing policy URLs/CSS,
+with response hashes identical to section 13's deployed originals. The public
+Actions API still shows one run, **38128990028**, successful at source
+`9bec9f0472a90c1f934441c9ad368f77f371fbc9`; no new Workflow is dispatched.
+No new public revision has taken effect. Reachability is environment-qualified.
+
+Signed `build/release-assets/v0.9.1/LinkBeacon-v0.9.1-RC1.apk` remains
+**52,912,635 bytes**, SHA-256
+`FC97F206389E5BBD16CCF0E260DE0600DCE366A0B6C3DBD96883F6C6949B09DD`.
+Only six allowed policy/document files are modified and remain unstaged and
+uncommitted. Runtime, Manifest, Android resources, Gradle, Room, signing and
+version metadata are untouched. No RC rebuild/re-sign, Tag/Release change,
+PEPK, Upload Key/AAB operation or Data Safety submission is performed.
+
+**Next approval gate:** review the complete bilingual diff and approve final
+public text, whether to add Last updated and its actual publication date, and
+the separate commit/push/deployment action. Resolve MR1–MR8 separately before
+final Data Safety submission. No next release/Console task is started.
+
+LinkBeacon unified privacy policy revision prepared.
+Privacy policy maintenance is based on actual data practices, not app version numbers.
+Public deployment remains pending maintainer approval.
+The signed v0.9.1 RC1 remains unchanged.
+
+## 18. GP-09P — approved unified-policy publication (2026-10-12)
+
+### Authorization and preserved content
+
+The maintainer's complete GP-09P task expressly approves the final GP-09R
+English/Simplified Chinese policy, original effective date **2026-10-11**,
+separate actual-publication update date, short revision note, the existing
+maintenance principle/decision, commit/push and manual Pages deployment.
+The task does not authorize Android Runtime, release or Google Play operations.
+
+Starting `main` and fetched `origin/main` both identify
+`a60ac33adb7b347af1009141c6e32dd27267dabb`; six GP-09/GP-09R files are modified
+and unstaged. Their entire starting diff is preserved in ignored
+`build/gp09r/gp09p-starting.diff`. No work is discarded or broadly restored.
+The previously reviewed 16-chapter article is retained: the only new public
+content is a separate Last updated field, the Chinese original-date label and
+one bilingual chapter-15 revision paragraph. All 16 original section hashes
+are captured for a before/after preservation check.
+
+The update clarifies unified maintenance and current permissions, components
+and saved-device deletion descriptions; it **does not change actual App data
+handling** or add a Delete Saved Device control. Permissions/Wi-Fi, ordinary
+probe traffic, DNS/HTTP/TCP/TLS boundaries, providers/logs/Pages, local History,
+Saved Devices, deliberate exports, retention/deletion and legacy Wi-Fi-name
+History disclosures remain intact. Approved contact: **lydd8086@gmail.com**.
+Data Safety remains **Draft / Pending Maintainer Review**; MR1–MR8 stay open.
+v0.9.0 remains Released, v0.9.1 Release Ready/not Released, v0.10.0 unapproved.
+
+### Dates and deployment gate
+
+- Approval date: **2026-10-12 (Asia/Shanghai)**.
+- Original effective date: **2026-10-11**, unchanged in both `<time>` values.
+- Proposed deployment-day Last updated: **2026-10-12**. Reconfirm the current
+  Asia/Shanghai day immediately before dispatch. If publication is delayed to
+  another day, correct only the update date and commit before final dispatch.
+  While Pending Deployment, this field is not claimed as an effective public
+  update or evidence that deployment has already happened.
+- Existing workflow: **Publish approved privacy policy**,
+  `.github/workflows/privacy-pages.yml`, manual `workflow_dispatch`, `main` only.
+  It uploads exactly the three files under `site`; no docs, evidence or artifacts.
+  Workflow, CSS, Pages URL/settings and permissions are unchanged.
+- Publication commit / push: **Pending**.
+- Workflow Run ID / URL / Build / Deploy: **Pending Deployment**.
+- Online revision hashes / actual content verification: **Pending Deployment**.
+
+### Pre-deployment checks and actual public baseline
+
+- Existing `Test-PrivacyPolicy.ps1` and `-RequirePublishable`: **PASS**, without
+  changing the checker. Supplementary checks confirm 16 sections per language,
+  both original/update `<time>` values, and **32/32 reviewed chapters preserved**
+  after excluding only the newly approved chapter-15 revision paragraphs.
+  The public artifact remains exactly two HTML files and the unchanged CSS.
+- Browser QA: EN/ZH x 320/390 px x light/dark = **8/8 PASS**. Document widths
+  are 305/375 px (desktop scrollbar) within the requested viewports. Real
+  screenshots show readable text and no horizontal overflow. EN -> ZH -> EN
+  works; the two dates and revision explanations are present. Applied styles
+  match the existing CSS (16 px article radius and both theme palettes).
+- Captured reload requests only loopback HTML/CSS, each 200, with no truncated
+  events, external resource, script or tracking pixel. Screenshots and DOM/
+  network evidence stay in ignored `build/gp09p/`, not the Pages artifact.
+  This is browser-responsive QA, **not physical-phone or all-provider testing**.
+- Approved deployment-byte SHA-256:
+  - EN: `D8BC13953C6F39DC0315CF3AE224EF21A4A7D1DE3B75FFF8D8CBA4484AF2D055`.
+  - ZH: `3B52001804B0492BAC3E5BAC167035CC9524ADCB2B6E69CEAB9E9B57614F4FCF`.
+  - CSS: `5678F330D1356B047521F5AB2A6FCEB215544DBC7B45FA233D07CB96AE65C736`.
+- At **2026-10-12 00:22 Asia/Shanghai**, independent HTTPS requests return 200
+  at both exact policy URLs and the CSS URL, without login/404 redirects. The
+  public HTML is **still the previously approved original**, not the unified
+  revision, and has no Last updated field:
+  - EN URL: <https://zhibo7841-hue.github.io/LinkBeacon/privacy/>;
+    SHA-256 `F4AE399790872E67F1A0EA906AA40076A9C67FD5F1B6E1C8BABFE856F4A12D8A`.
+  - ZH URL: <https://zhibo7841-hue.github.io/LinkBeacon/privacy/zh-CN/>;
+    SHA-256 `037E84E281FDCD38E306F57F67C564715C8D3D321A18EDE434CD2DA499F95C90`.
+  - CSS URL: <https://zhibo7841-hue.github.io/LinkBeacon/privacy/policy.css>;
+    SHA-256 matches the unchanged approved CSS above.
+- The public Actions API still lists only historical run **38128990028** at
+  source `9bec9f0472a90c1f934441c9ad368f77f371fbc9`. Its success is **not**
+  evidence of this revision being deployed.
+- Deployment capability: the current GitHub connector exposes no dispatch
+  action, `gh` is not installed, and the inspected workflow browser page is
+  logged out. Do not request a token, extract credentials, rerun the old
+  source job or bypass authentication. After the approved commit/push, hand
+  the maintainer the existing workflow URL and exact `main` source commit:
+  **Actions -> Publish approved privacy policy -> Run workflow -> main**.
+  Continue actual job/content verification after the maintainer dispatches it.
+
+Frozen Signed RC1 is checked at task start: **52,912,635 bytes**; SHA-256
+`FC97F206389E5BBD16CCF0E260DE0600DCE366A0B6C3DBD96883F6C6949B09DD`.
+It is not rebuilt, re-signed or replaced. No Runtime/resources/Manifest/Gradle,
+Room, signing/version, Tag/Release, PEPK, Upload Key/AAB or Console action is
+authorized by this publication. Historical approval/deployment evidence in
+sections 1–17 is preserved, with this section serving as the current checkpoint.

@@ -1,5 +1,31 @@
 # Decision Log
 
+## Decision: Unified privacy policy based on actual data practices
+
+- Date: 2026-10-11
+- Status: Accepted (maintainer authorization: GP-09R maintenance principle only)
+- Publication authorization: GP-09P, 2026-10-12, approves the reviewed bilingual
+  text, a separate actual-publication update date, a short revision note, and
+  deployment through the existing manual Pages workflow. Public revisions still
+  require explicit maintainer approval; this is not Data Safety/Play approval.
+- Decision: maintain one English/Simplified Chinese policy, not a mechanical
+  list of App versions. Review changes to permissions, data access/collection or
+  external transmission, SDKs/services, accounts/cloud sync, retention/deletion,
+  export/share and probe payloads/recipients. Actual impact determines necessary
+  policy, Google Play Data Safety, in-app disclosure and documentation updates.
+- Version differences: explicitly disclose material differences in the relevant
+  clauses; keep truthful legacy-data disclosures such as Wi-Fi names in older
+  saved diagnostic History. A version-only, UI, bug, performance or refactoring
+  change without different data practices does not itself require policy edits.
+- Reason: avoid meaningless repeated version revisions while keeping handling
+  information continuously accurate and preserving real historical differences.
+- Dates: retain the original effective date; distinguish any Last updated field
+  and actual publication date, to be confirmed at final deployment approval.
+- GP-09R scope boundary: that task accepted maintenance governance, not the final candidate public
+  text, deployment, Data Safety answers or Play submission. It expands no product
+  functionality, changes no v0.9.1 scope, v0.10 direction or released status,
+  and leaves Runtime, signed RC1 and signing/version metadata unchanged.
+
 ## Decision: v0.9.1 Google Play Compliance Maintenance — in-app policy access
 
 - Date: 2026-10-11
