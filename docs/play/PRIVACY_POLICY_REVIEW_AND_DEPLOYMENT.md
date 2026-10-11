@@ -1008,8 +1008,13 @@ v0.9.0 remains Released, v0.9.1 Release Ready/not Released, v0.10.0 unapproved.
   `.github/workflows/privacy-pages.yml`, manual `workflow_dispatch`, `main` only.
   It uploads exactly the three files under `site`; no docs, evidence or artifacts.
   Workflow, CSS, Pages URL/settings and permissions are unchanged.
-- Publication commit / push: **Pending**.
-- Workflow Run ID / URL / Build / Deploy: **Pending Deployment**.
+- Publication commit:
+  `fc4c9c7febcf82de0f28268879dc7f979a1d795f` —
+  **docs: publish unified LinkBeacon privacy policy**.
+- Push to `origin/main`: **PASS**; main and origin/main match at the publication
+  checkpoint. Exactly the six approved policy/document files are committed.
+- Workflow Run ID / URL: **not dispatched for this revision**.
+- Workflow Build / Deploy: **not run / Pending Deployment**, not failed or passed.
 - Online revision hashes / actual content verification: **Pending Deployment**.
 
 ### Pre-deployment checks and actual public baseline
@@ -1052,6 +1057,40 @@ v0.9.0 remains Released, v0.9.1 Release Ready/not Released, v0.10.0 unapproved.
   the maintainer the existing workflow URL and exact `main` source commit:
   **Actions -> Publish approved privacy policy -> Run workflow -> main**.
   Continue actual job/content verification after the maintainer dispatches it.
+
+### Publication handoff checkpoint (2026-10-12 00:26 Asia/Shanghai)
+
+- The GitHub raw files at the exact publication commit each return 200 and
+  byte-for-byte SHA-256 matches the approved EN/ZH/CSS hashes above. This proves
+  the source was pushed; it **does not prove Pages deployment**.
+- The workflow-dispatch steps and publication SHA are delivered to the
+  maintainer, without requesting tokens or changing authentication. A subsequent
+  read-only Actions check still shows only historical run 38128990028. There is
+  no new run/job evidence, so the current state is **Pending Deployment**.
+- The actual public browser still shows the older v0.9.0-specific policy and
+  only the original effective date. Both HTTPS URLs are real 16-chapter policies,
+  not login/404 pages. EN -> ZH -> EN works, local CSS styles apply, and the
+  approved support mailto is consistent; no script/image appears. These are
+  accessibility checks of the **existing** deployment, not acceptance of the
+  pending new content. Independent old public hashes are recorded above.
+- Asia/Shanghai day rechecked immediately before handoff: **2026-10-12**.
+  Last updated in source is prepared for that publication day, not claimed as
+  already public. If dispatch occurs on another day, correct both Last updated
+  fields, commit/push, and only then deploy the current main. After dispatch,
+  verify the actual run source, build and deploy jobs, HTTP/HTTPS, dates, revision
+  paragraphs, switching and all three response hashes before marking Verified.
+- Browser viewport/media overrides are reset. The task-owned loopback preview
+  server PID 25952 on 127.0.0.1:8771 is stopped after verifying its command line.
+  No Android tests/build or physical-device acceptance is needed or claimed for
+  this static-policy-only task.
+- End-of-task frozen Signed RC1 check: **52,912,635 bytes**, SHA-256
+  `FC97F206389E5BBD16CCF0E260DE0600DCE366A0B6C3DBD96883F6C6949B09DD`,
+  identical to task start. GP-08 acceptance remains valid. Data Safety stays
+  **Draft / Pending Maintainer Review**, MR1–MR8 unresolved, v0.9.1 remains
+  **Release Ready**, and Google Play submission remains **Pending**.
+
+Unified privacy policy changes are prepared,
+but public deployment remains pending.
 
 Frozen Signed RC1 is checked at task start: **52,912,635 bytes**; SHA-256
 `FC97F206389E5BBD16CCF0E260DE0600DCE366A0B6C3DBD96883F6C6949B09DD`.
