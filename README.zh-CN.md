@@ -21,6 +21,12 @@ NetworkToolbox 已在 v0.5.0 更名为 LinkBeacon。Android application ID
 
 - **最新稳定版本：** [v0.9.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)
 
+### 即将发布的 v0.9.1 — 隐私政策访问
+
+此维护版本新增应用内中英文完整隐私政策入口，更准确的数据处理摘要、
+浏览器启动失败与离线说明，以及政策链接复制。签名 RC 准备不代表正式发布
+或 Google Play 提交已获批准。v0.9.0 仍是已发布的稳定版本，下方下载链接不变。
+
 ### v0.9.0 — Wi-Fi 分析
 
 v0.9.0 新增当前 Wi-Fi 连接详情和 Android 提供的附近接入点观测。

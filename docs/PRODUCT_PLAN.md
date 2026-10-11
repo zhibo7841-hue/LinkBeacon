@@ -684,9 +684,10 @@ Diagnostics, and **v0.9.0** is reserved for Wi-Fi Analyzer.
 
 ## v0.9.1 — Google Play Compliance Maintenance
 
-Status: **Implementation Complete / RC Preparation Pending** (GP-06B,
-2026-10-11; approved scope, automated gates and representative Android 12
-implementation verification complete).
+Status: **Implementation Complete / RC1 Prepared / Representative RC Pending**
+(GP-07, 2026-10-11). The approved maintenance scope, fresh automated gates,
+isolated Android 12 development verification and signed RC preparation are
+complete. This is not Release Ready or Released.
 v0.9.0 remains **Released**. v0.10.0 is **not approved**.
 
 This maintenance release closes in-app full-policy access without changing
@@ -712,13 +713,23 @@ History expansion, Room migrations, Billing, Play Console operations, PEPK,
 Upload Key registration and signing changes. Public policy maintenance is a
 separate reviewed action; existing pages/date/URLs remain unchanged here.
 
-Development version stays **0.9.0 / versionCode 10**. Target **0.9.1 /
-versionCode 11** is reserved for separately authorized RC Preparation. An
-implementation pass is not Release Ready or Released: final signed-artifact
-RC regression, Data Safety reconciliation and maintainer/Console gates remain.
+GP-07 verifies code 11 was not used in prior project Git history or retained
+release APKs, then prepares **0.9.1 / versionCode 11**. Application ID
+`com.networktoolbox`, minSdk 31, targetSdk 36, Room version 5, permissions,
+dependencies and the existing App Signing Key are unchanged. The signed
+candidate's Runtime is now frozen; any Runtime correction requires a new RC
+and renewed verification. See [v0.9.1 Readiness](V0.9.1_RELEASE_READINESS.md).
 
 The implementation gate passed full JVM tests, lint, Debug/AndroidTest builds,
 isolated bilingual Privacy and Wi-Fi/navigation/locale instrumentation, and
-actual browser/copy/return/layout checks on Sony XQ-AT72 / Android 12. Android
-16 was unavailable and is not claimed as verified. The QA package is not a
-frozen signed release candidate; no RC Preparation is started by this status.
+actual browser/copy/return/layout checks on Sony XQ-AT72 / Android 12. GP-07
+reran the automated gates and performed isolated QA development spot checks;
+these are not the final signed-artifact Full RC. Android 16 was unavailable
+and v0.9.1 compatibility is not claimed as verified.
+
+Next: Sony XQ-AT72 / Android 12 must use the **same frozen Signed RC1** for
+representative full regression, including an in-place upgrade from formal
+v0.9.0 and user-data retention. An Android 16 compatibility spot check remains
+pending. Public policy version wording, Data Safety reconciliation and Play
+signing/Console preparation are separate pending gates. No v0.9.1 Tag, Release,
+Play submission or v0.10.0 feature work is authorized by RC preparation.

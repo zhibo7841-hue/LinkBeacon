@@ -22,6 +22,14 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 
 - **Latest stable release:** [v0.9.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)
 
+### Upcoming v0.9.1 — Privacy-policy access
+
+This maintenance release adds in-app access to the full English / Simplified
+Chinese privacy policy, more accurate data-handling summaries, browser-failure
+and offline guidance, and policy-link copying. Signed RC preparation does not
+mean the release or Google Play submission is approved. v0.9.0 remains the
+published stable version; its download links below are unchanged.
+
 ### v0.9.0 — Wi-Fi Analyzer
 
 v0.9.0 adds current Wi-Fi connection details and nearby access-

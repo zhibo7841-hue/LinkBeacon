@@ -6,6 +6,19 @@
 
 - Updated GitHub Actions dependencies to remove deprecated Node.js 20 runtime warnings.
 
+## 0.9.1 (Upcoming — RC preparation)
+
+### Privacy-policy access
+
+- Added access to the published full privacy policy from the in-app Privacy &
+  Data page, with English / Simplified Chinese links matching the app language.
+- Clarified local storage, functional network requests, Wi-Fi/location-related
+  access, and user-directed exports/sharing in bundled summaries.
+- Added browser-launch failure feedback, offline guidance, and policy-link copy
+  feedback. No new network tool, permission, SDK or data collection is included.
+- This maintenance version is not yet released; representative signed-artifact
+  RC regression and Google Play preparation remain separate gates.
+
 ## 0.9.0
 
 ### Wi-Fi Analyzer
