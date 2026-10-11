@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="LinkBeacon 隐私政策：权限、网络请求、本地历史、设备资料与分享。" />
+  <meta name="referrer" content="no-referrer" />
+  <title>LinkBeacon 隐私政策 — LanYun Studio</title>
+  <link rel="stylesheet" href="../policy.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <span class="brand">LinkBeacon · LanYun Studio</span>
+      <nav aria-label="政策语言">
+        <a href="../" hreflang="en" lang="en">English</a>
+        <span aria-current="page" lang="zh-CN">简体中文</span>
+      </nav>
+    </header>
+    <main>
+      <article aria-labelledby="policy-title">
+        <h1 id="policy-title">隐私政策</h1>
+        <div class="metadata">
+          <p>生效日期：<time datetime="2026-10-11">2026 年 10 月 11 日</time></p>
+          <p>应用：LinkBeacon · Android 12 及以上</p>
+          <p>开发者：LanYun Studio</p>
+          <p>隐私及支持：<a href="mailto:lydd8086@gmail.com">lydd8086@gmail.com</a></p>
+        </div>
+
+        <section id="identity">
+          <h2>1. 应用与开发者</h2>
+          <p>LinkBeacon 是 LanYun Studio 开发的开源 Android 网络分析与故障排查工具箱，包名为 <code>com.networktoolbox</code>。本政策说明 0.9.0 版本的数据处理方式。</p>
+        </section>
+        <section id="contact">
+          <h2>2. 联系方式</h2>
+          <p>如有隐私或支持问题，或希望请求删除支持邮件，请联系 <a href="mailto:lydd8086@gmail.com">lydd8086@gmail.com</a>。你发送邮件时，LanYun Studio 和邮件服务提供者会收到你的发件邮箱、邮件内容，以及你主动提供的附件。我们使用这些信息答复咨询、处理所报告的问题和进行后续支持沟通。这与应用的正常诊断操作不同。请勿发送密码、私钥或未经检查且包含敏感信息的报告。</p>
+        </section>
+        <section id="services">
+          <h2>3. 服务与数据访问</h2>
+          <p>应用提供网络信息、Ping、DNS Lookup、TCP 端口检测与端口扫描、IPv4 路由追踪、IPv4 子网计算、局域网 IPv4 设备发现、设备中心、Wake-on-LAN、Wi-Fi 分析、SSL/TLS 检查、网站诊断及自动网络诊断。应用使用网络观察和你输入的目标说明结果与可能原因，不会自动修复网络，也不保证确定唯一故障原因。</p>
+        </section>
+        <section id="permissions">
+          <h2>4. Android 权限</h2>
+          <ul>
+            <li>互联网、网络和 Wi-Fi 状态权限用于网络检测与连接信息。</li>
+            <li>修改 Wi-Fi 状态权限用于用户主动刷新 Wi-Fi 观察；组播权限用于本地服务发现。</li>
+            <li>应用同时请求 <code>ACCESS_FINE_LOCATION</code> 和 <code>ACCESS_COARSE_LOCATION</code>，参与 Android 的精确/大致位置授权流程。应用使用的附近 Wi-Fi 扫描 API 需要精确位置权限。</li>
+          </ul>
+          <p>你可以拒绝位置权限，此时附近 Wi-Fi 观察受限；其他工具仍可使用，但受各自网络条件约束。0.9.0 版本不请求后台位置、通讯录、相机、麦克风或广泛存储访问权限。</p>
+        </section>
+        <section id="wifi">
+          <h2>5. Wi-Fi 与位置相关信息</h2>
+          <p>在 Android 允许的情况下，Wi-Fi Analyzer 读取当前及附近 Wi-Fi 名称（SSID）、接入点标识（BSSID）、信号测量、频率/信道、安全信息及观察时间戳，在本机解释 Wi-Fi 环境。这些信息可能与位置有关，具有潜在敏感性。应用不主动读取 GPS 经纬度，也不保存 GPS 位置历史。</p>
+          <p>扫描 API 需要精确位置权限并开启系统定位服务；仅大致位置授权可能不足。Android 可能返回缓存扫描结果。应用读取可用观察，在用户请求时刷新，不提供定时周期性后台 Wi-Fi 扫描。Wi-Fi 页面仍打开但应用转到屏幕外时，连接回调或已开始的系统扫描可能继续完成。</p>
+          <p>附近接入点观察主要在内存中处理。Wi-Fi Analyzer 不建立独立的持久接入点历史；观察可能保留到被替换或进程结束。</p>
+        </section>
+        <section id="network-data">
+          <h2>6. 在本机处理的网络信息</h2>
+          <p>应用可以处理本地/公网 IP、前缀、网关、网络配置 DNS、网络类型/接口、VPN 和 Private DNS 状态、系统联网验证状态，以及局域网设备/服务响应。根据功能和权限，应用也可以处理可获取的设备标识与发现名称。这些信息用于所选工具、本地设备管理和诊断解释。</p>
+        </section>
+        <section id="requests">
+          <h2>7. 网络请求与外部服务</h2>
+          <p>检测会发送完成你启动的操作所需的数据包或请求。DNS 查询使用 Android 提供的解析链路。Private DNS、VPN、代理和系统配置可能影响实际网络路径；页面显示的网络配置 DNS 地址不能证明某一次查询由哪个服务器响应。Ping、TCP 检测、端口扫描及路由追踪向所选目标发送探测。SSL/TLS 检查连接主机/端口，检查握手和公开证书信息。</p>
+          <p>目标、解析器及中间网络能够观察的信息取决于协议、加密方式和路由。解析器可能收到查询名称，目标网站可能收到所请求的 URL。中间网络可能看到网络地址、端口和时间等连接元数据，但这不表示它们能读取受加密保护的名称或请求内容。VPN 或代理也可能改变特定参与方能够看到的地址或内容。</p>
+          <p>网站诊断向输入的 URL 及支持的重定向目标发送 HTTP/HTTPS 请求。即使显示的查询参数被隐藏，路径和查询参数仍会发送给目标。执行前移除片段，拒绝包含用户名/密码凭据的 URL。此类探测不会额外添加授权请求头，也不维护 Cookie 存储；HTTP User-Agent 包含 LinkBeacon 及应用版本。</p>
+          <p>自动诊断在你启动后选择必要的公共目标，包括 <code>223.5.5.5:443</code> 和 <code>1.1.1.1:443</code> 辅助 TCP 探测，以及 <code>example.com</code> DNS/域名检查。它不会把整份报告或设备清单发送给这些目标。</p>
+          <p>局域网发现使用可达性/TCP、mDNS、SSDP/UPnP 请求，以及适用时的反向 DNS。反向 DNS 可能访问局域网外的解析器。Wake-on-LAN 在本地唤醒数据包中包含所选 MAC 地址。绑定本地网络的发现和唤醒流量可能使用实际物理网络，而不是 VPN 隧道。</p>
+          <p>LinkBeacon 不会自动把诊断历史或已保存设备资料上传到 LanYun Studio 服务器。这不表示完全没有设备外流量。独立目标、DNS、VPN/代理及你选择的文档/分享服务可能按各自政策处理和保留数据。</p>
+        </section>
+        <section id="storage">
+          <h2>8. 本地历史与已保存设备</h2>
+          <p>受支持的已完成检测和诊断报告保存在应用私有的 Room 数据库中。历史可能包含目标、IP 地址、DNS 记录、耗时、错误、网络事实与报告解释。已保存设备单独管理，可以包含可获取的地址、标识、发现名称、自定义名称、设备类型、备注、收藏状态、Wake-on-LAN 设置和首次/最近发现时间。</p>
+          <p>旧版诊断历史可能包含 Wi-Fi 名称。新版精简快照不含该字段，但升级不会自动删除旧记录。设备网络范围可能包含 Wi-Fi/网络事实的哈希，哈希不保证匿名。语言偏好在本机保存，或由 Android 的单应用语言系统管理。应用不提供云同步。</p>
+        </section>
+        <section id="sharing">
+          <h2>9. 导出与分享</h2>
+          <p>复制、保存 PDF 和 Android 分享由你主动触发。报告可能包含 IP 地址、域名、DNS 配置及其他网络细节，请在分享前审阅。限定范围的文件提供器访问允许所选分享流程读取报告。文档提供器可能指向云端位置，接收应用也可能上传或保留副本。剪贴板处理取决于 Android 和其他有权访问的软件。</p>
+          <p>网站历史不保存 URL 查询参数和片段，但可以保留路径、主机、选定响应头及网络环境。路径本身可能含敏感信息。这种有限脱敏不等于对报告、设备资料或 URL 完整匿名化；复制、保存或分享不会自动移除上述细节。</p>
+        </section>
+        <section id="providers">
+          <h2>10. 组件、日志与本政策网站</h2>
+          <p>0.9.0 版本使用 Android/AndroidX、Kotlin、Room、Hilt、OkHttp/Okio 完成界面、存储及网络操作，没有集成广告、统计、专用追踪或自动远程崩溃报告。AndroidX EmojiCompat 可以使用系统提供的可下载表情字体服务，这类服务可能产生设备外请求。实际行为取决于 Android 设备和字体提供器；我们没有对所有设备或 Android 系统变体进行独立抓包验证。</p>
+          <p>Android 本地诊断日志可能包含有长度限制的网络地址、服务地址和错误/状态信息，包括 UPnP 诊断。应用不会自动将这些日志发送给开发者服务器。若你主动向支持人员提供日志，请先检查并移除敏感细节。</p>
+          <p>本政策网站使用 GitHub Pages、本地 CSS 和系统字体。我们的页面不含广告、统计脚本、跟踪像素或外部 JavaScript SDK，阅读无需账号。GitHub 可能依据其<a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">隐私声明</a>处理网站访问日志和其他访问者请求信息，例如 IP 地址和浏览器信息。网站托管请求不同于应用上传诊断资料；GitHub 自行管理其托管服务的处理方式。</p>
+        </section>
+        <section id="retention">
+          <h2>11. 保留期限</h2>
+          <p>应用历史和已保存设备资料不按日期自动到期。历史保留到被删除或应用本地存储被移除。已保存设备资料在仍含用户管理设置时保留；取消收藏不一定移除资料，具体区别见下方删除方式。Wi-Fi 观察是临时数据，不是持久接入点时间线。分享 PDF 可能保留在应用缓存，直到后续分享清理、系统清理缓存或移除应用；不承诺固定到期时间。Android 控制本地日志保留。</p>
+          <p>我们仅在完成支持目的和履行适用法律义务所需的期间保留支持邮件。你可以通过本政策中的公开支持邮箱提出删除请求。这不是自动删除服务，也不承诺在固定天数内删除。删除应用内历史不会删除支持邮件。我们无法直接控制或保证删除第三方邮件服务提供者或其他接收方独立保留的副本。</p>
+          <p>应用关闭了标准自动备份选项，但部分 Android 厂商仍可能提供设备间迁移。本政策不保证系统迁移永远不会传输应用数据。你、接收方或外部服务器持有的副本受各自保留方式约束。</p>
+        </section>
+        <section id="deletion">
+          <h2>12. 删除方式</h2>
+          <p>在历史记录中，可以使用单条记录的删除操作移除该记录，或点击“清空”并再次确认，移除全部检测历史。这些操作不删除已保存设备。</p>
+          <p>已保存设备在设备中心单独管理。你可以编辑设备的自定义名称、类型和备注，或取消收藏。仅取消收藏可能保留其他设备资料字段，包括 Wake-on-LAN 设置。0.9.0 版本没有独立的“删除已保存设备”入口。若要移除应用自己保存的全部设备数据，请在 Android 中对 LinkBeacon 执行清除存储或卸载；这也会移除应用自己的历史和设置。</p>
+          <p>这些操作不会删除已导出的 PDF、剪贴板副本、接收方数据、支持邮件或目标服务器日志。本地删除不是经认证的安全擦除。应用没有账号系统或开发者托管的用户数据库，因此没有在线账号删除服务，也无法删除独立目标或接收方持有的信息。</p>
+        </section>
+        <section id="security">
+          <h2>13. 信息保护</h2>
+          <p>应用私有存储由 Android 应用沙盒保护，没有额外数据库加密。分享使用限定范围的文件提供器访问。HTTPS/TLS 检查使用平台安全检查，但诊断流量并非全部加密。HTTP 请求可能以明文传输 URL 路径和查询参数。DNS 是否加密取决于实际解析链路。与 443 端口建立 TCP 连接本身不会执行 TLS 握手，也不能证明已经加密。本地发现、唤醒包及其他探测并非全部加密。</p>
+          <p>请勿在检测目标、URL 或备注中包含密码、Token、私钥或其他秘密。有限的展示/历史脱敏不能阻止请求中所含秘密被传输。本政策不宣称绝对匿名或独立安全认证。</p>
+        </section>
+        <section id="accounts">
+          <h2>14. 账号与付款信息</h2>
+          <p>应用无需 LinkBeacon 账号，没有账号注册或广告系统，也不会通过应用内付款表单读取付款信息。任何 Google Play 下载购买均由 Google Play 处理，而非 LinkBeacon 付款表单。LinkBeacon 是通用网络工具，不专门面向儿童设计。</p>
+        </section>
+        <section id="updates">
+          <h2>15. 政策更新</h2>
+          <p>变更会在这两份英文及简体中文政策页面公布，并更新生效日期。请查看本页面了解当前数据处理信息。两种语言版本说明相同的处理方式。</p>
+        </section>
+        <section id="questions">
+          <h2>16. 隐私咨询</h2>
+          <p>如有隐私问题，包括你主动提供的支持信息，请通过 <a href="mailto:lydd8086@gmail.com">lydd8086@gmail.com</a> 联系 LanYun Studio。请只提供回答问题所必需的信息。</p>
+        </section>
+      </article>
+    </main>
+    <footer>LinkBeacon · LanYun Studio · <a href="../" hreflang="en" lang="en">English Privacy Policy</a></footer>
+  </div>
+</body>
+</html>

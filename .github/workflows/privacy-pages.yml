@@ -1,0 +1,60 @@
+name: Publish approved privacy policy
+
+# Manual deployment only. A maintainer must approve both policy pages first.
+# Configure Settings > Pages > Source = GitHub Actions before running this.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: privacy-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - name: Checkout trusted branch
+        uses: actions/checkout@v6
+      - name: Validate public artifact and approval gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(find site -type l -print)"
+          diff -u <(printf '%s\n' \
+            site/privacy/index.html \
+            site/privacy/policy.css \
+            site/privacy/zh-CN/index.html) <(find site -type f | sort)
+          if grep -Ei 'review-notice|PUBLIC_SUPPORT_EMAIL_TO_CONFIRM|\b(Draft|Pending|Preview)\b|尚未发布|等待维护者批准' \
+            site/privacy/index.html site/privacy/zh-CN/index.html; then
+            echo 'Publication blocked: review preview or unresolved contact remains.'
+            exit 1
+          fi
+          grep -Fq 'mailto:lydd8086@gmail.com' site/privacy/index.html
+          grep -Fq 'mailto:lydd8086@gmail.com' site/privacy/zh-CN/index.html
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload approved static pages only
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
