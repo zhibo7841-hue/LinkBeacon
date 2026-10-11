@@ -684,10 +684,10 @@ Diagnostics, and **v0.9.0** is reserved for Wi-Fi Analyzer.
 
 ## v0.9.1 — Google Play Compliance Maintenance
 
-Status: **Implementation Complete / RC1 Prepared / Representative RC Pending**
-(GP-07, 2026-10-11). The approved maintenance scope, fresh automated gates,
-isolated Android 12 development verification and signed RC preparation are
-complete. This is not Release Ready or Released.
+Status: **Implementation Complete / Representative Full RC PASS / RC Gate PASS /
+Release Ready** (GP-08, 2026-10-11). The frozen Signed RC1 completed the full
+representative regression on Sony XQ-AT72 / Android 12 / API 31, including
+formal v0.9.0 in-place upgrade and data continuity. It is **not yet Released**.
 v0.9.0 remains **Released**. v0.10.0 is **not approved**.
 
 This maintenance release closes in-app full-policy access without changing
@@ -727,9 +727,16 @@ reran the automated gates and performed isolated QA development spot checks;
 these are not the final signed-artifact Full RC. Android 16 was unavailable
 and v0.9.1 compatibility is not claimed as verified.
 
-Next: Sony XQ-AT72 / Android 12 must use the **same frozen Signed RC1** for
-representative full regression, including an in-place upgrade from formal
-v0.9.0 and user-data retention. An Android 16 compatibility spot check remains
-pending. Public policy version wording, Data Safety reconciliation and Play
-signing/Console preparation are separate pending gates. No v0.9.1 Tag, Release,
-Play submission or v0.10.0 feature work is authorized by RC preparation.
+GP-08 now closes the representative gate using that **same frozen Signed RC1**:
+History/profile/Favorite/Notes/WoL/language continuity, bilingual Privacy and
+real policy browser/copy/offline/layout checks, permission/navigation and
+existing-tool Smoke passed. Fresh JVM/lint and isolated QA instrumentation also
+passed; no Runtime or artifact change. Android 16 spot remains **Pending / Not
+Tested**, not a second Full RC blocker or an exact-artifact PASS.
+
+Next, only under separate authorization: release finalization with the accepted
+unchanged Signed RC1. **Google Play Submission Gate remains PENDING**: public
+policy version wording, Data Safety reconciliation, Play App Signing, Upload
+Certificate, Upload-Key-signed AAB, store listing and testing track are separate
+unfinished gates. No v0.9.1 Tag, Release, policy deployment, Play submission or
+v0.10.0 feature work is authorized or performed by this RC acceptance.
