@@ -6,7 +6,7 @@
 
 - Updated GitHub Actions dependencies to remove deprecated Node.js 20 runtime warnings.
 
-## 0.9.1 (Upcoming — RC preparation)
+## 0.9.1 (Upcoming — publication pending)
 
 ### Privacy-policy access
 
@@ -16,8 +16,9 @@
   access, and user-directed exports/sharing in bundled summaries.
 - Added browser-launch failure feedback, offline guidance, and policy-link copy
   feedback. No new network tool, permission, SDK or data collection is included.
-- This maintenance version is not yet released; representative signed-artifact
-  RC regression and Google Play preparation remain separate gates.
+- Representative regression of the frozen signed candidate passed on Android
+  12. This maintenance version is not yet published on GitHub; Google Play
+  preparation remains a separate pending gate.
 
 ## 0.9.0
 

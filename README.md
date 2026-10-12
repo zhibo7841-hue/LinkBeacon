@@ -26,9 +26,11 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 
 This maintenance release adds in-app access to the full English / Simplified
 Chinese privacy policy, more accurate data-handling summaries, browser-failure
-and offline guidance, and policy-link copying. Signed RC preparation does not
-mean the release or Google Play submission is approved. v0.9.0 remains the
-published stable version; its download links below are unchanged.
+and offline guidance, and policy-link copying. The frozen signed candidate has
+passed representative full regression on Android 12. The final package is
+prepared, but GitHub publication is still pending; v0.9.0 remains the published
+stable version and its download links below are unchanged. Google Play
+submission remains a separate pending step.
 
 ### v0.9.0 — Wi-Fi Analyzer
 
@@ -201,6 +203,8 @@ maintainer-local and are not required for ordinary development builds.
 - [v0.8.0 release readiness](docs/V0.8_RELEASE_READINESS.md)
 - [v0.9.0 release notes](docs/V0.9_RELEASE_NOTES.md)
 - [v0.9.0 release readiness](docs/V0.9_RELEASE_READINESS.md)
+- [v0.9.1 release notes](docs/V0.9.1_RELEASE_NOTES.md)
+- [v0.9.1 release readiness](docs/V0.9.1_RELEASE_READINESS.md)
 - [Published v0.4.0 release notes](docs/releases/v0.4.0.md)
 - [Development workflow](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI design system](docs/UI_DESIGN_SYSTEM.md)

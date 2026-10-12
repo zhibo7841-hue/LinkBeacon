@@ -24,8 +24,9 @@ NetworkToolbox 已在 v0.5.0 更名为 LinkBeacon。Android application ID
 ### 即将发布的 v0.9.1 — 隐私政策访问
 
 此维护版本新增应用内中英文完整隐私政策入口，更准确的数据处理摘要、
-浏览器启动失败与离线说明，以及政策链接复制。签名 RC 准备不代表正式发布
-或 Google Play 提交已获批准。v0.9.0 仍是已发布的稳定版本，下方下载链接不变。
+浏览器启动失败与离线说明，以及政策链接复制。冻结签名候选已通过 Android 12
+代表性完整回归，正式制品已准备，但 GitHub 发布仍待完成。v0.9.0 仍是已发布的
+稳定版本，下方下载链接不变。Google Play 提交仍是独立的待完成步骤。
 
 ### v0.9.0 — Wi-Fi 分析
 
@@ -187,6 +188,8 @@ Windows 请使用 `gradlew.bat` 代替 `./gradlew`。Debug APK 生成在
 - [v0.8.0 发布就绪记录](docs/V0.8_RELEASE_READINESS.md)
 - [v0.9.0 Release Notes](docs/V0.9_RELEASE_NOTES.md)
 - [v0.9.0 发布就绪记录](docs/V0.9_RELEASE_READINESS.md)
+- [v0.9.1 Release Notes](docs/V0.9.1_RELEASE_NOTES.md)
+- [v0.9.1 发布就绪记录](docs/V0.9.1_RELEASE_READINESS.md)
 - [已发布的 v0.4.0 Release Notes](docs/releases/v0.4.0.md)
 - [开发流程](docs/DEVELOPMENT_WORKFLOW.md)
 - [UI 设计系统](docs/UI_DESIGN_SYSTEM.md)
