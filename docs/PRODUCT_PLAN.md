@@ -763,10 +763,25 @@ passed; no Runtime or artifact change. Android 16 spot remains **Pending / Not
 Tested**, not a second Full RC blocker or an exact-artifact PASS.
 
 GitHub release finalization is complete with the unchanged accepted Signed RC1.
-**Google Play Submission Gate remains PENDING**: Data Safety final review,
-Play App Signing Key import, Upload Certificate registration, an independent
-Upload-Key-signed AAB, Play Console app creation, paid-download configuration,
-store text/images, testing track and formal publication review remain separate
-unfinished gates requiring their own authorization. GitHub Released is not
-Google Play Published. No Play submission or v0.10.0 feature work is authorized
-or performed by this closeout.
+At the **GP-11 historical checkpoint**, Google Play preparation/submission gates
+were still pending. Current channel status is recorded separately below; GitHub
+Released is not Google Play Production Published.
+
+### Google Play channel status — GP-13C
+
+Recorded 2026-10-13 (Asia/Shanghai): **Internal testing Active**, release
+**0.9.1 (11)**. The maintainer reports **Sony Xperia / Android 16 Basic Device
+Acceptance PASS**: joined testing, Play Update -> Open, normal startup, existing
+History/favorites/notes retained. This is real user feedback, not independent ADB
+or exact-artifact verification. **Android 16 Full Regression: Not Completed**;
+the existing **Android 12 GP-08 Representative Full RC PASS** is unchanged.
+
+Signing/build/AAB upload checks had passed according to the supplied baseline;
+the final Upload-Key-signed AAB's existing size/hash remain unchanged. See
+[Play acceptance record](play/PLAY_INTERNAL_TEST_VERIFICATION.md) for the separate
+artifact/certificate baseline and unverified items. **Google Play Production:
+Not Published**. Data Safety remains **Draft / Pending Maintainer Review** in
+the repository; Production gates require separate review/authorization. No
+Console, Closed Testing, declaration, pricing, Runtime, artifact or version
+change is performed by this documentation closeout. Product scope, version
+route and GitHub Released status are unchanged; v0.10.0 remains not approved.
