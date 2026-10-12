@@ -19,16 +19,17 @@ NetworkToolbox 已在 v0.5.0 更名为 LinkBeacon。Android application ID
 
 ## 开发状态
 
-- **最新稳定版本：** [v0.9.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)
+- **最新稳定版本：** [v0.9.1](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.1)
 
-### 即将发布的 v0.9.1 — 隐私政策访问
+### v0.9.1 — 隐私政策访问
 
 此维护版本新增应用内中英文完整隐私政策入口，更准确的数据处理摘要、
 浏览器启动失败与离线说明，以及政策链接复制。冻结签名候选已通过 Android 12
-代表性完整回归，正式制品已准备，但 GitHub 发布仍待完成。v0.9.0 仍是已发布的
-稳定版本，下方下载链接不变。Google Play 提交仍是独立的待完成步骤。
+代表性完整回归，包括从正式 v0.9.0 原位升级和本地数据保留。2026 年 10 月 12 日
+发布的 GitHub APK 与该签名候选逐字节一致。Google Play 提交仍是独立的待完成
+步骤；GitHub 发布不代表 Google Play 审核通过。
 
-### v0.9.0 — Wi-Fi 分析
+### 之前的 v0.9.0 版本 — Wi-Fi 分析
 
 v0.9.0 新增当前 Wi-Fi 连接详情和 Android 提供的附近接入点观测。
 可查看信号强度（dBm）、可用的频段、信道与安全类型，以及按信道汇总的
@@ -113,7 +114,7 @@ LinkBeacon 展示检测事实、可能原因和排障建议。当现有证据无
 
 ## 语言支持
 
-v0.9.0 支持：
+v0.9.1 支持：
 
 - English。
 - 简体中文。
@@ -142,14 +143,20 @@ LinkBeacon 只会为了执行用户主动选择的检测而访问网络。这不
 
 ## 下载
 
-最新稳定版本为 **v0.9.0**：
+最新稳定版本为 **v0.9.1**：
 
-- [下载 LinkBeacon-v0.9.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk)
-- [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk.sha256)
-- [查看 v0.9.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)
+- [下载 LinkBeacon-v0.9.1.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.1/LinkBeacon-v0.9.1.apk)
+- [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.1/LinkBeacon-v0.9.1.apk.sha256)
+- [查看 v0.9.1 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.1)
 
-对应 SHA-256 校验文件与 Release 附件一同提供。已验证从正式 v0.8.0 安装原位
+对应 SHA-256 校验文件与 Release 附件一同提供。已验证从正式 v0.9.0 安装原位
 升级，无需清除本地数据。
+
+之前的 [v0.9.0 Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)：
+[APK](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk)
+及 [checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk.sha256)。
+该版本从 v0.8.0 升级及验收的记录继续保留在
+[v0.9.0 发布就绪记录](docs/V0.9_RELEASE_READINESS.md)中。
 
 ## 构建与开发
 

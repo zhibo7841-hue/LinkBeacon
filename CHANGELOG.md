@@ -6,7 +6,7 @@
 
 - Updated GitHub Actions dependencies to remove deprecated Node.js 20 runtime warnings.
 
-## 0.9.1 (Upcoming — publication pending)
+## 0.9.1 - 2026-10-12
 
 ### Privacy-policy access
 
@@ -17,8 +17,8 @@
 - Added browser-launch failure feedback, offline guidance, and policy-link copy
   feedback. No new network tool, permission, SDK or data collection is included.
 - Representative regression of the frozen signed candidate passed on Android
-  12. This maintenance version is not yet published on GitHub; Google Play
-  preparation remains a separate pending gate.
+  12. The published GitHub APK is byte-for-byte identical to that candidate;
+  Google Play preparation remains a separate pending gate.
 
 ## 0.9.0
 

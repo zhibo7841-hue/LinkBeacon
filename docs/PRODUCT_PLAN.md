@@ -707,10 +707,15 @@ Diagnostics, and **v0.9.0** is reserved for Wi-Fi Analyzer.
 
 ## v0.9.1 — Google Play Compliance Maintenance
 
-Status: **Implementation Complete / Representative Full RC PASS / RC Gate PASS /
-Release Ready** (GP-08, 2026-10-11). The frozen Signed RC1 completed the full
+Status: **Released / Scope Frozen / Representative Full RC PASS /
+Release Gate PASS — RELEASED** (GP-11 closeout, 2026-10-12). The frozen Signed RC1
+completed the full
 representative regression on Sony XQ-AT72 / Android 12 / API 31, including
-formal v0.9.0 in-place upgrade and data continuity. It is **not yet Released**.
+formal v0.9.0 in-place upgrade and data continuity. The formal GitHub Release
+was published at `2026-10-12T11:45:42Z` (19:45:42 Asia/Shanghai). GP-11 actually
+downloaded its APK and checksum and verified that the published APK, prepared
+Final APK and accepted Signed RC1 are byte-for-byte identical. The immutable
+`v0.9.1` annotated tag remains on `bf9dc5925e17ac47e982ef5b6f20cac747f94853`.
 v0.9.0 remains **Released**. v0.10.0 is **not approved**.
 
 This maintenance release closes in-app full-policy access without changing
@@ -757,9 +762,11 @@ existing-tool Smoke passed. Fresh JVM/lint and isolated QA instrumentation also
 passed; no Runtime or artifact change. Android 16 spot remains **Pending / Not
 Tested**, not a second Full RC blocker or an exact-artifact PASS.
 
-Next, only under separate authorization: release finalization with the accepted
-unchanged Signed RC1. **Google Play Submission Gate remains PENDING**:
-Data Safety reconciliation, Play App Signing, Upload
-Certificate, Upload-Key-signed AAB, store listing and testing track are separate
-unfinished gates. No v0.9.1 Tag, Release, policy deployment, Play submission or
-v0.10.0 feature work is authorized or performed by this RC acceptance.
+GitHub release finalization is complete with the unchanged accepted Signed RC1.
+**Google Play Submission Gate remains PENDING**: Data Safety final review,
+Play App Signing Key import, Upload Certificate registration, an independent
+Upload-Key-signed AAB, Play Console app creation, paid-download configuration,
+store text/images, testing track and formal publication review remain separate
+unfinished gates requiring their own authorization. GitHub Released is not
+Google Play Published. No Play submission or v0.10.0 feature work is authorized
+or performed by this closeout.

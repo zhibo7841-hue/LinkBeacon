@@ -20,19 +20,20 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 
 ## Development status
 
-- **Latest stable release:** [v0.9.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)
+- **Latest stable release:** [v0.9.1](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.1)
 
-### Upcoming v0.9.1 — Privacy-policy access
+### v0.9.1 — Privacy-policy access
 
 This maintenance release adds in-app access to the full English / Simplified
 Chinese privacy policy, more accurate data-handling summaries, browser-failure
 and offline guidance, and policy-link copying. The frozen signed candidate has
-passed representative full regression on Android 12. The final package is
-prepared, but GitHub publication is still pending; v0.9.0 remains the published
-stable version and its download links below are unchanged. Google Play
-submission remains a separate pending step.
+passed representative full regression on Android 12, including the formal
+v0.9.0 in-place upgrade and local-data retention. Published on October 12, 2026,
+the GitHub APK is byte-for-byte identical to that signed candidate. Google Play
+submission remains a separate pending step; GitHub publication is not Play
+approval.
 
-### v0.9.0 — Wi-Fi Analyzer
+### Previous v0.9.0 release — Wi-Fi Analyzer
 
 v0.9.0 adds current Wi-Fi connection details and nearby access-
 point observations provided by Android. It shows signal strength in dBm,
@@ -127,7 +128,7 @@ that the target device powered on or became reachable.
 
 ## Language support
 
-v0.9.0 supports:
+v0.9.1 supports:
 
 - English.
 - Simplified Chinese.
@@ -157,14 +158,20 @@ the user. This does not mean that diagnostic results are uploaded.
 
 ## Download
 
-The latest stable release is **v0.9.0**:
+The latest stable release is **v0.9.1**:
 
-- [Download LinkBeacon-v0.9.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk)
-- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk.sha256)
-- [View the v0.9.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)
+- [Download LinkBeacon-v0.9.1.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.1/LinkBeacon-v0.9.1.apk)
+- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.1/LinkBeacon-v0.9.1.apk.sha256)
+- [View the v0.9.1 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.1)
 
 The matching SHA-256 checksum is provided with the release assets. An in-place
-upgrade from the formal v0.8.0 installation was verified without clearing local data.
+upgrade from the formal v0.9.0 installation was verified without clearing local data.
+
+Previous [v0.9.0 Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0):
+[APK](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk)
+and [checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk.sha256).
+Its earlier v0.8.0 upgrade and acceptance records remain in the
+[v0.9.0 release readiness](docs/V0.9_RELEASE_READINESS.md).
 
 ## Build and development
 
