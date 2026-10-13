@@ -2,15 +2,41 @@
 
 Status: **Draft / Pending Maintainer Review**
 
-Evidence / policy review date: **2026-10-11**
+Latest evidence / official-definition review: **2026-10-13 (Asia/Shanghai), GP-14A**.
+Historical GP-09 evidence date: **2026-10-11**.
 
 Scope: LinkBeacon v0.9.0 and v0.9.1 / LanYun Studio / `com.networktoolbox`
 
 Support: **lydd8086@gmail.com** — maintainer-approved public support contact,
 not a discovered login address.
 
-GP-09 baseline: `a60ac33adb7b347af1009141c6e32dd27267dabb`. v0.9.0 is the
-stable release; v0.9.1 / code 11 is an accepted, frozen Signed RC1, not a published
+### Current status — GP-14A
+
+- Review baseline: `a20ed6f53eefef9d5cb9b239c041c33722644060` (GP-13C);
+  clean main matched fetched origin/main. Runtime matches the formal v0.9.1 tag.
+- **v0.9.1 / versionCode 11: GitHub Released**. Google Play **Internal Testing
+  Active**, release **0.9.1 (11)**; **Production Not Published**. Play app type
+  **Paid**, per the maintainer's GP-14A baseline, not independent Console inspection.
+- Sony Xperia / Android 16 **Basic Acceptance PASS** is maintainer-reported:
+  Play update/startup and History/favorites/notes retention. **Android 16 Full
+  Regression: Not Completed**. Android 12 GP-08 Full RC PASS is unchanged.
+- App Signing / independent Upload Key and uploaded Play AAB have already passed
+  their separate gates. No signing or build action belongs to this review.
+  [GP-13C acceptance and artifact baseline](PLAY_INTERNAL_TEST_VERIFICATION.md).
+- Current unified policy: [English](https://zhibo7841-hue.github.io/LinkBeacon/privacy/)
+  / [Simplified Chinese](https://zhibo7841-hue.github.io/LinkBeacon/privacy/zh-CN/).
+  Original effective date **2026-10-11**, Last updated **2026-10-12**. GP-14A
+  read-only HTTPS checks returned 200 and exact approved HTML hashes in both
+  languages. Policy maintenance follows actual data practices, not version lists.
+- [GP-14A final-review preparation](PLAY_DATA_SAFETY_FINAL_REVIEW.md) is the
+  current classification matrix, Console candidate answers, MR reassessment and
+  narrowed maintainer questions. It is **Draft / Pending Maintainer Review**,
+  not Approved, Submitted, Google certification or permission to submit.
+
+### Historical GP-09 checkpoint — preserved
+
+GP-09 baseline: `a60ac33adb7b347af1009141c6e32dd27267dabb`. At that checkpoint, v0.9.0 was the
+stable release; v0.9.1 / code 11 was an accepted, frozen Signed RC1, not a published
 release. [GP-08 acceptance](../V0.9.1_RELEASE_READINESS.md) and the
 [GP-06B privacy implementation](../../app/src/main/java/com/networktoolbox/PrivacyPolicyAccess.kt)
 show no new diagnostic permission, probe, storage or automatic upload behavior.
@@ -28,7 +54,12 @@ contact/support-mail gaps; that audit is not a current Console answer sheet.
 No telemetry SDK/backend was found; that alone does not settle off-device
 traffic classification. No Play Console changes are made by GP-09.
 
-## 1. Official form basis
+## 1. Historical GP-09 official form basis
+
+The 2026-10-11 references and analysis below remain historical audit evidence.
+GP-14A rechecked the current primary guidance on 2026-10-13; its linked review
+contains the current conditional answers and unresolved questions. Old statements
+that no Play version was uploaded describe GP-09, not the current Internal track.
 
 [G1: Google's Data Safety guidance](https://support.google.com/googleplay/android-developer/answer/10787469?hl=en)
 was checked on 2026-10-11. Concise official-definition basis (paraphrased):
@@ -143,9 +174,9 @@ For each declared type, repeat the per-type form fields in section 5. A network 
    recipients, support correspondence or target/provider logs. App cache cleanup
    is also not deletion of an exported recipient copy.
 
-## 8. Open classification decisions — Needs Manual Review
+## 8. Historical GP-09 open classification decisions — Needs Manual Review
 
-Every row remains open. G1–G4 link to the official primary sources in section 1;
+At GP-09 every row remained open. G1–G4 link to the official primary sources in section 1;
 source links below identify the app path, not proof of a remote service's policy.
 Any new evidence should record the recipient, payload, purpose, retention and
 app/OS attribution before a form answer is approved.
@@ -197,3 +228,29 @@ shared or All data encrypted. Status remains **Draft / Pending Maintainer
 Review**; no form or Console action is performed. Final public-text approval is
 separate from the accepted maintenance principle and was explicitly given in
 GP-09P; successful website deployment cannot resolve the manual form decisions.
+
+## 11. GP-14A MR1–MR8 reassessment — current draft, not approval
+
+The [full review](PLAY_DATA_SAFETY_FINAL_REVIEW.md) distinguishes **Supported**
+source facts, **Proposed** form choices and **Needs Manual Review**. Narrowing an
+MR does not approve its final Console answer. Historical sections 1–10 are not
+deleted, rewritten into current-state claims or submitted as an answer sheet.
+
+| MR | Rechecked conclusion | Remaining decision / evidence |
+| --- | --- | --- |
+| MR1 | Supported: local databases/AP observations are not automatically uploaded; DNS names/types, Website path/query, connection metadata and WoL MAC do leave the device. Proposed: Device or other IDs for the transmitted MAC; browsing/content categories only for applicable outbound values. | Resolve precise outbound categories and B user-selected versus C app-selected sharing expectations. No generic public-probe provider contract, IP-to-location inference or automatic No collection. Q1/Q3/Q4 in the full review. |
+| MR2 | Supported: local clipboard/file export differs from a cloud document provider or recipient upload. Proposed: Files and docs for off-device PDFs; a deliberately chosen sharing recipient can support a sharing exception. | A sharing exception is not a collection exception; no-access cloud FAQ is inapplicable to a report the app generates/reads. Confirm chosen flow and payload categories, not every conceivable recipient's private logs. Q1/Q4. |
+| MR3 | Supported: public support contact and handling/deletion principle already confirmed in GP-05R; no app mailbox read or automatic email. Proposed: received support sender/email content as optional collected data if attributed to the app's support service. | External-mail attribution, actual received/requested fields, forwarding and bug-improvement use still require confirmation. Do not invent Name/photo/financial collection or request private messages. Q1/Q2. |
+| MR4 | Supported: formal AAB retains EmojiCompatInitializer; official Android guidance confirms possible startup font-provider requests/logging. No telemetry/Billing integration found in reviewed dependencies/source. | Provider payload/category/retention and app-versus-system attribution remain Unknown. External browser/Pages access is not report upload; it is not an automatic all-provider exemption. Q1/Q3. |
+| MR5 | Supported: HTTPS/TLS protection differs from HTTP, resolver-dependent DNS and unencrypted TCP/UDP/LAN/WoL. Proposed: do not assert all declared flows are encrypted; No is the candidate if the declared MAC/HTTP flows apply without a justified qualification. | Determine final declared set and any documented transfer qualification. Plaintext identifiers or sensitive URL contents remain a separate compliance risk, not fixed by selecting No. Q1/Q3/Q4. |
+| MR6 | Supported: retained support correspondence is not ephemeral; local in-memory Wi-Fi is outside off-device collection unless transmitted. | B/C/provider retention is Unknown; do not select Yes based on the app's memory lifetime. Official collection-section/FAQ wording tension remains a Console clarification item. Q1/Q2/Q3. |
+| MR7 | Supported: single History delete/confirmed clear, profile edit/unfavorite limitations, Android storage removal and public support deletion-request route. Proposed: Yes to request mechanism based on the confirmed support process, subject to operational attestation. | No standalone Delete Saved Device; no automatic 90-day deletion or independent-server erasure. Verify practical access/developer-held copies; do not re-ask the already confirmed basic principle. Q1/Q2. |
+| MR8 | Supported: selected diagnostics/export use app functionality; Wi-Fi/export/WoL/support can be declined. Proposed: Optional only where every user can decline that specific declared type. | Aggregate automatic provider flows by type; support bug-improvement use may add Analytics, not all network diagnostics. Developer communications is not synonymous with a support reply. Q1/Q2/Q3/Q4. |
+
+Current overview: **Proposed Yes / final classification pending**, not blanket
+No; conditional encryption and deletion candidates are in the full review.
+Policy factual consistency **PASS for evidenced behavior**, with unknown provider
+and support practices still open. Only this worksheet and the new review change;
+no Runtime, policy site, artifact, signing, version, Console, price or release
+operation occurs. **Data Safety stays Draft / Pending Maintainer Review; no
+Google Play Data Safety submission has occurred.**
