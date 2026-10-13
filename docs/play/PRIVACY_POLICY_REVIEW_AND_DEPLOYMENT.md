@@ -1,9 +1,13 @@
 # LinkBeacon — Privacy Policy Review and Deployment Record
 
-Status: **Deployed / Verified** (GP-09P unified revision, 2026-10-12).
-Both public language versions match the approved deployment bytes, verified
-independently after the successful manual Pages workflow.
+Status: **Approved for publication / Pending Deployment** (GP-14C).
+The previously deployed GP-09P unified revision (2026-10-12) remains the verified
+public baseline until the new workflow and live response bytes are checked.
 Data Safety remains Draft / Pending Maintainer Review.
+
+**GP-14C authorizes publication of the reviewed GP-14B deletion guidance.**
+Section 20 records this new approval and pending deployment; section 19 preserves
+the earlier local-only checkpoint, not the current publication authority.
 
 Effective date: **2026-10-11**.
 
@@ -11,7 +15,8 @@ Review date: **2026-10-11**. Source baseline: `6f3d968c0367303b90a3c0b2e006853de
 
 Scope: LinkBeacon unified-policy maintenance / LanYun Studio / `com.networktoolbox`; reviewed behavior: v0.9.0 and frozen v0.9.1 RC1. This record is not legal certification, Google approval or a finalized Data Safety submission.
 
-**Current checkpoint: section 18 (GP-09P approved publication).** Section 17
+**Current task checkpoint: section 20 (GP-14C publication).** Section 18 is the
+prior verified public deployment. Section 17
 preserves GP-09R's then-local-only approval boundary. Section 16
 preserves the superseded, unpublished GP-09 version-list candidate. Section
 13 is the actual deployment closeout; section 14 preserves its then-unapproved
@@ -1154,3 +1159,192 @@ It is not rebuilt, re-signed or replaced. No Runtime/resources/Manifest/Gradle,
 Room, signing/version, Tag/Release, PEPK, Upload Key/AAB or Console action is
 authorized by this publication. Historical approval/deployment evidence in
 sections 1–17 is preserved, with this section serving as the current checkpoint.
+
+## 19. GP-14B — local data-deletion URL preparation (2026-10-13)
+
+### Reason, scope and approval boundary
+
+The maintainer's GP-14B task authorizes a local bilingual clarification of the
+existing support-email deletion-request path, not public publication or a new
+deletion service. Starting main and fetched origin/main match GP-14A
+`efcfda4f83f8f9e0535f0ba93f13ca48b6babc1a`; the worktree is clean. Existing
+product/decision/policy baselines are unchanged from the prior complete review;
+the current Data Safety worksheet and final-review draft are reconciled here.
+
+Official references rechecked on 2026-10-13:
+[Data Safety deletion-request FAQ](https://support.google.com/googleplay/android-developer/answer/10787469?hl=en)
+and [deletion resource guidance](https://support.google.com/googleplay/android-developer/answer/13327111?hl=en).
+The latter concerns account-deletion policy; its discoverable web-resource/email/
+anchor guidance informs this preparation, **not** a claim that LinkBeacon offers
+accounts or needs a new account-deletion feature. Actual Console options and
+final form choices remain subject to GP-14A review, not Google approval here.
+
+### Complete candidate change set
+
+- In each existing `section id="deletion"`, add one clearly titled block:
+  **Request deletion of developer-held data / 申请删除开发者持有的数据**.
+- It identifies LinkBeacon and LanYun Studio, support emails/voluntary attachments,
+  and a three-step email request. Both use the approved `lydd8086@gmail.com`
+  recipient and suggested subject **LinkBeacon data deletion request**. The
+  mailto link contains only this fixed recipient/subject, no personal payload.
+- No LinkBeacon installation/reinstallation, registration or app-account login
+  is required. Users use their normal email service; this does not claim that an
+  external email provider requires no authentication.
+- Ask only enough information to locate the original support correspondence,
+  preferably from its original sender, such as approximate date/subject. Only
+  necessary minimal request verification may be sought. No credentials, private
+  keys, identity documents, payment information or repeated sensitive reports.
+- Apply the existing support-purpose/legal-need retention principle and actual
+  developer-controlled deletion workflow. Explain affected retained data and
+  applicable limits for legal obligations/other legitimate reasons. No automatic
+  deletion, fixed completion deadline or third-party erasure guarantee is added.
+- Preserve every existing chapter and approved paragraph, including History item/
+  confirmed clear, no standalone Delete Saved Device, profile/unfavorite limits,
+  Android Clear Storage/uninstall, exports/clipboard/independent-provider/server
+  limits and the absence of app accounts. Developer deletion is not remote
+  wiping of only-local device data.
+- Add a visible review notice **outside the policy article** in both local pages.
+  It identifies these additions as unpublished and prevents a prepared revision
+  from being mistaken for the currently effective public policy. CSS is unchanged.
+- The static checker adds narrow checks for this exact heading, three steps and
+  the one extra deletion mailto. The original three plain-contact links remain
+  required; unknown recipients/subjects still fail. Legacy approved three-link
+  pages remain valid. Artifact isolation, no form/script, links, original date,
+  language parity and the existing publish-approval block are not relaxed.
+
+Prepared candidate URLs (same paths and existing anchor, **not newly deployed**):
+
+- EN: <https://zhibo7841-hue.github.io/LinkBeacon/privacy/#deletion>.
+- ZH: <https://zhibo7841-hue.github.io/LinkBeacon/privacy/zh-CN/#deletion>.
+
+### Local verification and preview evidence
+
+- `Test-PrivacyPolicy.ps1`: **PASS** for the candidate. Both pages retain all
+  16 chapters. A pre-edit node-hash comparison confirms all 30 non-deletion
+  chapters and all eight original deletion heading/paragraph nodes are unchanged;
+  both existing date pairs are also unchanged.
+- Four in-memory checker fixtures pass: the approved legacy three-contact-link
+  pages remain valid; an incorrect deletion recipient, incorrect subject and
+  missing request step are each rejected as expected. No fixture modifies the
+  real policy files or writes a test copy to the public site.
+- `-RequirePublishable` intentionally **blocks** this local candidate with
+  `Publication blocked: review-only wording remains.` This verifies the existing
+  approval guard, not a publish-ready policy or Google approval.
+- The computer-use browser workflow verifies **eight responsive cases**:
+  English/Chinese × 320/390 CSS-pixel viewport widths × light/dark. At each
+  fresh `#deletion` navigation the deletion heading is at the top of the viewport
+  (within one CSS pixel), all three request steps exist, and the email recipient/
+  fixed suggested subject match. Document width and deletion content do not
+  overflow horizontally. Both language-navigation links also work, and the draft
+  notice is visible at the page top.
+- Screenshot review confirms the heading, steps, minimal verification, retained
+  data/retention limits and local/third-party deletion boundaries are readable.
+  Local-only screenshots are kept in ignored `build/gp14b/previews/`, including
+  `en-deletion-390-light.jpg`, `zh-deletion-390-light.jpg` and both
+  `*-deletion-limits-390-light.jpg` views. These are browser viewport previews,
+  **not** physical-phone verification or a new published screenshot asset.
+  No mailto is activated, no support email is sent, and mailbox delivery is not
+  claimed to have been tested.
+- Read-only public HTTP checks still return **200** for the existing English
+  policy (16,952 bytes; SHA-256
+  `D8BC13953C6F39DC0315CF3AE224EF21A4A7D1DE3B75FFF8D8CBA4484AF2D055`)
+  and Chinese policy (15,145 bytes; SHA-256
+  `3B52001804B0492BAC3E5BAC167035CC9524ADCB2B6E69CEAB9E9B57614F4FCF`).
+  These unchanged hashes confirm the prepared additions are **not online**.
+- Read-only artifact checks confirm the Upload-signed AAB remains 15,784,842
+  bytes / SHA-256
+  `A0D054553AF6E6495FD076B962CE55E9F0E72386F0AFEB29E880ACFD241C8BDF`,
+  and Signed RC1 remains 52,912,635 bytes / SHA-256
+  `FC97F206389E5BBD16CCF0E260DE0600DCE366A0B6C3DBD96883F6C6949B09DD`.
+  Neither is rebuilt or re-signed. HEAD/origin/main and the v0.9.1 Tag are
+  unchanged. No key or password is accessed.
+- `git diff --check`: **PASS**. The added-line sensitive-pattern/contact audit
+  finds no credential/private-key material or machine-specific private path;
+  the only added email address is the previously approved public support contact.
+- Final handoff is a four-file, unstaged local diff: both policy HTML files,
+  their existing static checker and this review record. No Runtime, Android
+  resource, CSS, PRODUCT_PLAN, DECISIONS, Data Safety worksheet/final-review or
+  workflow change is included. No commit, push, Pages deployment or Play Console
+  submission is made. Data Safety remains pending maintainer review.
+
+### Dates and final handoff gate
+
+Original effective date remains **2026-10-11**. Last updated stays **2026-10-12**,
+the actual date of the existing approved public revision. **2026-10-13 is the
+local review date only**, not a claimed deployment date. After explicit approval,
+set both Last updated fields to the real publication/deployment date, remove
+only the separate review notices, and recheck the complete approved diff before
+any separately authorized commit/push/manual Pages deployment. If publication
+crosses a day boundary, reconcile the date before deployment, not afterwards by
+claiming the prepared date was the real date.
+
+Data Safety remains **Draft / Pending Maintainer Review**. MR1–MR8 and the final
+Console answers are not marked Approved/Submitted; operational support-deletion,
+recipient attribution and independent-copy handling remain bounded by the prior
+confirmation and unresolved GP-14A questions. No account/backend/form collection,
+Android Runtime/Manifest/permission/dependency/version/product-route, signing,
+APK/AAB, GitHub Tag/Release, Pages push/deployment or Data Safety submission is
+performed. This preparation remains local and awaits maintainer publication
+approval; it does not automatically execute the next task.
+
+## 20. GP-14C — approved data-deletion guidance publication
+
+### Approval and scope
+
+The maintainer explicitly approves public updating of the GP-14B bilingual
+deletion guidance through the existing **Publish approved privacy policy** manual
+workflow. Main and fetched origin/main start at
+`efcfda4f83f8f9e0535f0ba93f13ca48b6babc1a`, with only the four reviewed GP-14B
+files modified. That complete local review/export is preserved; no unrelated
+working-tree change is discarded.
+
+The published request mechanism is a manual email route for support emails and
+attachments actually held or controlled by LanYun Studio. The three approved
+steps, recipient `lydd8086@gmail.com` and fixed subject **LinkBeacon data deletion
+request** are retained. GP-14C adds the expressly required equivalent sentence:
+if no corresponding record is held, we will say so and there is no developer-side
+data to delete. This does not create accounts, a diagnostic database/server,
+remote device-erasure API, form collection, automatic expiry or guaranteed
+third-party deletion. Existing local controls and all other approved chapter
+paragraphs are unchanged.
+
+Both separate review banners are removed. Original effective date remains
+**2026-10-11**. Last updated is prepared as **2026-10-13 Asia/Shanghai**, the
+current publication day, **not yet a claim of successful deployment**. Recheck
+immediately before dispatch; if the day changes, correct both dates and push
+the correction before deploying. The static publication checker now requires
+both request blocks, the no-held-records limitation, date/text parity and the
+actual Shanghai deployment day; the existing artifact/approval gates are not
+weakened. The workflow and CSS are unchanged.
+
+Pre-publication checks PASS: default/publication static checker, five in-memory
+negative cases (review banner, missing no-held-records sentence, missing request
+block, stale Shanghai day and mismatched bilingual update dates), and
+`git diff --check`. Thirty other chapter nodes and eight original deletion nodes
+match the approved public baseline exactly. The complete scoped diff contains
+only the four authorized paths and the approved public support email; no secret
+or private user information is found. Existing RC1 and Upload AAB size/SHA-256
+match section 19. No fixture writes or key access is performed.
+
+Deployment capability was inspected: the GitHub connector has no new-workflow
+dispatch action, `gh` is unavailable, and the browser workflow page is signed
+out with no Run workflow control. No token, credential extraction, old-run rerun
+or authentication bypass will be used. After commit/push, the maintainer must
+open the existing workflow, select **Run workflow -> main -> Run workflow**, and
+provide the new Run URL/ID. If dispatch crosses midnight in Asia/Shanghai, first
+correct and push both Last updated dates; an old run's success is not evidence
+that this revision has been published.
+
+### Deployment gate
+
+**Pending Deployment / Not yet verified.** No Workflow Run ID or successful
+public-content change is claimed at preparation time. Record the exact pushed
+source, actual workflow run/build/deploy result and independent public EN/ZH/CSS
+response hashes before replacing this status with Deployed / Verified.
+
+Data Safety remains **Draft / Pending Maintainer Review**; MR1–MR8 are not
+approved or submitted. No Google Play Console/Closed Testing operation, Android
+Runtime/resource/permission/Room/version/signing change, key access, APK/AAB
+rebuild or replacement, Tag/Release change, PRODUCT_PLAN scope or DECISIONS
+principle change is performed. Only the reviewed four-file publication diff and
+necessary approval/date/deployment evidence are authorized.
