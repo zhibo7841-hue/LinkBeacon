@@ -1342,6 +1342,32 @@ public-content change is claimed at preparation time. Record the exact pushed
 source, actual workflow run/build/deploy result and independent public EN/ZH/CSS
 response hashes before replacing this status with Deployed / Verified.
 
+Publication source is committed and pushed as
+`875d9143d321dc008297ffd754aa4841b8293116`
+(`docs: publish LinkBeacon data deletion guidance`). Independent raw-source
+responses at this exact SHA return HTTPS 200 and match local bytes:
+EN 19,353 bytes / SHA-256
+`8BCA50AA86516CB68E00FC8B02E31A418CC2BEA898D3895223956F472AA9F882`;
+ZH 17,291 bytes / SHA-256
+`EC8840207E05B253A69A22FC3931C4A6A548D26CFB9D50DB850F90D1E7F0DBB7`.
+CSS remains 1,863 bytes / SHA-256
+`5678F330D1356B047521F5AB2A6FCEB215544DBC7B45FA233D07CB96AE65C736`.
+This is pushed-source evidence, **not** deployed-content evidence.
+
+At the **2026-10-13 23:57 Asia/Shanghai** handoff check, both public policy
+URLs and CSS return HTTPS 200, but the HTML remains the old GP-09P revision:
+EN 16,952 bytes / SHA-256
+`D8BC13953C6F39DC0315CF3AE224EF21A4A7D1DE3B75FFF8D8CBA4484AF2D055`;
+ZH 15,145 bytes / SHA-256
+`3B52001804B0492BAC3E5BAC167035CC9524ADCB2B6E69CEAB9E9B57614F4FCF`.
+Neither has the new request block; CSS is unchanged. The public Actions API
+still lists only historical runs 38155546033 and 38128990028. A browser opened
+at the exact English deletion URL confirms the old three-paragraph section and
+Last updated 2026-10-12. **GP-14C Workflow Run ID: Pending / not provided**.
+The maintainer has been given the exact workflow/main dispatch steps and the
+midnight date guard. Do not treat the confirmed current date as a Run ID or a
+deployment result. This evidence-only handoff record changes no approved HTML.
+
 Data Safety remains **Draft / Pending Maintainer Review**; MR1–MR8 are not
 approved or submitted. No Google Play Console/Closed Testing operation, Android
 Runtime/resource/permission/Room/version/signing change, key access, APK/AAB
