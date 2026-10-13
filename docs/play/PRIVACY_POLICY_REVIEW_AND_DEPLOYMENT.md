@@ -1309,8 +1309,9 @@ third-party deletion. Existing local controls and all other approved chapter
 paragraphs are unchanged.
 
 Both separate review banners are removed. Original effective date remains
-**2026-10-11**. Last updated is prepared as **2026-10-13 Asia/Shanghai**, the
-current publication day, **not yet a claim of successful deployment**. Recheck
+**2026-10-11**. Last updated was initially prepared as 2026-10-13 and is corrected
+before dispatch to **2026-10-14 Asia/Shanghai** after the actual midnight date
+change, **not yet a claim of successful deployment**. Recheck
 immediately before dispatch; if the day changes, correct both dates and push
 the correction before deploying. The static publication checker now requires
 both request blocks, the no-held-records limitation, date/text parity and the
@@ -1367,6 +1368,13 @@ Last updated 2026-10-12. **GP-14C Workflow Run ID: Pending / not provided**.
 The maintainer has been given the exact workflow/main dispatch steps and the
 midnight date guard. Do not treat the confirmed current date as a Run ID or a
 deployment result. This evidence-only handoff record changes no approved HTML.
+
+The task crossed midnight while manual dispatch was pending. At **2026-10-14
+00:00 Asia/Shanghai**, before a new dispatch, both Last updated attributes and
+visible date texts are corrected to the actual new day, 2026-10-14. The original
+2026-10-11 effective date and every approved article paragraph remain unchanged.
+Do not deploy the earlier October 13 source after this date correction; use the
+corrected current main. Public verification and the new Run ID are still pending.
 
 Data Safety remains **Draft / Pending Maintainer Review**; MR1–MR8 are not
 approved or submitted. No Google Play Console/Closed Testing operation, Android
