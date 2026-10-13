@@ -1,12 +1,13 @@
 # LinkBeacon — Privacy Policy Review and Deployment Record
 
-Status: **Approved for publication / Pending Deployment** (GP-14C).
-The previously deployed GP-09P unified revision (2026-10-12) remains the verified
-public baseline until the new workflow and live response bytes are checked.
+Status: **Deployed / Verified** (GP-14C deletion guidance, 2026-10-14).
+Both public language versions match the approved deployment bytes, verified
+independently after successful manual workflow 38427188161. The GP-09P revision
+is preserved as the previous verified public baseline.
 Data Safety remains Draft / Pending Maintainer Review.
 
 **GP-14C authorizes publication of the reviewed GP-14B deletion guidance.**
-Section 20 records this new approval and pending deployment; section 19 preserves
+Section 20 records this approval and verified deployment; section 19 preserves
 the earlier local-only checkpoint, not the current publication authority.
 
 Effective date: **2026-10-11**.
@@ -1336,9 +1337,10 @@ provide the new Run URL/ID. If dispatch crosses midnight in Asia/Shanghai, first
 correct and push both Last updated dates; an old run's success is not evidence
 that this revision has been published.
 
-### Deployment gate
+### Historical preparation and dispatch handoff
 
-**Pending Deployment / Not yet verified.** No Workflow Run ID or successful
+The preparation state was **Pending Deployment / Not yet verified**. No Workflow
+Run ID or successful
 public-content change is claimed at preparation time. Record the exact pushed
 source, actual workflow run/build/deploy result and independent public EN/ZH/CSS
 response hashes before replacing this status with Deployed / Verified.
@@ -1374,7 +1376,56 @@ The task crossed midnight while manual dispatch was pending. At **2026-10-14
 visible date texts are corrected to the actual new day, 2026-10-14. The original
 2026-10-11 effective date and every approved article paragraph remain unchanged.
 Do not deploy the earlier October 13 source after this date correction; use the
-corrected current main. Public verification and the new Run ID are still pending.
+corrected current main. At this date-correction checkpoint, public verification
+and the new Run ID were still pending; the actual closeout follows below.
+
+### Actual deployment and public verification — Deployed / Verified
+
+- The maintainer created and supplied new workflow
+  [38427188161](https://github.com/zhibo7841-hue/LinkBeacon/actions/runs/38427188161),
+  not an old-run rerun. Public run metadata confirms **workflow_dispatch / main**,
+  exact corrected source **1fe1de7eea931eed349090a0ea9ab27134cb3095**, completed
+  **success**. Created 2026-10-13 16:02:23Z / **2026-10-14 00:02:23 Asia/Shanghai**;
+  run last updated 16:02:56Z / **00:02:56 Asia/Shanghai**.
+- Build job **115399539920**: **success**, 00:02:27–00:02:35 Asia/Shanghai.
+  Trusted checkout, isolated public-artifact/approval validation, Configure Pages
+  and upload of only the existing `site` files all pass.
+- Deploy job **115399632402**: **success**, 00:02:39–00:02:55 Asia/Shanghai.
+  The existing workflow/source/URLs are used unchanged. Actual public-deployment
+  and Last updated date is **2026-10-14**, not the earlier preparation date.
+  Original effective date remains **2026-10-11** in both languages.
+- Independent response-byte verification at **00:03:55–00:03:56 Asia/Shanghai**
+  returns **HTTPS 200** at each exact EN/ZH/CSS URL without a redirect, TLS bypass
+  or login. Hashes match the approved corrected source byte-for-byte:
+
+  | Resource | Bytes | Public SHA-256 |
+  | --- | ---: | --- |
+  | [English](https://zhibo7841-hue.github.io/LinkBeacon/privacy/#deletion) | 19,353 | `71FF0DFA874DB2A8C35A300FD09F0EE8C962211890A4E2FE9D4592D38116DAA8` |
+  | [Simplified Chinese](https://zhibo7841-hue.github.io/LinkBeacon/privacy/zh-CN/#deletion) | 17,291 | `435BA90ABCF9518A56B5B672F74583C331965C34FCFF17CC11A12DB9B47FA45A` |
+  | [Unchanged CSS](https://zhibo7841-hue.github.io/LinkBeacon/privacy/policy.css) | 1,863 | `5678F330D1356B047521F5AB2A6FCEB215544DBC7B45FA233D07CB96AE65C736` |
+
+- Actual computer-use browser acceptance **PASS** after refresh of the previously
+  old page: both new request headings, three numbered steps, fixed recipient and
+  mailto subject, no-held-records statement, deletion limits, 16 chapters and
+  effective/update dates match. No draft/review notice remains. **ZH -> EN -> ZH
+  -> EN** works through the real header links. No mailto is clicked or mail sent.
+- Eight online responsive cases **PASS**: EN/ZH × 320/390 CSS pixels × light/dark.
+  Direct `#deletion` navigation places its heading within one CSS pixel of the
+  viewport top; no deletion child or document overflows horizontally. Real CSS
+  applies in both themes. Captured browser network evidence has **26 responses**,
+  complete and not truncated, covering only the two policy documents and their
+  local CSS, all 200. No statistics/script/image resource appears in this capture;
+  this is not an all-device/provider traffic certification.
+- Genuine online screenshots, including both deletion headings/steps, both
+  retention/third-party/local-deletion views and English metadata, are saved only
+  in ignored `build/gp14c/previews/`. These are browser phone-size previews, not
+  Android physical-device acceptance. Temporary viewport/theme/cache overrides
+  are reset and task-created browser tabs closed.
+- Final status is **Privacy Policy Deployed / Verified**. Data Safety remains
+  **Draft / Pending Maintainer Review**, MR1–MR8 unresolved; no form/Console/Closed
+  Testing action or Google/legal approval is inferred from successful publication.
+  The final evidence-only record is committed/pushed separately; it does not
+  change the approved HTML, Runtime, signing, artifacts, product scope or Tag.
 
 Data Safety remains **Draft / Pending Maintainer Review**; MR1–MR8 are not
 approved or submitted. No Google Play Console/Closed Testing operation, Android
