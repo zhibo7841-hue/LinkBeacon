@@ -795,8 +795,10 @@ route and GitHub Released status are unchanged; v0.10.0 was not yet approved at 
 
 ## v0.10.0 — Comprehensive Tester Feedback Optimization
 
-**Status: Approved scope and phase plan (2026-10-22); Not implemented,
-Not RC-frozen, Not released.** Approved as a coordinated quality-focused
+**Status: Development in progress (2026-10-22). Stage A: Development Complete;
+Stage B: technical design/preparation only, Runtime not implemented;
+Stage C: not implemented; Stage D: pending. Not RC Ready / Not Released.**
+Approved as a coordinated quality-focused
 response to the October 2026 closed-test feedback and v0.9.1 source audit.
 This current approval supersedes older historical notes saying v0.10.0 was
 not yet approved. It does not change any prior release artifact or history.
@@ -807,7 +809,15 @@ handling and English/Simplified Chinese support. Internally complete the
 stages with separate gates; aim for one stable user-facing v0.10.0 release
 rather than several hurried releases.
 
-### Stage A — UX, device list, exports and clarity (planned Must Have)
+### Stage A — UX, device list, exports and clarity (Must Have — Development Complete)
+
+Task 134 closes this development stage after Tasks 130–133 source review,
+local/remote automated gates, Android 12 development evidence and Android 16
+supplemental acceptance. See [Stage A audit](V0.10_STAGE_A_AUDIT.md).
+ES Text Editor remains a documented receiver compatibility failure; cloud SAF
+providers, natural low-memory termination and unexercised environments remain
+Not Tested. Development Complete is not universal compatibility, approval to
+merge Draft PR #1, or the Stage D signed-artifact release gate.
 
 1. **Quick Tools / Tools layout:** equalize same-row card height, icon, title
    and description alignment; handle narrow displays, larger font scales,
@@ -835,6 +845,11 @@ rather than several hurried releases.
    itself proof of a bug; migrations require separate evidence/review.
 
 ### Stage B — Network analysis enhancements (planned Must Have)
+
+Task 134 provides the [technical design and task split](V0.10_STAGE_B_DESIGN.md).
+It is preparation only: proposed dependencies, discovery types, endpoint/privacy
+policy and export redaction require maintainer confirmation before their
+respective implementation tasks. The approved functional scope below is unchanged.
 
 1. **ESP32/ESP8266 / smart-home device recognition:** improve bounded
    PTR, mDNS and SSDP/UPnP observations and cautious service hints.

@@ -3,7 +3,12 @@
 ## Decision: LinkBeacon v0.10.0 comprehensive tester feedback optimization
 
 - Date: 2026-10-22
-- Status: **Accepted planning scope / development not yet implemented or released**.
+- Status: **Accepted scope.** Task 134 progress checkpoint (2026-10-22): Stage A
+  **Development Complete**; Stage B technical design/preparation only, not Runtime
+  implementation. **Not RC Ready / Not Released.** See the canonical
+  [product progress](PRODUCT_PLAN.md#v0100--comprehensive-tester-feedback-optimization)
+  and [Stage A audit](V0.10_STAGE_A_AUDIT.md). This updates execution status, not
+  the accepted scope; proposed Stage B technical choices are not new accepted decisions.
 - Maintainer approval: approve v0.10.0 as the next coordinated tester-feedback and network-diagnostic improvement release. This supersedes the earlier **historical** “v0.10.0 not approved” checkpoint statements. v0.9.1 remains released, signed and frozen; no present Play track, AAB, pricing, enrollment or Production setting changes.
 - Main delivery: **Stages A and B are planned Must Have goals**. Stage A covers Quick Tools/Tools responsive, equally aligned cards; recognized/unknown LAN identity filtering with accurate counts and preserved scan boundaries; user-directed local TXT and Markdown export of live/stored automatic-diagnosis reports; clear evidence-based troubleshooting explanations; focused History reliability review/fixes supported by evidence. Stage B covers conservative ESP32/ESP8266/smart-home discovery based on observed PTR/mDNS/SSDP/UPnP evidence; Wi-Fi signal and observed-channel explanation; an explicit bounded RDAP-first WHOIS/domain-registration query tool; and redacted, bilingual local export/copy/PDF sharing for Website/TLS live and saved snapshots.
 - Acceptance gate for A/B: do not claim device/vendor certainty, precise RF channel load, best channel, full domain-data coverage or definitive network fault diagnosis. If a Must Have cannot be made safe, privacy-compliant and verifiably usable, stop for explicit maintainer deferral/change decision rather than silently shipping a weakened feature.
