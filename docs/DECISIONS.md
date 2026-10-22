@@ -1,5 +1,18 @@
 # Decision Log
 
+## Decision: LinkBeacon v0.10.0 comprehensive tester feedback optimization
+
+- Date: 2026-10-22
+- Status: **Accepted planning scope / development not yet implemented or released**.
+- Maintainer approval: approve v0.10.0 as the next coordinated tester-feedback and network-diagnostic improvement release. This supersedes the earlier **historical** “v0.10.0 not approved” checkpoint statements. v0.9.1 remains released, signed and frozen; no present Play track, AAB, pricing, enrollment or Production setting changes.
+- Main delivery: **Stages A and B are planned Must Have goals**. Stage A covers Quick Tools/Tools responsive, equally aligned cards; recognized/unknown LAN identity filtering with accurate counts and preserved scan boundaries; user-directed local TXT and Markdown export of live/stored automatic-diagnosis reports; clear evidence-based troubleshooting explanations; focused History reliability review/fixes supported by evidence. Stage B covers conservative ESP32/ESP8266/smart-home discovery based on observed PTR/mDNS/SSDP/UPnP evidence; Wi-Fi signal and observed-channel explanation; an explicit bounded RDAP-first WHOIS/domain-registration query tool; and redacted, bilingual local export/copy/PDF sharing for Website/TLS live and saved snapshots.
+- Acceptance gate for A/B: do not claim device/vendor certainty, precise RF channel load, best channel, full domain-data coverage or definitive network fault diagnosis. If a Must Have cannot be made safe, privacy-compliant and verifiably usable, stop for explicit maintainer deferral/change decision rather than silently shipping a weakened feature.
+- **Stage C is conditional research only, not automatically committed or authorized runtime scope**: controlled LAN iPerf3 throughput; explicitly user-selected trusted Tailnet/VPN connectivity, not unrestricted VPN scanning; and one future complete additional locale chosen separately. Any inclusion in v0.10.0 requires a specific demonstrated feasibility/QA/privacy gate and explicit scope-acceptance decision. Public cloud Speed Test and broad 100.64.0.0/10 scans are not approved by this decision.
+- URL screenshot feedback: approve readable structured website-diagnostic evidence snapshots/export, **not** a WebView, website renderer or generic screenshot tool.
+- Mandatory Stage D: unit/lint/build/instrumentation; Android 12/13/16 evidence where available, distinguishing emulator and real device; EN/zh, accessibility, narrow screens, permissions, network/VPN changes, scan cancellation, privacy review, signed exact RC and v0.9.1 in-place upgrade with all local History, Favorite, Profile and WOL data preserved. No source version bump, RC release or Play submission is authorized by planning alone.
+- Principles: open source, no ads/accounts, local-first, necessary functional network requests only with transparent endpoints; separate privacy policy and Google Play Data Safety reassessment for external RDAP/WHOIS/export. No automatic upload, cloud AI diagnosis, unbounded monitoring, SFTP/SSH/Telnet terminal, automatic repair or broad security scanner.
+- Canonical scope: [PRODUCT_PLAN.md](PRODUCT_PLAN.md). The earlier v0.9 research candidate documents remain historical and do not override this accepted plan.
+
 ## Decision: Unified privacy policy based on actual data practices
 
 - Date: 2026-10-11

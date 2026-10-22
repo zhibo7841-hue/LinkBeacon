@@ -67,6 +67,13 @@ LinkBeacon combines an understandable experience for general users with professi
 
 ## Roadmap
 
+**Current next approved planned release (2026-10-22): v0.10.0 —
+Comprehensive Tester Feedback Optimization.** Stages A/B are planned delivery,
+Stage C is optional and separately gated, Stage D is mandatory validation.
+The v0.9.1 stable baseline and Google Play Alpha test are unaffected; see the
+v0.10.0 section below and [DECISIONS.md](DECISIONS.md).
+
+
 ### V0.1
 
 The initial scope is frozen around a focused local diagnostic workflow:
@@ -624,7 +631,7 @@ The confirmed version route after v0.7.0 is:
   [V0.9_RELEASE_READINESS.md](V0.9_RELEASE_READINESS.md). Android 16 Task 123
   compatibility evidence remains supplemental development evidence, not an
   exact-RC1 full regression. The approved next maintenance scope is v0.9.1
-  below; v0.10.0 remains unapproved.
+  below; v0.10.0 was not yet approved at that historical checkpoint; see the 2026-10-22 decision below.
 
 The v0.7.0 release scope is frozen to the Device Center Enhancement described
 above. It does not include SSL/TLS or Website Diagnostics, Wi-Fi Analyzer,
@@ -641,7 +648,7 @@ invalidates that candidate and requires a newly built RC number.
 continuation of the v0.7 Device Center line and does not change the released
 v0.7.0 scope. **v0.8.0 — SSL/TLS + Website Diagnostics** and
 **v0.9.0 — Wi-Fi Analyzer** are released with frozen scopes. GP-06B approves
-only the v0.9.1 compliance-maintenance scope below. v0.10.0 remains unapproved.
+only the v0.9.1 compliance-maintenance scope below. v0.10.0 was not yet approved at that historical checkpoint; see the 2026-10-22 decision below.
 
 The v0.8.0 design audit is complete. Its planning baseline is
 [WEB_DIAGNOSTICS_DESIGN.md](WEB_DIAGNOSTICS_DESIGN.md): two user-initiated
@@ -716,7 +723,7 @@ was published at `2026-10-12T11:45:42Z` (19:45:42 Asia/Shanghai). GP-11 actually
 downloaded its APK and checksum and verified that the published APK, prepared
 Final APK and accepted Signed RC1 are byte-for-byte identical. The immutable
 `v0.9.1` annotated tag remains on `bf9dc5925e17ac47e982ef5b6f20cac747f94853`.
-v0.9.0 remains **Released**. v0.10.0 is **not approved**.
+v0.9.0 remains **Released**. v0.10.0 was **not yet approved** at that historical checkpoint (see the 2026-10-22 decision below).
 
 This maintenance release closes in-app full-policy access without changing
 the network-tool scope or data handling. Must Have:
@@ -784,4 +791,141 @@ Not Published**. Data Safety remains **Draft / Pending Maintainer Review** in
 the repository; Production gates require separate review/authorization. No
 Console, Closed Testing, declaration, pricing, Runtime, artifact or version
 change is performed by this documentation closeout. Product scope, version
-route and GitHub Released status are unchanged; v0.10.0 remains not approved.
+route and GitHub Released status are unchanged; v0.10.0 was not yet approved at that historical checkpoint; see the 2026-10-22 decision below.
+
+## v0.10.0 — Comprehensive Tester Feedback Optimization
+
+**Status: Approved scope and phase plan (2026-10-22); Not implemented,
+Not RC-frozen, Not released.** Approved as a coordinated quality-focused
+response to the October 2026 closed-test feedback and v0.9.1 source audit.
+This current approval supersedes older historical notes saying v0.10.0 was
+not yet approved. It does not change any prior release artifact or history.
+
+**Goal:** make the network toolbox more usable, understandable and reliable
+while maintaining conservative evidence, no ads/accounts, local-first data
+handling and English/Simplified Chinese support. Internally complete the
+stages with separate gates; aim for one stable user-facing v0.10.0 release
+rather than several hurried releases.
+
+### Stage A — UX, device list, exports and clarity (planned Must Have)
+
+1. **Quick Tools / Tools layout:** equalize same-row card height, icon, title
+   and description alignment; handle narrow displays, larger font scales,
+   long EN/zh labels, accessibility targets and light/dark appearance without
+   a whole-app redesign.
+2. **LAN Scanner / Device Center filters:** add identified vs unknown
+   identity filtering and clear filtered/total counts and empty states,
+   preserving current All / Discovered / Not Discovered / Favorites,
+   local-only search, current-session results versus persisted profiles,
+   network scope, stop semantics, device identities and Last Seen. An
+   unknown result is lack of reliable identification, not proof of failure.
+3. **Automatic-diagnosis TXT / Markdown files:** user-initiated save/share
+   in both languages for live and restored immutable reports. Reuse actual
+   report facts and locale; preserve existing Copy and PDF. No re-probe
+   on opening saved History, implicit upload or uncontrolled storage.
+   Use Android SAF/document-share permissions, MIME/filename validation,
+   privacy warning, failure/cancel handling, Unicode and long-text tests.
+4. **Plain-language troubleshooting guidance:** clearer observed state,
+   uncertainty, likely causes, limitations and next checks; preserve
+   expandable technical evidence. No definitive diagnoses from ICMP,
+   HTTP 4xx/5xx, cached Wi-Fi, VPN presence or non-discovery alone.
+5. **Reliability audit:** investigate History save errors/feedback, lists,
+   filtering, navigation and Activity recreation; address reproducible
+   defects with tests. Performance risk without measurements is not
+   itself proof of a bug; migrations require separate evidence/review.
+
+### Stage B — Network analysis enhancements (planned Must Have)
+
+1. **ESP32/ESP8266 / smart-home device recognition:** improve bounded
+   PTR, mDNS and SSDP/UPnP observations and cautious service hints.
+   Explain identity sources and unknown states, preserve user-assigned
+   names/types. Do not promise full recognition or infer device model
+   from IP, port or guessed MAC vendor; no cloud OUI upload.
+2. **Wi-Fi Analyzer explanation:** contextual RSSI, bands, observed AP
+   counts, channel, fresh/cached state, location permission and device
+   limitations, with useful next-step diagnostics. AP count is not
+   measured interference, airtime, distance, throughput or a guaranteed
+   Best Channel. Keep transient SSID/BSSID observations local.
+3. **Domain registration WHOIS / RDAP:** add an on-demand, bounded,
+   validated domain lookup, RDAP-first with legacy WHOIS fallback only
+   when protocol and privacy review justify it. Explain hidden/missing,
+   rate-limited and unsupported fields and distinguish domain
+   registration from DNS availability/connectivity. Review lookup
+   recipient visibility, redirects, timeout, cancellation, resource
+   use, user disclosures, dependencies, privacy policy and Play
+   Data Safety before release. Do not claim universal coverage.
+4. **Website / TLS diagnostic exports:** localized read-only Copy,
+   TXT/Markdown, and appropriately redacted PDF/share from existing
+   Website Diagnostics and SSL/TLS live observations and versioned
+   History snapshots. Preserve staged evidence, security/privacy
+   redaction and exactly zero network probes during History replay;
+   do not collapse incomparable proxy/VPN/direct paths into one claim.
+5. **Consistency:** improve terminology, explanatory failures and
+   accessible bilingual UI across these flows without changing every
+   tool's persistence schema or rewriting the analyzer wholesale.
+
+**Acceptance rule:** A/B are approved goals, but if a feature is not
+demonstrably safe, accurate and compatible, pause that feature and
+request explicit deferral/scope adjustment rather than inventing
+capability or silently weakening user-visible commitments.
+
+### Stage C — optional gated research, not current Must Have
+
+The maintainer approved investigating these topics, **not automatic
+runtime implementation or an unconditional v0.10.0 promise**.
+A proven, separately accepted proposal may join v0.10.0, otherwise defer:
+
+- **Speed Test:** investigate limited user-initiated LAN iPerf3 throughput
+  against a controlled server with explicit traffic/time limits, stop
+  support, and real-device repeatability. Public cloud speed tests,
+  remote infrastructure and ISP bandwidth guarantees are excluded.
+- **Tailscale / trusted VPN:** explore explicit, authorized remote
+  host/port checks when Android's actual VPN routing permits them.
+  No unqualified removal of VPN safeguards, blanket 100.64.0.0/10
+  scan, Internet-wide probing or automatic bypass of network binding.
+- **Additional language:** choose a specific locale and verify a
+  complete navigation, error, tool, History and reporting experience
+  before including it; EN/zh remain the confirmed baseline.
+
+**URL screenshots are excluded.** The approved response is structured,
+exportable Website Diagnostics evidence, not webpage rendering,
+WebView capture or a generic screenshot utility.
+
+### Stage D — mandatory quality and release gate
+
+- Run complete relevant JVM tests, lint, builds, instrumentation,
+  deterministic LAN/identity and export fixtures, permission denial,
+  restoration, cancellation and network-change regressions.
+- Validate Android 12 (minSdk 31), Android 13 and Android 16 using
+  available real devices/emulators while distinguishing their evidence.
+  Cover English/Chinese/system language, small displays, large type,
+  accessibility, dark/light mode, VPN/proxy, Wi-Fi permission and
+  offline/restricted states.
+- Keep `com.networktoolbox`, existing signing identity and upgrade
+  continuity. Signed in-place upgrade from v0.9.1 must preserve
+  History, saved device identities, Favorites, names/types, Notes,
+  WOL settings, language and report snapshots; no user data wipe.
+- Reaudit dependencies, permissions, query endpoints and handling of
+  potentially identifying domain/IP/URL/device data. Prior Google AI
+  or support guidance is not complete Data Safety certification.
+- Freeze an exact signed RC for full representative regression;
+  a subsequent runtime/resource/manifest/dependency/native change
+  requires a new RC. VersionName/versionCode, AAB upload, Alpha
+  update, GitHub Release and Production submission need separately
+  authorized release actions, with truthful verified test records.
+- Continue existing v0.9.1 Closed Testing - Alpha and Google Play
+  production-access requirements independently. Do not alter
+  current price, signing, group, promo campaign, release artifact
+  or Play Console settings as part of this planning decision.
+
+### Out of scope and governance
+
+No full SSH/Telnet/SFTP client, account, ads, cloud upload, cloud
+AI/automatic repair, mass Internet scanning, unbounded background
+monitoring, new unrelated utilities, unsupported RF ranking or
+website/browser screenshot feature. Any material scope or version
+change needs maintainer approval and an update here; consequential
+decisions must also be logged in [DECISIONS.md](DECISIONS.md).
+Earlier [candidate research](research/LINKBEACON_NEXT_VERSION_CANDIDATES.md)
+is an as-of-research record, not a second authoritative roadmap.
+
