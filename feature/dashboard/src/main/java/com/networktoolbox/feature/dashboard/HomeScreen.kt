@@ -119,39 +119,13 @@ fun HomeScreen(
             SectionHeader(
                 title = stringResource(HomePresentation.quickToolsTitle),
             )
-            DashboardToolGrid(quickToolDefinitions(callbacks))
+            DashboardToolGrid(quickToolDefinitions(callbacks), quick = true)
 
             SectionHeader(title = stringResource(HomePresentation.recentDiagnosisTitle))
             RecentDiagnosticCard(
                 recentHistory = recentHistory,
                 onOpenHistory = onOpenHistory,
             )
-        }
-    }
-}
-
-@Composable
-private fun DashboardToolGrid(items: List<DashboardToolDefinition>) {
-    Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
-        items.chunked(2).forEach { rowItems ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
-            ) {
-                rowItems.forEach { item ->
-                    QuickToolCard(
-                        icon = item.icon,
-                        title = stringResource(item.title),
-                        description = stringResource(item.description),
-                        accent = item.accent,
-                        onClick = item.onClick,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                if (rowItems.size == 1) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
         }
     }
 }

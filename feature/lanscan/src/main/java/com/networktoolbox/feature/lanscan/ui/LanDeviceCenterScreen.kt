@@ -99,8 +99,12 @@ fun LanDeviceCenterScreen(
     )
     val hasSearchOrFilter = searchState.query.trim().isNotEmpty() ||
         searchState.filter != DeviceCenterFilter.ALL
+    val identityFilter = searchState.filter == DeviceCenterFilter.IDENTIFIED ||
+        searchState.filter == DeviceCenterFilter.UNKNOWN_IDENTITY
+    val awaitingIdentityScan = identityFilter && uiState is LanScannerUiState.Ready
     val showNoMatch = hasSearchOrFilter && visibleItems != null &&
-        visibleItems.discovered.isEmpty() && visibleItems.notDiscovered.isEmpty()
+        visibleItems.discovered.isEmpty() && visibleItems.notDiscovered.isEmpty() &&
+        !awaitingIdentityScan
 
     val feedbackContext by rememberUpdatedState(LocalContext.current)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -157,8 +161,35 @@ fun LanDeviceCenterScreen(
                 )
             }
 
+            if (visibleItems != null && (visibleItems.totalCount > 0 || hasSearchOrFilter)) {
+                item {
+                    Text(
+                        stringResource(R.string.lan_filtered_count, visibleItems.shownCount, visibleItems.totalCount),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            if (awaitingIdentityScan) {
+                item {
+                    Text(
+                        stringResource(R.string.lan_scan_first_for_identity),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             if (showNoMatch) {
                 item { DeviceCenterNoMatchState() }
+            }
+            if (identityFilter) {
+                item {
+                    Text(
+                        stringResource(R.string.lan_identity_filter_basis),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
         when (val state = uiState) {
@@ -328,6 +359,8 @@ fun LanDeviceCenterScreen(
 private data class DeviceCenterVisibleItems(
     val discovered: List<DeviceCenterDeviceItem>,
     val notDiscovered: List<DeviceCenterDeviceItem>,
+    val totalCount: Int,
+    val shownCount: Int,
 )
 
 private fun deviceCenterVisibleItems(
@@ -421,6 +454,8 @@ private fun deviceCenterVisibleItems(
     return DeviceCenterVisibleItems(
         discovered = filteredItems.filter(DeviceCenterDeviceItem::observedThisScan),
         notDiscovered = filteredItems.filterNot(DeviceCenterDeviceItem::observedThisScan),
+        totalCount = baseItems.size,
+        shownCount = filteredItems.size,
     )
 }
 
@@ -506,6 +541,8 @@ private fun DeviceCenterFilter.label(): String = when (this) {
     DeviceCenterFilter.DISCOVERED -> stringResource(R.string.lan_found_scan)
     DeviceCenterFilter.NOT_DISCOVERED -> stringResource(R.string.lan_not_found)
     DeviceCenterFilter.FAVORITES -> stringResource(R.string.lan_favorites)
+    DeviceCenterFilter.IDENTIFIED -> stringResource(R.string.lan_identified_filter)
+    DeviceCenterFilter.UNKNOWN_IDENTITY -> stringResource(R.string.lan_unknown_identity_filter)
 }
 
 @Composable

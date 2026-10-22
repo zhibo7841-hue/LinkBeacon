@@ -86,6 +86,7 @@ import com.networktoolbox.feature.report.diagnostic.v2.ResolvedDiagnosticHistory
 import com.networktoolbox.feature.report.presentation.ReportStatus
 import com.networktoolbox.feature.report.presentation.ReportPresentationContext
 import com.networktoolbox.feature.report.presentation.ReportViewModel
+import com.networktoolbox.feature.report.presentation.ReportTextFormat
 import com.networktoolbox.feature.report.ui.ReportScreen
 import com.networktoolbox.feature.subnet.presentation.SubnetViewModel
 import com.networktoolbox.feature.subnet.ui.SubnetScreen
@@ -105,6 +106,10 @@ import com.networktoolbox.core.designsystem.NetworkToolboxTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collect
 
 @AndroidEntryPoint
@@ -129,7 +134,9 @@ class MainActivity : AppCompatActivity() {
     private val savedReportViewModel: SavedReportViewModel by viewModels()
     private val savedWebDiagnosticsHistoryViewModel: SavedWebDiagnosticsHistoryViewModel by viewModels()
     private val pdfExportViewModel: PdfExportViewModel by viewModels()
+    private val textExportViewModel: TextExportViewModel by viewModels()
     private var pdfLauncher: ActivityResultLauncher<String>? = null
+    private var textLauncher: ActivityResultLauncher<String>? = null
     private val wifiPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { grants ->
@@ -224,16 +231,103 @@ class MainActivity : AppCompatActivity() {
         }.also { pdfLauncher = it }
     }
 
+    /** Carry only the correlation ID and text type across Activity recreation. */
+    private fun registerTextRequest(id: String, format: ReportTextFormat): ActivityResultLauncher<String> {
+        textLauncher?.unregister()
+        return activityResultRegistry.register(
+            "diagnostic-text:$id",
+            ActivityResultContracts.CreateDocument(format.mimeType),
+        ) { uri ->
+            // The retained ViewModel owns the write, never the destroyed Activity.
+            val appContext = applicationContext
+            // Application resources need not carry AppCompat locales on API 31/32.
+            // Freeze localized feedback here; retain strings, not this Activity.
+            val savedMessage = getString(R.string.app_ui_text_saved, format.displayName)
+            val failedMessage = getString(R.string.app_ui_text_failed)
+            val expiredMessage = getString(R.string.app_ui_text_expired)
+            textExportViewModel.completeAsync(id, cancelled = uri == null, write = { bytes ->
+                val stream = appContext.contentResolver.openOutputStream(requireNotNull(uri))
+                    ?: error("Unable to open selected document")
+                stream.use { it.write(bytes) }
+            }, onComplete = { outcome ->
+                val message = when (outcome) {
+                    TextExportOutcome.SAVED -> savedMessage
+                    TextExportOutcome.FAILED -> failedMessage
+                    TextExportOutcome.EXPIRED -> expiredMessage
+                    TextExportOutcome.CANCELLED, TextExportOutcome.IGNORED -> null
+                }
+                message?.let { Toast.makeText(appContext, it, Toast.LENGTH_LONG).show() }
+            })
+        }.also { textLauncher = it }
+    }
+
     override fun onDestroy() {
         // Non-lifecycle registry registration must not retain the old Activity.
         pdfLauncher?.unregister()
         pdfLauncher = null
+        textLauncher?.unregister()
+        textLauncher = null
         super.onDestroy()
     }
 
     private fun copyDiagnosticReport(text: String) {
         val clipboard = getSystemService(ClipboardManager::class.java) ?: return
         clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.app_ui_clipboard_label), text))
+    }
+
+    private fun saveDiagnosticReportText(text: String, format: ReportTextFormat, fileName: String) {
+        if (textExportViewModel.expired) {
+            textExportViewModel.requestId?.let(textExportViewModel::discard)
+            Toast.makeText(this, getString(R.string.app_ui_text_expired_retry), Toast.LENGTH_LONG).show()
+            return
+        }
+        val id = textExportViewModel.prepare(text.toByteArray(Charsets.UTF_8), format)
+        if (id == null) {
+            Toast.makeText(this, getString(R.string.app_ui_text_busy), Toast.LENGTH_SHORT).show()
+            return
+        }
+        runCatching {
+            requireValidTextFileName(fileName, format)
+            registerTextRequest(id, format).launch(fileName)
+        }.onFailure {
+            textExportViewModel.discard(id)
+            Toast.makeText(this, getString(R.string.app_ui_text_picker_failed), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun shareDiagnosticReportText(text: String, format: ReportTextFormat, fileName: String) {
+        lifecycleScope.launch {
+            try {
+                val appCache = applicationContext.cacheDir
+                val reportFile = withContext(Dispatchers.IO) {
+                    TextReportShareCache(appCache).write(text, format, fileName)
+                }
+                val contentUri = FileProvider.getUriForFile(
+                    this@MainActivity,
+                    "${BuildConfig.APPLICATION_ID}.fileprovider",
+                    reportFile,
+                )
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = format.mimeType
+                    putExtra(Intent.EXTRA_STREAM, contentUri)
+                    clipData = ClipData.newUri(contentResolver, fileName, contentUri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(intent, getString(R.string.app_ui_text_share)))
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Exception) {
+                Toast.makeText(
+                    this@MainActivity,
+                    getString(if (failure is ActivityNotFoundException) {
+                        R.string.app_ui_text_no_app
+                    } else {
+                        R.string.app_ui_text_share_failed
+                    }),
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+        }
     }
 
     private fun saveDiagnosticReportPdf(bytes: ByteArray, fileName: String) {
@@ -291,6 +385,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         pdfExportViewModel.requestId?.let(::registerPdfRequest)
+        textExportViewModel.requestId?.let { id ->
+            val format = textExportViewModel.requestFormat
+            if (format != null) registerTextRequest(id, format)
+            else textExportViewModel.discard(id)
+        }
         enableEdgeToEdge()
         setContent {
             val dashboardUiState by dashboardViewModel.uiState.collectAsState()
@@ -781,6 +880,8 @@ class MainActivity : AppCompatActivity() {
                                     onCopyReport = ::copyDiagnosticReport,
                                     onSavePdf = ::saveDiagnosticReportPdf,
                                     onSharePdf = ::shareDiagnosticReportPdf,
+                                    onSaveText = ::saveDiagnosticReportText,
+                                    onShareText = ::shareDiagnosticReportText,
                                 )
                             }
                             ToolScreen.HISTORY -> HistoryScreen(

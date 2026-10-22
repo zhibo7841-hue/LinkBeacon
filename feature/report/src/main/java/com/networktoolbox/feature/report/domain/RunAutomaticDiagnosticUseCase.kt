@@ -3,17 +3,20 @@ package com.networktoolbox.feature.report.domain
 import com.networktoolbox.core.common.diagnostic.DiagnosticRunStatus
 import com.networktoolbox.core.common.diagnostic.DiagnosticIntent
 import com.networktoolbox.core.common.history.HistoryRecorder
+import com.networktoolbox.core.common.history.HistoryWriteOutcome
 import com.networktoolbox.feature.report.diagnostic.v4.DiagnosticAnalysisResult
 import com.networktoolbox.feature.report.diagnostic.v4.DiagnosticAnalyzerV4
 import com.networktoolbox.feature.report.diagnostic.v2.orchestration.DiagnosticOrchestrator
 import com.networktoolbox.feature.report.diagnostic.v2.orchestration.DiagnosticRunEvidence
 import com.networktoolbox.feature.report.diagnostic.v2.orchestration.DiagnosticStageProgress
-import java.util.concurrent.CancellationException
 import javax.inject.Inject
+import java.util.concurrent.CancellationException
 
 data class AutomaticDiagnosticResult(
     val evidence: DiagnosticRunEvidence,
     val analysis: DiagnosticAnalysisResult,
+    // Live save feedback only; never changes the analysis or versioned stored report.
+    val historyWriteOutcome: HistoryWriteOutcome? = null,
 )
 
 /**
@@ -36,20 +39,19 @@ class RunAutomaticDiagnosticUseCase @Inject constructor(
         val evidence = orchestrator.run(intent, onProgress)
         val analysis = analyzer.analyze(evidence)
 
-        if (evidence.runStatus == DiagnosticRunStatus.COMPLETED) {
+        val historyWriteOutcome = if (evidence.runStatus == DiagnosticRunStatus.COMPLETED) {
             try {
-                historyRecorder.record(
+                historyRecorder.recordWithOutcome(
                     AutomaticDiagnosticHistoryAdapter.toHistoryRecord(evidence, analysis),
                 )
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Exception) {
-                // A local history failure must not turn a completed diagnostic
-                // into a failed network result. The Room recorder applies the
-                // same supplementary-data policy at its own boundary.
+                // Serialization and custom recorder failures are supplementary too.
+                HistoryWriteOutcome.FAILED
             }
-        }
+        } else null
 
-        return AutomaticDiagnosticResult(evidence = evidence, analysis = analysis)
+        return AutomaticDiagnosticResult(evidence, analysis, historyWriteOutcome)
     }
 }

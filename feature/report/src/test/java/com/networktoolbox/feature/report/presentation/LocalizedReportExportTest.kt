@@ -47,11 +47,55 @@ class LocalizedReportExportTest {
         assertFalse(en.contains("旧中文"))
     }
 
+    @Test fun markdownExportKeepsBilingualEvidenceAndEscapesUntrustedMarkup() {
+        for (chinese in listOf(false, true)) {
+            val localization = DiagnosticLocalizationTestResources.context(chinese)
+            val report = report(chinese).copy(
+                summary = "Target [injected](https://example.invalid) <tag> `code`",
+            )
+            val markdown = DiagnosticReportMarkdownFormatter.formatReport(report, localization)
+            assertTrue(markdown.startsWith("# "))
+            assertTrue(markdown.contains("\n## "))
+            assertTrue(markdown.contains("192.168.1.1"))
+            assertTrue(markdown.contains("2001:db8::53"))
+            assertFalse(markdown.contains("[injected](https://example.invalid)"))
+            assertFalse(markdown.contains("<tag>"))
+            assertTrue(markdown.contains("\\[injected\\]"))
+        }
+        assertTrue(ReportTextFormat.TXT.fileName(0L).endsWith(".txt"))
+        assertTrue(ReportTextFormat.MARKDOWN.fileName(0L).endsWith(".md"))
+    }
+
     @Test fun frozenEnglishContextSurvivesOtherLocaleCapture() {
         val english = DiagnosticLocalizationTestResources.context(false)
         val before = DiagnosticReportTextFormatter.formatReport(report(false), english)
         DiagnosticReportTextFormatter.formatReport(report(true), DiagnosticLocalizationTestResources.context(true))
         assertEquals(before, DiagnosticReportTextFormatter.formatReport(report(false), english))
+    }
+
+    @Test fun untrustedRulesAndListMarkersRemainLiteralAndLongUnicodeIsRetained() {
+        val payload = "正文中文".repeat(1000)
+        val document = DiagnosticReportMarkdownFormatter.formatReport(
+            report(false).copy(summary = "Header\n---\n===\n+ injected\n1. injected\n$payload"),
+            DiagnosticLocalizationTestResources.context(false),
+        )
+        assertTrue(document.contains("\\-\\-\\-"))
+        assertTrue(document.contains("\\=\\=\\="))
+        assertTrue(document.contains("\\+ injected"))
+        assertTrue(document.contains("1\\. injected"))
+        assertTrue(document.contains(payload))
+        assertFalse(document.lines().any { it == "---" || it == "===" })
+    }
+
+    @Test fun diagnosisGuidanceExplainsObservedScopeAndUncertaintyInBothLanguages() {
+        for (chinese in listOf(false, true)) {
+            val localization = DiagnosticLocalizationTestResources.context(chinese)
+            val dns = localization.render(DiagnosticText("finding_dns_public_available", "legacy"), "legacy")
+            val vpn = localization.render(DiagnosticText("finding_vpn_description", "legacy"), "legacy")
+            assertTrue(dns.contains(if (chinese) "将域名转换为地址" else "translates names into addresses"))
+            assertTrue(dns.contains(if (chinese) "不能据此确认" else "does not prove"))
+            assertTrue(vpn.contains(if (chinese) "不代表发生故障" else "does not establish a fault"))
+        }
     }
 
     @Test fun fivePdfLayoutVariantsKeepEveryLineInsidePageAndPreserveLegacyProse() {

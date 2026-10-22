@@ -35,10 +35,10 @@
     <string name="finding_normal_description">在本次检测范围内，基础网络连接表现正常。</string>
     <string name="finding_nxdomain_title">域名被报告为不存在</string>
     <string name="finding_nxdomain_description">DNS 响应明确表示查询名称不存在；这只说明当前查询名称未找到，不表示 DNS 服务整体故障。</string>
-    <string name="finding_dns_public_available">公网连接正常，但当前 DNS 查询未正常完成。问题可能与 DNS 服务、Private DNS、VPN 或网络配置有关。</string>
+    <string name="finding_dns_public_available">至少一项公网访问检测成功，但本次 DNS 查询未能正常解析域名。DNS 用于将域名转换为地址；问题可能与 DNS 服务、Private DNS、VPN 或网络路径有关，不能据此确认 DNS 服务器损坏。</string>
     <string name="finding_target_nxdomain_title">目标域名不存在</string>
     <string name="finding_target_nxdomain_description">DNS 响应明确表示目标查询名称不存在；这不是全局 DNS 故障结论。</string>
-    <string name="finding_target_dns_failure">公网连接正常，但目标域名 DNS 查询未正常完成；问题可能与当前 DNS 路径或目标名称配置有关。</string>
+    <string name="finding_target_dns_failure">已有公网访问成功证据，但本次目标域名未能正常解析。请核对域名拼写并重试 DNS 查询；问题可能与 DNS 路径或目标名称配置有关，不能据此判断整个网络断开。</string>
     <string name="finding_dns_failure_title">DNS 查询未正常完成</string>
     <string name="cause_dns_path">DNS 服务或当前 DNS 路径</string>
     <string name="cause_private_dns_vpn_proxy">Private DNS、VPN 或代理配置</string>
@@ -59,7 +59,7 @@
     <string name="finding_fake_ip_title">检测到特殊用途地址</string>
     <string name="finding_fake_ip_description">检测到 198.18.0.0/15 特殊用途地址，可能存在 Fake-IP DNS 环境；这不等同于 DNS 错误。</string>
     <string name="finding_vpn_title">检测到 VPN 网络</string>
-    <string name="finding_vpn_description">当前通过 VPN 的联网路径在本次检测中表现正常或已被单独记录；以下结果可能反映 VPN 隧道后的网络环境。</string>
+    <string name="finding_vpn_description">检测到 VPN，结果可能反映其隧道后的网络环境。仅存在 VPN 不代表发生故障，也不能据此判断具体 VPN 应用。</string>
     <string name="diagnosis_normal_explanation">在本次检测范围内，基础网络连接表现正常；这不代表所有应用或网站都一定正常。</string>
     <string name="diagnosis_no_network_title">设备当前没有可用网络</string>
     <string name="diagnosis_no_network_explanation">设备当前没有可用的活动网络连接，请先检查 Wi-Fi 或移动数据。</string>
@@ -74,7 +74,7 @@
     <string name="recommendation_network_action">检查 Wi-Fi 或移动数据，并确认未开启飞行模式。</string>
     <string name="recommendation_network_reason">当前没有可用的活动网络。</string>
     <string name="recommendation_dns_retry_title">重新进行 DNS 查询</string>
-    <string name="recommendation_dns_retry_action">再次执行诊断以确认 DNS 是否恢复。</string>
+    <string name="recommendation_dns_retry_action">核对域名拼写，在 DNS 查询工具中重试；如有需要再重新诊断。</string>
     <string name="recommendation_dns_retry_reason">公网路径已有成功证据，但 DNS 查询未正常完成。</string>
     <string name="recommendation_upstream_title">检查本地与上游连接</string>
     <string name="recommendation_upstream_action">检查接入点、路由器 WAN 和上游连接状态。</string>
