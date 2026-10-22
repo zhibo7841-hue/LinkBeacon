@@ -82,4 +82,10 @@
     <string name="lan_progress_summary">已扫描 %1$d / %2$d 个地址 · 发现 %3$d 台设备 · %4$s</string>
     <string name="lan_joined">%1$s · %2$s</string>
     <string name="lan_port_scan">端口扫描</string>
+    <string name="lan_identified_filter">已识别</string>
+    <string name="lan_unknown_identity_filter">身份未知</string>
+    <string name="lan_filtered_count">显示 %1$d / %2$d 台设备</string>
+    <string name="lan_scan_first_for_identity">请先进行局域网扫描，再根据本次观察到的身份信息筛选设备。</string>
+    <string name="lan_identity_filter_basis">仅依据本次网络观察分类；手动保存的名称不算设备识别依据。</string>
+    <string name="lan_no_identity_filter_match">本次观察结果中没有符合当前身份筛选条件的设备。</string>
 </resources>

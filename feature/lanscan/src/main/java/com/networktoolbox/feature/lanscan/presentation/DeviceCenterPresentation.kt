@@ -14,6 +14,7 @@ import com.networktoolbox.feature.lanscan.domain.model.LanScanRange
 import com.networktoolbox.feature.lanscan.domain.LanFavoriteIdentity
 import com.networktoolbox.feature.lanscan.domain.LanNetworkScope
 import com.networktoolbox.feature.lanscan.domain.model.identity
+import com.networktoolbox.feature.lanscan.domain.model.LanIdentitySource
 import com.networktoolbox.core.common.ipv4.IPv4Address
 import com.networktoolbox.core.common.wol.IPv4BroadcastResolution
 import com.networktoolbox.core.common.wol.IPv4BroadcastResolver
@@ -89,6 +90,8 @@ enum class DeviceCenterFilter {
     DISCOVERED,
     NOT_DISCOVERED,
     FAVORITES,
+    IDENTIFIED,
+    UNKNOWN_IDENTITY,
 }
 
 data class DeviceCenterSearchState(
@@ -559,6 +562,25 @@ object DeviceCenterPresentation {
     private fun favoriteRole(favorite: FavoriteDevice): UiText? =
         LanScannerPresentation.role(favorite.isLocalDevice, favorite.isGateway)
 
+    /**
+     * A live device counts as identified only when the current observation
+     * carries a meaningful network-sourced name/type or its local/gateway role.
+     * A manually assigned label, favorite or stale saved vendor never turns an
+     * otherwise unknown current observation into identified evidence.
+     */
+    fun hasObservedIdentity(item: DeviceCenterDeviceItem): Boolean {
+        if (!item.observedThisScan) return false
+        val device = item.device ?: return false
+        if (device.isLocalDevice || device.isGateway) return true
+        val identity = device.identity
+        return identity.displayName.source != LanIdentitySource.IP_FALLBACK ||
+            identity.hostname != null ||
+            identity.manufacturer != null ||
+            identity.modelName != null ||
+            identity.modelNumber != null ||
+            identity.deviceType != null
+    }
+
     private fun matchesFilter(
         item: DeviceCenterDeviceItem,
         filter: DeviceCenterFilter,
@@ -567,6 +589,8 @@ object DeviceCenterPresentation {
         DeviceCenterFilter.DISCOVERED -> item.observedThisScan
         DeviceCenterFilter.NOT_DISCOVERED -> !item.observedThisScan
         DeviceCenterFilter.FAVORITES -> item.isFavorite
+        DeviceCenterFilter.IDENTIFIED -> hasObservedIdentity(item)
+        DeviceCenterFilter.UNKNOWN_IDENTITY -> item.observedThisScan && !hasObservedIdentity(item)
     }
 
     private fun searchableValues(

@@ -1,18 +1,24 @@
 package com.networktoolbox.feature.lanscan.ui
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lan
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import com.networktoolbox.core.designsystem.UiText
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.networktoolbox.feature.lanscan.presentation.LanErrorPresentation
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
@@ -42,6 +48,7 @@ import com.networktoolbox.feature.lanscan.domain.model.LanDevice
 import com.networktoolbox.feature.lanscan.domain.model.LanScanRange
 import com.networktoolbox.feature.lanscan.domain.model.LanScanSession
 import com.networktoolbox.feature.lanscan.presentation.DeviceCenterPresentation
+import com.networktoolbox.feature.lanscan.presentation.DeviceCenterFilter
 import com.networktoolbox.feature.lanscan.presentation.LanScanRangeMode
 import com.networktoolbox.feature.lanscan.presentation.LanScannerPresentation
 import com.networktoolbox.feature.lanscan.presentation.LanScannerUiState
@@ -63,6 +70,7 @@ fun LanScannerScreen(
     onOpenMenu: () -> Unit = {},
     scrollState: ScrollState? = null,
 ) {
+    var identityFilter by rememberSaveable { mutableStateOf(DeviceCenterFilter.ALL) }
     ToolScreenLayout(
         modifier = modifier,
         scrollState = scrollState,
@@ -103,6 +111,8 @@ fun LanScannerScreen(
                 state = state,
                 onStopScan = onStopScan,
                 savedProfiles = savedProfiles,
+                identityFilter = identityFilter,
+                onIdentityFilterChanged = { identityFilter = it },
             )
 
             is LanScannerUiState.Completed -> SessionContent(
@@ -110,6 +120,8 @@ fun LanScannerScreen(
                 onRescan = onRetry,
                 onModifyRange = onModifyRange,
                 savedProfiles = savedProfiles,
+                identityFilter = identityFilter,
+                onIdentityFilterChanged = { identityFilter = it },
             )
 
             is LanScannerUiState.Cancelled -> SessionContent(
@@ -117,6 +129,8 @@ fun LanScannerScreen(
                 onRescan = onRetry,
                 onModifyRange = onModifyRange,
                 savedProfiles = savedProfiles,
+                identityFilter = identityFilter,
+                onIdentityFilterChanged = { identityFilter = it },
             )
 
             is LanScannerUiState.NetworkChanged -> NetworkChangedContent(
@@ -324,6 +338,8 @@ private fun ScanningContent(
     state: LanScannerUiState.Scanning,
     onStopScan: () -> Unit,
     savedProfiles: List<FavoriteDevice>,
+    identityFilter: DeviceCenterFilter,
+    onIdentityFilterChanged: (DeviceCenterFilter) -> Unit,
 ) {
     val update = state.update
     LanScanRunningCard(
@@ -335,6 +351,8 @@ private fun ScanningContent(
         devices = update.discoveredDevices,
         context = state.networkContext,
         savedProfiles = savedProfiles,
+        identityFilter = identityFilter,
+        onIdentityFilterChanged = onIdentityFilterChanged,
     )
 }
 
@@ -344,6 +362,8 @@ private fun SessionContent(
     onRescan: () -> Unit,
     onModifyRange: () -> Unit,
     savedProfiles: List<FavoriteDevice>,
+    identityFilter: DeviceCenterFilter,
+    onIdentityFilterChanged: (DeviceCenterFilter) -> Unit,
 ) {
     LanScanSessionSummaryCard(session = session)
     LanScanRescanButton(onRescan = onRescan)
@@ -354,6 +374,8 @@ private fun SessionContent(
         devices = session.discoveredDevices,
         context = session.initialNetworkContext,
         savedProfiles = savedProfiles,
+        identityFilter = identityFilter,
+        onIdentityFilterChanged = onIdentityFilterChanged,
     )
 }
 
@@ -435,6 +457,8 @@ private fun DeviceList(
     devices: List<LanDevice>,
     context: NetworkContext,
     savedProfiles: List<FavoriteDevice>,
+    identityFilter: DeviceCenterFilter,
+    onIdentityFilterChanged: (DeviceCenterFilter) -> Unit,
 ) {
     val deviceItems = DeviceCenterPresentation.deviceList(
         devices = devices,
@@ -444,7 +468,11 @@ private fun DeviceList(
     )
     if (deviceItems.isEmpty()) return
 
-    val observedCount = deviceItems.count { it.observedThisScan }
+    val displayedItems = DeviceCenterPresentation.filterDeviceItems(
+        items = deviceItems,
+        query = "",
+        filter = identityFilter,
+    )
     Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -456,12 +484,46 @@ private fun DeviceList(
                 style = MaterialTheme.typography.titleMedium,
             )
             Text(
-                observedCount.toString(),
+                stringResource(R.string.lan_filtered_count, displayedItems.size, deviceItems.size),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.labelLarge,
             )
         }
-        deviceItems.forEach { deviceItem ->
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
+        ) {
+            listOf(
+                DeviceCenterFilter.ALL,
+                DeviceCenterFilter.IDENTIFIED,
+                DeviceCenterFilter.UNKNOWN_IDENTITY,
+            ).forEach { filter ->
+                val label = when (filter) {
+                    DeviceCenterFilter.ALL -> stringResource(R.string.lan_all)
+                    DeviceCenterFilter.IDENTIFIED -> stringResource(R.string.lan_identified_filter)
+                    else -> stringResource(R.string.lan_unknown_identity_filter)
+                }
+                FilterChip(
+                    selected = identityFilter == filter,
+                    onClick = { onIdentityFilterChanged(filter) },
+                    label = { Text(label) },
+                )
+            }
+        }
+        if (identityFilter != DeviceCenterFilter.ALL) {
+            Text(
+                stringResource(R.string.lan_identity_filter_basis),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (displayedItems.isEmpty()) {
+            Text(
+                stringResource(R.string.lan_no_identity_filter_match),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        displayedItems.forEach { deviceItem ->
             key(deviceItem.detailKey) {
                 LanDeviceCard(
                     presentation = deviceItem.card,
