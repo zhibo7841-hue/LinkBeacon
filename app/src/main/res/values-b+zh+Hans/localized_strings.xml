@@ -17,4 +17,13 @@
     <string name="app_ui_type_website">网站访问诊断</string>
     <string name="app_ui_type_other">其他</string>
     <string name="app_ui_version">版本 %1$s</string>
+    <string name="app_ui_text_saved">报告已保存为 %1$s</string>
+    <string name="app_ui_text_failed">保存文本报告失败，请重试。</string>
+    <string name="app_ui_text_expired">待导出文本已失效，请返回报告重新导出。</string>
+    <string name="app_ui_text_expired_retry">待导出内容已失效，请重新选择保存 TXT 或 Markdown。</string>
+    <string name="app_ui_text_busy">请先完成当前文本保存操作。</string>
+    <string name="app_ui_text_picker_failed">无法打开文本文件保存界面。</string>
+    <string name="app_ui_text_share">分享诊断文本报告</string>
+    <string name="app_ui_text_no_app">没有可用的应用来分享文本。</string>
+    <string name="app_ui_text_share_failed">分享文本失败，请重试。</string>
 </resources>

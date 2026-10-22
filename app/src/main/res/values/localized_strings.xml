@@ -17,4 +17,13 @@
     <string name="app_ui_type_website">Website Diagnostics</string>
     <string name="app_ui_type_other">Other</string>
     <string name="app_ui_version">Version %1$s</string>
+    <string name="app_ui_text_saved">Report saved as %1$s</string>
+    <string name="app_ui_text_failed">Could not save the text report. Try again.</string>
+    <string name="app_ui_text_expired">The pending text export expired. Export again from the report.</string>
+    <string name="app_ui_text_expired_retry">The pending export expired. Select Save TXT or Markdown again.</string>
+    <string name="app_ui_text_busy">Finish the current text save first.</string>
+    <string name="app_ui_text_picker_failed">Could not open the file picker for text.</string>
+    <string name="app_ui_text_share">Share diagnostic text report</string>
+    <string name="app_ui_text_no_app">No app is available to share text.</string>
+    <string name="app_ui_text_share_failed">Could not share text. Please try again.</string>
 </resources>

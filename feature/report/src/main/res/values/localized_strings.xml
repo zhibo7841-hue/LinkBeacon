@@ -161,4 +161,9 @@
     <string name="report_tcp_network">Network unreachable</string>
     <string name="report_tcp_route">No route available</string>
     <string name="report_tcp_internal">Internal probe error</string>
+    <string name="report_save_txt">Save TXT</string>
+    <string name="report_share_txt">Share TXT</string>
+    <string name="report_save_markdown">Save Markdown (.md)</string>
+    <string name="report_share_markdown">Share Markdown (.md)</string>
+    <string name="report_text_error">Could not create the text report. Try again.</string>
 </resources>

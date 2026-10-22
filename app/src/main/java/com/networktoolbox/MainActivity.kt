@@ -86,6 +86,7 @@ import com.networktoolbox.feature.report.diagnostic.v2.ResolvedDiagnosticHistory
 import com.networktoolbox.feature.report.presentation.ReportStatus
 import com.networktoolbox.feature.report.presentation.ReportPresentationContext
 import com.networktoolbox.feature.report.presentation.ReportViewModel
+import com.networktoolbox.feature.report.presentation.ReportTextFormat
 import com.networktoolbox.feature.report.ui.ReportScreen
 import com.networktoolbox.feature.subnet.presentation.SubnetViewModel
 import com.networktoolbox.feature.subnet.ui.SubnetScreen
@@ -129,7 +130,9 @@ class MainActivity : AppCompatActivity() {
     private val savedReportViewModel: SavedReportViewModel by viewModels()
     private val savedWebDiagnosticsHistoryViewModel: SavedWebDiagnosticsHistoryViewModel by viewModels()
     private val pdfExportViewModel: PdfExportViewModel by viewModels()
+    private val textExportViewModel: TextExportViewModel by viewModels()
     private var pdfLauncher: ActivityResultLauncher<String>? = null
+    private var textLauncher: ActivityResultLauncher<String>? = null
     private val wifiPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { grants ->
@@ -224,16 +227,95 @@ class MainActivity : AppCompatActivity() {
         }.also { pdfLauncher = it }
     }
 
+    /** Carry only the correlation ID and text type across Activity recreation. */
+    private fun registerTextRequest(id: String, format: ReportTextFormat): ActivityResultLauncher<String> {
+        textLauncher?.unregister()
+        return activityResultRegistry.register(
+            "diagnostic-text:$id",
+            ActivityResultContracts.CreateDocument(format.mimeType),
+        ) { uri ->
+            val outcome = textExportViewModel.complete(id, cancelled = uri == null) { bytes ->
+                val stream = contentResolver.openOutputStream(requireNotNull(uri))
+                    ?: error("Unable to open selected document")
+                stream.use { it.write(bytes) }
+            }
+            val message = when (outcome) {
+                TextExportOutcome.SAVED -> getString(R.string.app_ui_text_saved, format.displayName)
+                TextExportOutcome.FAILED -> getString(R.string.app_ui_text_failed)
+                TextExportOutcome.EXPIRED -> getString(R.string.app_ui_text_expired)
+                TextExportOutcome.CANCELLED, TextExportOutcome.IGNORED -> null
+            }
+            message?.let { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }
+        }.also { textLauncher = it }
+    }
+
     override fun onDestroy() {
         // Non-lifecycle registry registration must not retain the old Activity.
         pdfLauncher?.unregister()
         pdfLauncher = null
+        textLauncher?.unregister()
+        textLauncher = null
         super.onDestroy()
     }
 
     private fun copyDiagnosticReport(text: String) {
         val clipboard = getSystemService(ClipboardManager::class.java) ?: return
         clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.app_ui_clipboard_label), text))
+    }
+
+    private fun saveDiagnosticReportText(text: String, format: ReportTextFormat, fileName: String) {
+        if (textExportViewModel.expired) {
+            textExportViewModel.requestId?.let { textExportViewModel.complete(it, cancelled = false) { } }
+            Toast.makeText(this, getString(R.string.app_ui_text_expired_retry), Toast.LENGTH_LONG).show()
+            return
+        }
+        val id = textExportViewModel.prepare(text.toByteArray(Charsets.UTF_8), format)
+        if (id == null) {
+            Toast.makeText(this, getString(R.string.app_ui_text_busy), Toast.LENGTH_SHORT).show()
+            return
+        }
+        runCatching {
+            registerTextRequest(id, format).launch(fileName)
+        }.onFailure {
+            textExportViewModel.complete(id, cancelled = true) { }
+            Toast.makeText(this, getString(R.string.app_ui_text_picker_failed), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun shareDiagnosticReportText(text: String, format: ReportTextFormat, fileName: String) {
+        runCatching {
+            val reportDirectory = File(cacheDir, "reports")
+            if (!reportDirectory.exists() && !reportDirectory.mkdirs()) {
+                error("Unable to create temporary report directory")
+            }
+            reportDirectory.listFiles()
+                ?.filter { it.isFile && it.extension.lowercase() in setOf("txt", "md") }
+                ?.forEach { it.delete() }
+
+            val reportFile = File(reportDirectory, fileName)
+            reportFile.writeText(text, Charsets.UTF_8)
+            val contentUri = FileProvider.getUriForFile(
+                this,
+                "${BuildConfig.APPLICATION_ID}.fileprovider",
+                reportFile,
+            )
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = format.mimeType
+                putExtra(Intent.EXTRA_STREAM, contentUri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, getString(R.string.app_ui_text_share)))
+        }.onFailure { failure ->
+            Toast.makeText(
+                this,
+                getString(if (failure is ActivityNotFoundException) {
+                    R.string.app_ui_text_no_app
+                } else {
+                    R.string.app_ui_text_share_failed
+                }),
+                Toast.LENGTH_LONG,
+            ).show()
+        }
     }
 
     private fun saveDiagnosticReportPdf(bytes: ByteArray, fileName: String) {
@@ -291,6 +373,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         pdfExportViewModel.requestId?.let(::registerPdfRequest)
+        textExportViewModel.requestId?.let { id ->
+            val format = textExportViewModel.requestFormat
+            if (format != null) registerTextRequest(id, format)
+            else textExportViewModel.complete(id, cancelled = true) { }
+        }
         enableEdgeToEdge()
         setContent {
             val dashboardUiState by dashboardViewModel.uiState.collectAsState()
@@ -781,6 +868,8 @@ class MainActivity : AppCompatActivity() {
                                     onCopyReport = ::copyDiagnosticReport,
                                     onSavePdf = ::saveDiagnosticReportPdf,
                                     onSharePdf = ::shareDiagnosticReportPdf,
+                                    onSaveText = ::saveDiagnosticReportText,
+                                    onShareText = ::shareDiagnosticReportText,
                                 )
                             }
                             ToolScreen.HISTORY -> HistoryScreen(

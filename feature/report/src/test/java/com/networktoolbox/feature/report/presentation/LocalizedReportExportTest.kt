@@ -47,6 +47,25 @@ class LocalizedReportExportTest {
         assertFalse(en.contains("旧中文"))
     }
 
+    @Test fun markdownExportKeepsBilingualEvidenceAndEscapesUntrustedMarkup() {
+        for (chinese in listOf(false, true)) {
+            val localization = DiagnosticLocalizationTestResources.context(chinese)
+            val report = report(chinese).copy(
+                summary = "Target [injected](https://example.invalid) <tag> `code`",
+            )
+            val markdown = DiagnosticReportMarkdownFormatter.formatReport(report, localization)
+            assertTrue(markdown.startsWith("# "))
+            assertTrue(markdown.contains("\\n## "))
+            assertTrue(markdown.contains("192.168.1.1"))
+            assertTrue(markdown.contains("2001:db8::53"))
+            assertFalse(markdown.contains("[injected](https://example.invalid)"))
+            assertFalse(markdown.contains("<tag>"))
+            assertTrue(markdown.contains("\\[injected\\]"))
+        }
+        assertTrue(ReportTextFormat.TXT.fileName(0L).endsWith(".txt"))
+        assertTrue(ReportTextFormat.MARKDOWN.fileName(0L).endsWith(".md"))
+    }
+
     @Test fun frozenEnglishContextSurvivesOtherLocaleCapture() {
         val english = DiagnosticLocalizationTestResources.context(false)
         val before = DiagnosticReportTextFormatter.formatReport(report(false), english)
