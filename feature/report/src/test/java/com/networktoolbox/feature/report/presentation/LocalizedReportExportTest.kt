@@ -55,7 +55,7 @@ class LocalizedReportExportTest {
             )
             val markdown = DiagnosticReportMarkdownFormatter.formatReport(report, localization)
             assertTrue(markdown.startsWith("# "))
-            assertTrue(markdown.contains("\\n## "))
+            assertTrue(markdown.contains("\n## "))
             assertTrue(markdown.contains("192.168.1.1"))
             assertTrue(markdown.contains("2001:db8::53"))
             assertFalse(markdown.contains("[injected](https://example.invalid)"))
