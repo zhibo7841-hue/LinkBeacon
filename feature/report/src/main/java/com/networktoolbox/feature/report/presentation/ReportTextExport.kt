@@ -11,7 +11,7 @@ enum class ReportTextFormat(val extension: String, val mimeType: String, val dis
 
 /**
  * Markdown is a second, strictly local projection of the exact same frozen
- * report facts as Copy/PDF. Escape untrusted content to avoid implicit links,
+ * report facts as Copy/PDF. Escape untrusted content to avoid Markdown links,
  * injected headings and remote images in downstream Markdown viewers.
  */
 internal object DiagnosticReportMarkdownFormatter {
@@ -36,8 +36,10 @@ internal object DiagnosticReportMarkdownFormatter {
     }
 
     private fun escape(text: String): String = buildString(text.length) {
-        text.forEach { ch ->
-            if (ch in "\\`*_{}[]<>#!|") append('\\')
+        text.forEachIndexed { index, ch ->
+            val orderedListMarker = ch == '.' && index > 0 &&
+                text.take(index).all { it.isDigit() } && text.getOrNull(index + 1)?.isWhitespace() == true
+            if (ch in "\\`*_{}[]<>#!|-=+~" || orderedListMarker) append('\\')
             append(ch)
         }
     }

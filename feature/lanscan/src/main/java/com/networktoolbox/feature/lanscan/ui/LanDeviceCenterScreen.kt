@@ -182,6 +182,15 @@ fun LanDeviceCenterScreen(
             if (showNoMatch) {
                 item { DeviceCenterNoMatchState() }
             }
+            if (identityFilter) {
+                item {
+                    Text(
+                        stringResource(R.string.lan_identity_filter_basis),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
 
         when (val state = uiState) {
             LanScannerUiState.Idle -> item { DeviceCenterLoadingCard() }

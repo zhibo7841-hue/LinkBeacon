@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.networktoolbox.core.designsystem.NetworkToolAccent
 import com.networktoolbox.core.designsystem.NetworkToolboxComponentShapes
@@ -38,6 +40,7 @@ internal fun ToolCard(
     accent: NetworkToolAccent,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    reserveTitleLines: Boolean = false,
 ) {
     Card(
         modifier = modifier.heightIn(min = 84.dp),
@@ -52,7 +55,7 @@ internal fun ToolCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(NetworkToolboxSpacing.MD),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
         ) {
             ToolIconContainer(
@@ -67,14 +70,15 @@ internal fun ToolCard(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
+                    maxLines = if (reserveTitleLines) 2 else Int.MAX_VALUE,
+                    minLines = if (reserveTitleLines) 2 else 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
+                    maxLines = if (reserveTitleLines) 2 else Int.MAX_VALUE,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
@@ -90,49 +94,8 @@ internal fun QuickToolCard(
     accent: NetworkToolAccent,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier.heightIn(min = 84.dp),
-        shape = NetworkToolboxComponentShapes.Card,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        onClick = onClick,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(NetworkToolboxSpacing.MD),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
-        ) {
-            ToolIconContainer(
-                icon = icon,
-                accent = accent,
-                contentDescription = null,
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-    }
-}
+    reserveTitleLines: Boolean = false,
+) = ToolCard(icon, title, description, accent, onClick, modifier, reserveTitleLines)
 
 /**
  * Both entry points share the same card layout. Preserve two columns when
@@ -140,7 +103,7 @@ internal fun QuickToolCard(
  * The intrinsic row height makes adjacent cards equally tall.
  */
 internal fun dashboardGridColumnCount(availableWidthDp: Float, fontScale: Float): Int =
-    if (availableWidthDp >= 320f && fontScale < 1.3f) 2 else 1
+    if (availableWidthDp >= 320f * fontScale.coerceAtLeast(1f) && fontScale < 1.3f) 2 else 1
 
 @Composable
 internal fun DashboardToolGrid(
@@ -148,8 +111,23 @@ internal fun DashboardToolGrid(
     quick: Boolean = false,
 ) {
     val fontScale = LocalDensity.current.fontScale
+    val density = LocalDensity.current
+    val textMeasurer = rememberTextMeasurer()
+    val titleStyle = MaterialTheme.typography.titleMedium
+    val titles = items.map { stringResource(it.title) }
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val columns = dashboardGridColumnCount(maxWidth.value, fontScale)
+        // Match the existing 40dp ToolIconContainer and card padding. Only
+        // reserve a second title line when this grid actually needs one.
+        // Short translated labels should not gain an empty line by default.
+        val textWidth = with(density) {
+            ((maxWidth - NetworkToolboxSpacing.SM * (columns - 1)) / columns -
+                NetworkToolboxSpacing.MD * 2 - NetworkToolboxSpacing.SM - 40.dp).roundToPx().coerceAtLeast(1)
+        }
+        val reserveTitleLines = columns == 2 && titles.any { title ->
+            textMeasurer.measure(title, titleStyle, maxLines = 2,
+                constraints = Constraints(maxWidth = textWidth)).lineCount > 1
+        }
         Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
             items.chunked(columns).forEach { rowItems ->
                 Row(
@@ -166,6 +144,7 @@ internal fun DashboardToolGrid(
                                 accent = item.accent,
                                 onClick = item.onClick,
                                 modifier = cardModifier,
+                                reserveTitleLines = reserveTitleLines,
                             )
                         } else {
                             ToolCard(
@@ -175,6 +154,7 @@ internal fun DashboardToolGrid(
                                 accent = item.accent,
                                 onClick = item.onClick,
                                 modifier = cardModifier,
+                                reserveTitleLines = reserveTitleLines,
                             )
                         }
                     }

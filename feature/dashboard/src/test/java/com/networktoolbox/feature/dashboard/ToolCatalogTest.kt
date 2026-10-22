@@ -95,6 +95,7 @@ class ToolCatalogTest {
     @Test
     fun oneColumnPreventsClippingOnNarrowOrLargeFontScreens() {
         assertPresentationEquals(1, dashboardGridColumnCount(319f, 1.0f))
+        assertPresentationEquals(1, dashboardGridColumnCount(320f, 1.2f))
         assertPresentationEquals(1, dashboardGridColumnCount(320f, 1.3f))
         assertPresentationEquals(1, dashboardGridColumnCount(600f, 1.6f))
     }

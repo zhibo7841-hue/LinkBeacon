@@ -35,10 +35,10 @@
     <string name="finding_normal_description">Basic network connectivity looks normal within the scope of this run.</string>
     <string name="finding_nxdomain_title">Domain reported as nonexistent</string>
     <string name="finding_nxdomain_description">The DNS response explicitly reports that the queried name does not exist. This does not imply that the DNS service as a whole has failed.</string>
-    <string name="finding_dns_public_available">Public connectivity has positive evidence, but the DNS query did not complete normally. The cause may involve DNS service, Private DNS, VPN or network configuration.</string>
+    <string name="finding_dns_public_available">At least one public access check succeeded, but this DNS query could not resolve the name normally. DNS translates names into addresses. The cause may involve the DNS service, Private DNS, VPN or the network path; this does not prove that the DNS server is broken.</string>
     <string name="finding_target_nxdomain_title">Target domain does not exist</string>
     <string name="finding_target_nxdomain_description">The DNS response explicitly reports that the target name does not exist. This is not a conclusion of a global DNS failure.</string>
-    <string name="finding_target_dns_failure">Public connectivity has positive evidence, but the target DNS query did not complete normally. The cause may involve the DNS path or target name configuration.</string>
+    <string name="finding_target_dns_failure">Public access has positive evidence, but this target name could not be resolved normally. Check the spelling and retry the DNS query. The DNS path or target name configuration may be involved; the result does not establish a whole-network outage.</string>
     <string name="finding_dns_failure_title">DNS query did not complete normally</string>
     <string name="cause_dns_path">DNS service or the current DNS path</string>
     <string name="cause_private_dns_vpn_proxy">Private DNS, VPN or proxy configuration</string>
@@ -59,7 +59,7 @@
     <string name="finding_fake_ip_title">Special-purpose address detected</string>
     <string name="finding_fake_ip_description">An address in the special-purpose 198.18.0.0/15 range was observed. A Fake-IP DNS environment may be present; this is not equivalent to a DNS error.</string>
     <string name="finding_vpn_title">VPN network detected</string>
-    <string name="finding_vpn_description">The VPN connection path appeared normal or was recorded separately in this run. Results may reflect the network environment beyond the VPN tunnel.</string>
+    <string name="finding_vpn_description">A VPN was observed. Results may reflect the network environment beyond its tunnel. VPN presence alone does not establish a fault or identify a particular VPN app.</string>
     <string name="diagnosis_normal_explanation">Basic connectivity looks normal within the scope of this run. This does not guarantee that every app or website works.</string>
     <string name="diagnosis_no_network_title">No available network connection</string>
     <string name="diagnosis_no_network_explanation">The device has no available active network connection. Check Wi-Fi or mobile data first.</string>
@@ -74,7 +74,7 @@
     <string name="recommendation_network_action">Check Wi-Fi or mobile data and make sure airplane mode is off.</string>
     <string name="recommendation_network_reason">No active network is currently available.</string>
     <string name="recommendation_dns_retry_title">Retry the DNS query</string>
-    <string name="recommendation_dns_retry_action">Run diagnosis again to check whether DNS has recovered.</string>
+    <string name="recommendation_dns_retry_action">Check the domain spelling, retry it in DNS Lookup, then run diagnosis again if needed.</string>
     <string name="recommendation_dns_retry_reason">Public connectivity has positive evidence, but DNS did not complete normally.</string>
     <string name="recommendation_upstream_title">Check local and upstream connections</string>
     <string name="recommendation_upstream_action">Check the access point, router WAN and upstream connection status.</string>

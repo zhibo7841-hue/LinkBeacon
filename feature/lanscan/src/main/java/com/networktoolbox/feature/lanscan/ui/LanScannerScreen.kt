@@ -481,10 +481,12 @@ private fun DeviceList(
         ) {
             Text(
                 stringResource(R.string.lan_scan_found_group),
+                modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleMedium,
             )
             Text(
                 stringResource(R.string.lan_filtered_count, displayedItems.size, deviceItems.size),
+                modifier = Modifier.weight(1f),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.labelLarge,
             )

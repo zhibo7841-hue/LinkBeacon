@@ -2,6 +2,9 @@ package com.networktoolbox.core.database
 
 import com.networktoolbox.core.common.history.HistoryRecord
 import com.networktoolbox.core.common.history.HistoryType
+import com.networktoolbox.core.common.history.HistoryRepository
+import com.networktoolbox.core.common.history.HistoryWriteOutcome
+import java.util.concurrent.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -12,12 +15,36 @@ import org.junit.Test
 
 class RoomHistoryRepositoryTest {
     @Test
+    fun recorderReportsWriteFailureWithoutChangingLegacyRecordOnlyContract() = runBlocking {
+        val base = RoomHistoryRepository(FakeHistoryDao())
+        var writes = 0
+        val recorder = RoomHistoryRecorder(object : HistoryRepository by base {
+            override suspend fun save(record: HistoryRecord) { writes++; error("disk full") }
+        })
+        assertEquals(HistoryWriteOutcome.FAILED, recorder.recordWithOutcome(historyRecord()))
+        recorder.record(historyRecord())
+        assertEquals(2, writes)
+    }
+
+    @Test
+    fun cancellationIsNotSwallowedByHistoryFeedback() = runBlocking {
+        val base = RoomHistoryRepository(FakeHistoryDao())
+        val recorder = RoomHistoryRecorder(object : HistoryRepository by base {
+            override suspend fun save(record: HistoryRecord) { throw CancellationException("cancelled") }
+        })
+        try {
+            recorder.recordWithOutcome(historyRecord())
+            org.junit.Assert.fail()
+        } catch (_: CancellationException) { }
+    }
+
+    @Test
     fun recorderPersistsThroughTheSharedRepository() = runBlocking {
         val repository = RoomHistoryRepository(FakeHistoryDao())
         val recorder = RoomHistoryRecorder(repository)
         val record = historyRecord(type = HistoryType.PING, title = "Ping · 8.8.8.8")
 
-        recorder.record(record)
+        assertEquals(HistoryWriteOutcome.SAVED, recorder.recordWithOutcome(record))
 
         val saved = repository.getHistory().single()
         assertEquals(HistoryType.PING, saved.type)

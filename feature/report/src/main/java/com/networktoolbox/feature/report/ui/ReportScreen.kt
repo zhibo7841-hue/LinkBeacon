@@ -296,6 +296,13 @@ private fun AutomaticReportContent(
     onSaveText: (String, ReportTextFormat, String) -> Unit,
     onShareText: (String, ReportTextFormat, String) -> Unit,
 ) {
+    if (result.historyWriteOutcome == com.networktoolbox.core.common.history.HistoryWriteOutcome.FAILED) {
+        Text(
+            stringResource(R.string.report_history_save_failed),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
     UnifiedDiagnosticReportContent(
         presentation = DiagnosticPresentationMapper.forLive(result, ReportLocalizationContext.capture(LocalContext.current)),
         exportPresentation = { localization -> DiagnosticPresentationMapper.forLive(result, localization) },

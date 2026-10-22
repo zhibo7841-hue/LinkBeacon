@@ -166,4 +166,5 @@
     <string name="report_save_markdown">Save Markdown (.md)</string>
     <string name="report_share_markdown">Share Markdown (.md)</string>
     <string name="report_text_error">Could not create the text report. Try again.</string>
+    <string name="report_history_save_failed">Diagnosis completed, but this report could not be saved to local history. You can still export the current report.</string>
 </resources>

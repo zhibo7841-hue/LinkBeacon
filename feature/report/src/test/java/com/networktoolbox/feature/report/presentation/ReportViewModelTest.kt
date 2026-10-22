@@ -18,6 +18,7 @@ import com.networktoolbox.core.common.diagnostic.DiagnosticStage
 import com.networktoolbox.core.common.diagnostic.NetworkFingerprint
 import com.networktoolbox.core.common.history.HistoryRecord
 import com.networktoolbox.core.common.history.HistoryRecorder
+import com.networktoolbox.core.common.history.HistoryWriteOutcome
 import com.networktoolbox.feature.report.diagnostic.v2.orchestration.DiagnosticOrchestrator
 import com.networktoolbox.feature.report.diagnostic.v2.orchestration.DiagnosticRunEvidence
 import com.networktoolbox.feature.report.diagnostic.v2.orchestration.DiagnosticStageProgress
@@ -206,10 +207,23 @@ class ReportViewModelTest {
         viewModel.stopCheck()
     }
 
+    @Test
+    fun historyWriteFailureKeepsCompletedReportAndProvidesFeedbackWithoutRetry() = runTest {
+        var writes = 0
+        val viewModel = viewModelFor(recorder = HistoryRecorder { writes++; error("disk full") })
+        viewModel.runCheck()
+        advanceUntilIdle()
+        val completed = viewModel.uiState.value.status as ReportStatus.Completed
+        assertEquals(HistoryWriteOutcome.FAILED, completed.result.historyWriteOutcome)
+        assertEquals(DiagnosticDiagnosisStatus.NORMAL, completed.result.analysis.diagnosis?.status)
+        assertEquals(1, writes)
+    }
+
     private fun viewModelFor(
         orchestrator: DiagnosticOrchestrator = FakeOrchestrator { evidence() },
         records: MutableList<HistoryRecord> = mutableListOf(),
         eventSink: MutableList<DiagnosticStageProgress>? = null,
+        recorder: HistoryRecorder = HistoryRecorder { records += it },
     ): ReportViewModel {
         val actualOrchestrator = if (eventSink == null) orchestrator else RecordingOrchestrator(
             delegate = orchestrator,
@@ -218,7 +232,7 @@ class ReportViewModelTest {
         val useCase = RunAutomaticDiagnosticUseCase(
             orchestrator = actualOrchestrator,
             analyzer = FixedAnalyzer(),
-            historyRecorder = HistoryRecorder { records += it },
+            historyRecorder = recorder,
         )
         return ReportViewModel(useCase)
     }

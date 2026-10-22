@@ -106,6 +106,10 @@ import com.networktoolbox.core.designsystem.NetworkToolboxTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collect
 
 @AndroidEntryPoint
@@ -234,18 +238,26 @@ class MainActivity : AppCompatActivity() {
             "diagnostic-text:$id",
             ActivityResultContracts.CreateDocument(format.mimeType),
         ) { uri ->
-            val outcome = textExportViewModel.complete(id, cancelled = uri == null) { bytes ->
-                val stream = contentResolver.openOutputStream(requireNotNull(uri))
+            // The retained ViewModel owns the write, never the destroyed Activity.
+            val appContext = applicationContext
+            // Application resources need not carry AppCompat locales on API 31/32.
+            // Freeze localized feedback here; retain strings, not this Activity.
+            val savedMessage = getString(R.string.app_ui_text_saved, format.displayName)
+            val failedMessage = getString(R.string.app_ui_text_failed)
+            val expiredMessage = getString(R.string.app_ui_text_expired)
+            textExportViewModel.completeAsync(id, cancelled = uri == null, write = { bytes ->
+                val stream = appContext.contentResolver.openOutputStream(requireNotNull(uri))
                     ?: error("Unable to open selected document")
                 stream.use { it.write(bytes) }
-            }
-            val message = when (outcome) {
-                TextExportOutcome.SAVED -> getString(R.string.app_ui_text_saved, format.displayName)
-                TextExportOutcome.FAILED -> getString(R.string.app_ui_text_failed)
-                TextExportOutcome.EXPIRED -> getString(R.string.app_ui_text_expired)
-                TextExportOutcome.CANCELLED, TextExportOutcome.IGNORED -> null
-            }
-            message?.let { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }
+            }, onComplete = { outcome ->
+                val message = when (outcome) {
+                    TextExportOutcome.SAVED -> savedMessage
+                    TextExportOutcome.FAILED -> failedMessage
+                    TextExportOutcome.EXPIRED -> expiredMessage
+                    TextExportOutcome.CANCELLED, TextExportOutcome.IGNORED -> null
+                }
+                message?.let { Toast.makeText(appContext, it, Toast.LENGTH_LONG).show() }
+            })
         }.also { textLauncher = it }
     }
 
@@ -265,7 +277,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun saveDiagnosticReportText(text: String, format: ReportTextFormat, fileName: String) {
         if (textExportViewModel.expired) {
-            textExportViewModel.requestId?.let { textExportViewModel.complete(it, cancelled = false) { } }
+            textExportViewModel.requestId?.let(textExportViewModel::discard)
             Toast.makeText(this, getString(R.string.app_ui_text_expired_retry), Toast.LENGTH_LONG).show()
             return
         }
@@ -275,46 +287,46 @@ class MainActivity : AppCompatActivity() {
             return
         }
         runCatching {
+            requireValidTextFileName(fileName, format)
             registerTextRequest(id, format).launch(fileName)
         }.onFailure {
-            textExportViewModel.complete(id, cancelled = true) { }
+            textExportViewModel.discard(id)
             Toast.makeText(this, getString(R.string.app_ui_text_picker_failed), Toast.LENGTH_LONG).show()
         }
     }
 
     private fun shareDiagnosticReportText(text: String, format: ReportTextFormat, fileName: String) {
-        runCatching {
-            val reportDirectory = File(cacheDir, "reports")
-            if (!reportDirectory.exists() && !reportDirectory.mkdirs()) {
-                error("Unable to create temporary report directory")
+        lifecycleScope.launch {
+            try {
+                val appCache = applicationContext.cacheDir
+                val reportFile = withContext(Dispatchers.IO) {
+                    TextReportShareCache(appCache).write(text, format, fileName)
+                }
+                val contentUri = FileProvider.getUriForFile(
+                    this@MainActivity,
+                    "${BuildConfig.APPLICATION_ID}.fileprovider",
+                    reportFile,
+                )
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = format.mimeType
+                    putExtra(Intent.EXTRA_STREAM, contentUri)
+                    clipData = ClipData.newUri(contentResolver, fileName, contentUri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(intent, getString(R.string.app_ui_text_share)))
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Exception) {
+                Toast.makeText(
+                    this@MainActivity,
+                    getString(if (failure is ActivityNotFoundException) {
+                        R.string.app_ui_text_no_app
+                    } else {
+                        R.string.app_ui_text_share_failed
+                    }),
+                    Toast.LENGTH_LONG,
+                ).show()
             }
-            reportDirectory.listFiles()
-                ?.filter { it.isFile && it.extension.lowercase() in setOf("txt", "md") }
-                ?.forEach { it.delete() }
-
-            val reportFile = File(reportDirectory, fileName)
-            reportFile.writeText(text, Charsets.UTF_8)
-            val contentUri = FileProvider.getUriForFile(
-                this,
-                "${BuildConfig.APPLICATION_ID}.fileprovider",
-                reportFile,
-            )
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = format.mimeType
-                putExtra(Intent.EXTRA_STREAM, contentUri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(Intent.createChooser(intent, getString(R.string.app_ui_text_share)))
-        }.onFailure { failure ->
-            Toast.makeText(
-                this,
-                getString(if (failure is ActivityNotFoundException) {
-                    R.string.app_ui_text_no_app
-                } else {
-                    R.string.app_ui_text_share_failed
-                }),
-                Toast.LENGTH_LONG,
-            ).show()
         }
     }
 
@@ -376,7 +388,7 @@ class MainActivity : AppCompatActivity() {
         textExportViewModel.requestId?.let { id ->
             val format = textExportViewModel.requestFormat
             if (format != null) registerTextRequest(id, format)
-            else textExportViewModel.complete(id, cancelled = true) { }
+            else textExportViewModel.discard(id)
         }
         enableEdgeToEdge()
         setContent {

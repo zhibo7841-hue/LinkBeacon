@@ -73,6 +73,31 @@ class LocalizedReportExportTest {
         assertEquals(before, DiagnosticReportTextFormatter.formatReport(report(false), english))
     }
 
+    @Test fun untrustedRulesAndListMarkersRemainLiteralAndLongUnicodeIsRetained() {
+        val payload = "正文中文".repeat(1000)
+        val document = DiagnosticReportMarkdownFormatter.formatReport(
+            report(false).copy(summary = "Header\n---\n===\n+ injected\n1. injected\n$payload"),
+            DiagnosticLocalizationTestResources.context(false),
+        )
+        assertTrue(document.contains("\\-\\-\\-"))
+        assertTrue(document.contains("\\=\\=\\="))
+        assertTrue(document.contains("\\+ injected"))
+        assertTrue(document.contains("1\\. injected"))
+        assertTrue(document.contains(payload))
+        assertFalse(document.lines().any { it == "---" || it == "===" })
+    }
+
+    @Test fun diagnosisGuidanceExplainsObservedScopeAndUncertaintyInBothLanguages() {
+        for (chinese in listOf(false, true)) {
+            val localization = DiagnosticLocalizationTestResources.context(chinese)
+            val dns = localization.render(DiagnosticText("finding_dns_public_available", "legacy"), "legacy")
+            val vpn = localization.render(DiagnosticText("finding_vpn_description", "legacy"), "legacy")
+            assertTrue(dns.contains(if (chinese) "将域名转换为地址" else "translates names into addresses"))
+            assertTrue(dns.contains(if (chinese) "不能据此确认" else "does not prove"))
+            assertTrue(vpn.contains(if (chinese) "不代表发生故障" else "does not establish a fault"))
+        }
+    }
+
     @Test fun fivePdfLayoutVariantsKeepEveryLineInsidePageAndPreserveLegacyProse() {
         val legacyText = "旧记录保留：CONNECTION_REFUSED，不代表互联网不可用。"
         val variants = listOf(

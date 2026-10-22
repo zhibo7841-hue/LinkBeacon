@@ -396,6 +396,24 @@ class DeviceCenterSearchTest {
         )
     }
 
+    @Test
+    fun genericNamesAndIpFallbackAreUnknownEvenWithSavedVendorAndType() {
+        for (name in listOf("unknown", "device", "10.0.1.10", "localhost")) {
+            val value = observed.copy(device = observed.device!!.copy(hostName = name, upnpDisplayNameCandidate = name))
+            assertFalse(name, DeviceCenterPresentation.hasObservedIdentity(value))
+            assertPresentationEquals(listOf(value), DeviceCenterPresentation.filterDeviceItems(
+                listOf(value, saved), "", DeviceCenterFilter.UNKNOWN_IDENTITY,
+            ))
+        }
+    }
+
+    @Test
+    fun persistedUnseenProfileIsNeitherCurrentIdentifiedNorCurrentUnknown() {
+        assertTrue(DeviceCenterPresentation.filterDeviceItems(listOf(saved), "", DeviceCenterFilter.IDENTIFIED).isEmpty())
+        assertTrue(DeviceCenterPresentation.filterDeviceItems(listOf(saved), "", DeviceCenterFilter.UNKNOWN_IDENTITY).isEmpty())
+        assertPresentationEquals(listOf(saved), filter(DeviceCenterFilter.NOT_DISCOVERED))
+    }
+
     private fun filter(filter: DeviceCenterFilter): List<DeviceCenterDeviceItem> =
         DeviceCenterPresentation.filterDeviceItems(
             items = allItems,
