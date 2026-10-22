@@ -86,6 +86,19 @@ class ToolCatalogTest {
         assertTrue(calls.containsAll(DashboardToolId.entries.toList()))
     }
 
+    @Test
+    fun twoColumnsStayOnNormalPhoneWidths() {
+        assertPresentationEquals(2, dashboardGridColumnCount(320f, 1.0f))
+        assertPresentationEquals(2, dashboardGridColumnCount(440f, 1.2f))
+    }
+
+    @Test
+    fun oneColumnPreventsClippingOnNarrowOrLargeFontScreens() {
+        assertPresentationEquals(1, dashboardGridColumnCount(319f, 1.0f))
+        assertPresentationEquals(1, dashboardGridColumnCount(320f, 1.3f))
+        assertPresentationEquals(1, dashboardGridColumnCount(600f, 1.6f))
+    }
+
     private fun callbacks(onClick: (DashboardToolId) -> Unit = {}): DashboardNavigationCallbacks =
         DashboardNavigationCallbacks(
             onOpenPing = { onClick(DashboardToolId.PING) },

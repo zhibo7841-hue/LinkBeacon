@@ -3,8 +3,6 @@ package com.networktoolbox.feature.dashboard
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -69,30 +66,6 @@ fun ToolsScreen(
                     SectionHeader(title = stringResource(section.title))
                     DashboardToolGrid(section.tools)
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DashboardToolGrid(items: List<DashboardToolDefinition>) {
-    items.chunked(2).forEach { rowItems ->
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
-        ) {
-            rowItems.forEach { item ->
-                ToolCard(
-                    icon = item.icon,
-                    title = stringResource(item.title),
-                    description = stringResource(item.description),
-                    accent = item.accent,
-                    onClick = item.onClick,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            if (rowItems.size == 1) {
-                Spacer(modifier = Modifier.weight(1f))
             }
         }
     }

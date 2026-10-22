@@ -1,9 +1,14 @@
 package com.networktoolbox.feature.dashboard
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.BorderStroke
@@ -15,6 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.networktoolbox.core.designsystem.NetworkToolAccent
@@ -122,6 +129,57 @@ internal fun QuickToolCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Both entry points share the same card layout. Preserve two columns when
+ * there is enough room and fall back gracefully for narrow/large-font devices.
+ * The intrinsic row height makes adjacent cards equally tall.
+ */
+internal fun dashboardGridColumnCount(availableWidthDp: Float, fontScale: Float): Int =
+    if (availableWidthDp >= 320f && fontScale < 1.3f) 2 else 1
+
+@Composable
+internal fun DashboardToolGrid(
+    items: List<DashboardToolDefinition>,
+    quick: Boolean = false,
+) {
+    val fontScale = LocalDensity.current.fontScale
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val columns = dashboardGridColumnCount(maxWidth.value, fontScale)
+        Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
+            items.chunked(columns).forEach { rowItems ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
+                ) {
+                    rowItems.forEach { item ->
+                        val cardModifier = Modifier.weight(1f).fillMaxHeight()
+                        if (quick) {
+                            QuickToolCard(
+                                icon = item.icon,
+                                title = stringResource(item.title),
+                                description = stringResource(item.description),
+                                accent = item.accent,
+                                onClick = item.onClick,
+                                modifier = cardModifier,
+                            )
+                        } else {
+                            ToolCard(
+                                icon = item.icon,
+                                title = stringResource(item.title),
+                                description = stringResource(item.description),
+                                accent = item.accent,
+                                onClick = item.onClick,
+                                modifier = cardModifier,
+                            )
+                        }
+                    }
+                    if (rowItems.size < columns) Spacer(modifier = Modifier.weight(1f))
+                }
             }
         }
     }
