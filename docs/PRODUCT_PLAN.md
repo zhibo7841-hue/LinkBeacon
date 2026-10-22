@@ -18,12 +18,17 @@ LinkBeacon is a network analysis tool, not an automatic troubleshooting or repai
 
 ## Target users
 
-- General users who want to understand the network state of their device.
+- Network enthusiasts who want direct access to network observations and tools.
 - HomeLab users who need focused, repeatable local network checks.
 - Network learners who want to inspect and understand network behavior.
 - Network operations personnel and support personnel who need local diagnostic information and reports.
 
 The product is intended to assist investigation, not to replace network administrators or other qualified support personnel.
+
+Task 135 experience clarification (2026-10-22): prioritize directly
+inspectable network measurements, efficient technical workflows, and
+explanations available when useful. Clear labels, units, and accessible
+controls support exploration and learning at different levels of experience.
 
 ## Product principles
 
@@ -37,10 +42,28 @@ The product is intended to assist investigation, not to replace network administ
 
 ## User experience principle
 
-LinkBeacon combines an understandable experience for general users with professional-level underlying capabilities:
+LinkBeacon prioritizes professional evidence and efficient operation, with technical
+explanations and troubleshooting guidance available on demand:
 
-- By default, show network status, the result of the check, and a simple explanation.
-- Allow advanced information to be expanded when needed, including raw detection data, technical parameters, and detailed results.
+- Keep network terminology, real measured parameters and important evidence easy
+  to inspect; use concise summaries without obscuring key technical facts.
+- Show connection, permission, request failure, cache and unknown states alongside
+  the affected data by default. These are evidence qualifiers, not optional tutorials.
+- Use progressive disclosure for extended technical detail and educational
+  explanations, not as a mandatory barrier to checking the main evidence.
+- Support learning as well as professional use with clear bilingual labels,
+  units, provenance, limitations and reversible troubleshooting suggestions.
+- Preserve accessibility, local-first privacy and conservative conclusions. Data
+  density must not rely on tiny text, colour alone or fabricated certainty.
+
+The Task 135 presentation hierarchy takes precedence where earlier summary-first
+UI guidance would obscure key technical evidence. It does not remove existing
+analysis functions, expand the approved v0.10.0 feature scope or authorize a
+whole-app UI rewrite.
+
+Public documentation uses professional, constructive and welcoming language.
+Describe supported workflows and evidence positively while preserving accurate
+technical limitations, learning support, accessibility and privacy.
 
 ## Functional scope
 
@@ -861,6 +884,13 @@ respective implementation tasks. The approved functional scope below is unchange
    limitations, with useful next-step diagnostics. AP count is not
    measured interference, airtime, distance, throughput or a guaranteed
    Best Channel. Keep transient SSID/BSSID observations local.
+   Follow the professional-data-first single-page
+   [Wi-Fi review specification](V0.10_STAGE_B_WIFI_DESIGN.md): retain current
+   connection and Networks / Channels, make BSSID/RSSI/band/channel easy to
+   verify, show status qualifiers by default and expand educational explanations
+   on demand. Current-connection and scanned-AP facts remain independent;
+   never invent current-link Channel Width. Task 135 is documentation only,
+   not authorization to implement B2.1/B2.2 or alter scan lifecycles.
 3. **Domain registration WHOIS / RDAP:** add an on-demand, bounded,
    validated domain lookup, RDAP-first with legacy WHOIS fallback only
    when protocol and privacy review justify it. Explain hidden/missing,

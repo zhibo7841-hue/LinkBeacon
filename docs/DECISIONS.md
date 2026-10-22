@@ -1,5 +1,39 @@
 # Decision Log
 
+## Decision: Professional evidence first with on-demand explanation
+
+- Date: 2026-10-22
+- Status: **Accepted product principle**, explicitly confirmed by the maintainer
+  in Task 135. The detailed Wi-Fi design is a review specification; proposed
+  implementation types, helper placement and UI mechanics are not Runtime approval.
+- Audience: network enthusiasts, HomeLab users, network learners and professional
+  network maintenance / operations personnel. The experience supports direct
+  technical verification, exploration and learning at different levels of experience.
+- UX: prioritize inspectable technical evidence and efficient operation, retain
+  network terminology and actual measurements, and make key facts readily available.
+  Offer technical explanations and troubleshooting suggestions on demand, with
+  clear labels, units, accessibility and appropriately qualified conclusions.
+- Status is not tutorial content: permission restrictions, request failure,
+  freshness/cache, unavailable values and source limitations stay visible with
+  the affected facts. Educational material and extended details can be expanded.
+- Presentation precedence: direct access to technical evidence takes priority
+  where earlier summary-first UI guidance would obscure it. Historical decisions
+  and delivered behavior remain documented. No existing network analysis function
+  is removed and v0.10.0's accepted scope is unchanged.
+- Public wording clarification (Task 135-R, 2026-10-23): use professional,
+  constructive and welcoming language, preserving learning support, accessibility,
+  privacy and accurate technical limitations. This is a wording revision, not a
+  feature-scope or technical-acceptance change.
+- Wi-Fi direction: a professional-data-first single page retaining current
+  connection, Networks / Channels, band/search and existing observation/refresh
+  lifecycles. Separate WifiInfo connection evidence from ScanResult observations;
+  no invented connection Channel Width, new quality score, automatic scan or
+  Best Channel verdict. See [PRODUCT_PLAN.md](PRODUCT_PLAN.md) and the
+  [Task 135 Wi-Fi review specification](V0.10_STAGE_B_WIFI_DESIGN.md).
+- Task boundary: documentation only; no B2.1/B2.2 implementation, B1/B3/B4 or
+  Stage C work, PR merge, push, version/signing/Play/release change. Stage A
+  remains Development Complete / Not RC Ready / Not Released.
+
 ## Decision: LinkBeacon v0.10.0 comprehensive tester feedback optimization
 
 - Date: 2026-10-22
