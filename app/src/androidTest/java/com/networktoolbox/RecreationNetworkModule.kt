@@ -35,13 +35,13 @@ import kotlinx.coroutines.flow.flowOf
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [NetworkModule::class])
 object RecreationNetworkModule {
-    @Provides @Singleton fun wifiScanRepository(): WifiScanRepository = object : WifiScanRepository {
+    @Provides @Singleton fun wifiScanRepository(f: RecreationFixture): WifiScanRepository = object : WifiScanRepository {
         override val snapshots = MutableStateFlow(WifiAnalyzerSnapshot(
             accessStatus = WifiScanAccessStatus.PLATFORM_RESTRICTED,
         ))
-        override suspend fun startObserving() = Unit
-        override suspend fun stopObserving() = Unit
-        override suspend fun requestRefresh() = Unit
+        override suspend fun startObserving() { f.wifiObserverStarts++ }
+        override suspend fun stopObserving() { f.wifiObserverStops++ }
+        override suspend fun requestRefresh() { f.wifiRefreshes++ }
     }
     @Provides @Singleton fun wifiAnalyzerUseCase(repository: WifiScanRepository) = WifiAnalyzerUseCase(repository)
     @Provides @Singleton fun fixture() = RecreationFixture()
@@ -119,6 +119,9 @@ object RecreationNetworkModule {
 }
 
 class RecreationFixture {
+    var wifiObserverStarts = 0
+    var wifiObserverStops = 0
+    var wifiRefreshes = 0
     val network = MutableStateFlow(NetworkContext(
         connectionType = ConnectionType.WIFI, ipv4Address = "192.168.50.20",
         ipv4PrefixLength = 24, gateway = "192.168.50.1", wifiName = "RecreationFixture",

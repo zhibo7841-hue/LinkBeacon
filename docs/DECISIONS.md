@@ -1,9 +1,48 @@
 # Decision Log
 
+## Decision: Professional evidence first with on-demand explanation
+
+- Date: 2026-10-22
+- Status: **Accepted product principle**, explicitly confirmed by the maintainer
+  in Task 135. The detailed Wi-Fi design is a review specification; proposed
+  implementation types, helper placement and UI mechanics are not Runtime approval.
+- Audience: network enthusiasts, HomeLab users, network learners and professional
+  network maintenance / operations personnel. The experience supports direct
+  technical verification, exploration and learning at different levels of experience.
+- UX: prioritize inspectable technical evidence and efficient operation, retain
+  network terminology and actual measurements, and make key facts readily available.
+  Offer technical explanations and troubleshooting suggestions on demand, with
+  clear labels, units, accessibility and appropriately qualified conclusions.
+- Status is not tutorial content: permission restrictions, request failure,
+  freshness/cache, unavailable values and source limitations stay visible with
+  the affected facts. Educational material and extended details can be expanded.
+- Presentation precedence: direct access to technical evidence takes priority
+  where earlier summary-first UI guidance would obscure it. Historical decisions
+  and delivered behavior remain documented. No existing network analysis function
+  is removed and v0.10.0's accepted scope is unchanged.
+- Public wording clarification (Task 135-R, 2026-10-23): use professional,
+  constructive and welcoming language, preserving learning support, accessibility,
+  privacy and accurate technical limitations. This is a wording revision, not a
+  feature-scope or technical-acceptance change.
+- Wi-Fi direction: a professional-data-first single page retaining current
+  connection, Networks / Channels, band/search and existing observation/refresh
+  lifecycles. Separate WifiInfo connection evidence from ScanResult observations;
+  no invented connection Channel Width, new quality score, automatic scan or
+  Best Channel verdict. See [PRODUCT_PLAN.md](PRODUCT_PLAN.md) and the
+  [Task 135 Wi-Fi review specification](V0.10_STAGE_B_WIFI_DESIGN.md).
+- Task boundary: documentation only; no B2.1/B2.2 implementation, B1/B3/B4 or
+  Stage C work, PR merge, push, version/signing/Play/release change. Stage A
+  remains Development Complete / Not RC Ready / Not Released.
+
 ## Decision: LinkBeacon v0.10.0 comprehensive tester feedback optimization
 
 - Date: 2026-10-22
-- Status: **Accepted planning scope / development not yet implemented or released**.
+- Status: **Accepted scope.** Task 134 progress checkpoint (2026-10-22): Stage A
+  **Development Complete**; Stage B technical design/preparation only, not Runtime
+  implementation. **Not RC Ready / Not Released.** See the canonical
+  [product progress](PRODUCT_PLAN.md#v0100--comprehensive-tester-feedback-optimization)
+  and [Stage A audit](V0.10_STAGE_A_AUDIT.md). This updates execution status, not
+  the accepted scope; proposed Stage B technical choices are not new accepted decisions.
 - Maintainer approval: approve v0.10.0 as the next coordinated tester-feedback and network-diagnostic improvement release. This supersedes the earlier **historical** “v0.10.0 not approved” checkpoint statements. v0.9.1 remains released, signed and frozen; no present Play track, AAB, pricing, enrollment or Production setting changes.
 - Main delivery: **Stages A and B are planned Must Have goals**. Stage A covers Quick Tools/Tools responsive, equally aligned cards; recognized/unknown LAN identity filtering with accurate counts and preserved scan boundaries; user-directed local TXT and Markdown export of live/stored automatic-diagnosis reports; clear evidence-based troubleshooting explanations; focused History reliability review/fixes supported by evidence. Stage B covers conservative ESP32/ESP8266/smart-home discovery based on observed PTR/mDNS/SSDP/UPnP evidence; Wi-Fi signal and observed-channel explanation; an explicit bounded RDAP-first WHOIS/domain-registration query tool; and redacted, bilingual local export/copy/PDF sharing for Website/TLS live and saved snapshots.
 - Acceptance gate for A/B: do not claim device/vendor certainty, precise RF channel load, best channel, full domain-data coverage or definitive network fault diagnosis. If a Must Have cannot be made safe, privacy-compliant and verifiably usable, stop for explicit maintainer deferral/change decision rather than silently shipping a weakened feature.

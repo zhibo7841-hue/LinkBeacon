@@ -11,6 +11,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.networktoolbox.core.network.model.ConnectionType
@@ -57,7 +60,7 @@ class WifiAnalyzerScreenTest {
         compose.onNodeWithText(compose.activity.getString(R.string.shell_tools)).performClick()
         val title = compose.activity.getString(com.networktoolbox.feature.dashboard.R.string.home_wifi_analyzer)
         compose.onNodeWithText(title).performScrollTo().performClick()
-        compose.onNodeWithTag("wifi_view_CHANNELS").performClick()
+        compose.onNodeWithTag("wifi_view_CHANNELS").performScrollTo().performClick()
         compose.onNodeWithTag("wifi_search").assertDoesNotExist()
         compose.activityRule.scenario.recreate()
         compose.onNodeWithTag("wifi_search").assertDoesNotExist()
@@ -115,15 +118,18 @@ class WifiAnalyzerScreenTest {
             .performScrollTo().assertIsDisplayed()
     }
 
-    @Test fun compactTwentyApListHidesDetailsUntilWholeCardIsTapped() {
+    @Test fun twentyApListShowsBssidByDefaultAndExpandsAdditionalTechnicalFields() {
         val baseline = snapshot(WifiScanFreshness.CACHED)
         val aps = (0 until 24).map { index -> ap("AP-$index",
-            "aa:bb:cc:dd:ee:${index.toString(16).padStart(2, '0')}", false) }
+            "aa:bb:cc:dd:ee:${index.toString(16).padStart(2, '0')}", false).copy(centerFrequency0Mhz = 5210) }
         render(WifiAnalyzerUiState(snapshot = baseline.copy(scanBatch = baseline.scanBatch!!.copy(observations = aps))))
-        compose.onNodeWithText("AP-0").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("BSSID").assertDoesNotExist()
+        compose.onNode(hasScrollToIndexAction(), useUnmergedTree = true).performScrollToNode(hasText("AP-0"))
+        compose.onNodeWithText("AP-0", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("BSSID: AA:BB:CC:DD:EE:00", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
+        val center = compose.activity.getString(com.networktoolbox.feature.wifi.R.string.wifi_center_frequency_0) + ": 5210 MHz"
+        compose.onNodeWithText(center, useUnmergedTree = true).assertDoesNotExist()
         compose.onAllNodesWithTag("wifi_ap").onFirst().performClick()
-        compose.onNodeWithText("BSSID").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText(center, useUnmergedTree = true).performScrollTo().assertIsDisplayed()
     }
 
     @Test fun channelViewIgnoresNearbySearchAndShowsShortLabels() {
@@ -141,7 +147,9 @@ class WifiAnalyzerScreenTest {
         render(WifiAnalyzerUiState(snapshot = baseline.copy(scanBatch = baseline.scanBatch!!.copy(
             newestPlatformTimestampElapsedMs = observed))))
         compose.onNodeWithText(compose.activity.getString(
-            com.networktoolbox.feature.wifi.R.string.wifi_cached_minutes, 36)).assertIsDisplayed()
+            com.networktoolbox.feature.wifi.R.string.wifi_cached)).assertIsDisplayed()
+        compose.onNodeWithText(compose.activity.getString(com.networktoolbox.feature.wifi.R.string.wifi_batch_observation_time,
+            compose.activity.getString(com.networktoolbox.feature.wifi.R.string.wifi_updated_minutes, 36))).performScrollTo().assertIsDisplayed()
     }
 
     @Test fun signalAndExpandRetainSpokenSemantics() {
@@ -160,15 +168,15 @@ class WifiAnalyzerScreenTest {
             compose.activity.setContent {
                 NetworkToolboxTheme {
                     WifiAnalyzerScreen(WifiAnalyzerUiState(snapshot = snapshot(WifiScanFreshness.CACHED),
-                        selectedView = selected), {}, { refreshes++ }, {}, {}, {}, {}, {}, {},
+                        selectedView = selected, ready = true), {}, { refreshes++ }, {}, {}, {}, {}, {}, {},
                         onSelectView = { selected = it })
                 }
             }
         }
         compose.waitForIdle()
-        compose.onNodeWithTag("wifi_view_CHANNELS").performClick()
+        compose.onNodeWithTag("wifi_view_CHANNELS").performScrollTo().performClick()
         compose.onNodeWithText("CH 36", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
-        compose.onNodeWithTag("wifi_view_NETWORKS").performClick()
+        compose.onNodeWithTag("wifi_view_NETWORKS").performScrollTo().performClick()
         compose.onNodeWithTag("wifi_search").assertIsDisplayed()
         assertEquals(0, refreshes)
     }
@@ -182,7 +190,8 @@ class WifiAnalyzerScreenTest {
         }
         render(WifiAnalyzerUiState(snapshot = baseline.copy(scanBatch = baseline.scanBatch!!.copy(observations = aps))))
         grades.forEachIndexed { index, (grade, _) ->
-            compose.onNodeWithText("Grade-$index").performScrollTo().assertIsDisplayed()
+            compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Grade-$index"))
+            compose.onNodeWithText("Grade-$index", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
             compose.onNodeWithTag("wifi_signal_${grade.name}", useUnmergedTree = true).assertExists()
         }
     }
@@ -255,7 +264,7 @@ class WifiAnalyzerScreenTest {
             compose.activity.setContent {
                 NetworkToolboxTheme {
                     WifiAnalyzerScreen(
-                        WifiAnalyzerUiState(snapshot = baseline.copy(scanBatch = baseline.scanBatch!!.copy(observations = aps))),
+                        WifiAnalyzerUiState(snapshot = baseline.copy(scanBatch = baseline.scanBatch!!.copy(observations = aps)), ready = true),
                         {}, { refreshes++ }, {}, { selectedFilter = it }, {}, {}, {}, {},
                     )
                 }
@@ -264,7 +273,7 @@ class WifiAnalyzerScreenTest {
         compose.waitForIdle()
         assertEquals(2, aps.size)
         compose.onAllNodesWithText("Mesh").onFirst().performScrollTo().assertIsDisplayed()
-        compose.onNodeWithTag("wifi_filter_BAND_6_GHZ").performClick()
+        compose.onNodeWithTag("wifi_filter_BAND_6_GHZ").performScrollTo().performClick()
         assertEquals(com.networktoolbox.core.network.wifi.WifiBandFilter.BAND_6_GHZ, selectedFilter)
         assertEquals(0, refreshes)
     }
@@ -290,7 +299,7 @@ class WifiAnalyzerScreenTest {
         onLocation: () -> Unit = {},
         onWifi: () -> Unit = {},
     ) {
-        var currentState by androidx.compose.runtime.mutableStateOf(state)
+        var currentState by androidx.compose.runtime.mutableStateOf(state.copy(ready = true))
         compose.activity.runOnUiThread {
             compose.activity.setContent {
                 NetworkToolboxTheme {
