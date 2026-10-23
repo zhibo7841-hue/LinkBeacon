@@ -48,6 +48,8 @@ data class LanDeviceCardPresentation(
     val quickWake: QuickWakePresentation? = null,
     val deviceType: DeviceType? = null,
     val deviceTypeIcon: DeviceTypeIcon = DeviceTypeIcon.GENERIC,
+    val recognition: LanRecognitionDevicePresentation? = null,
+    val savedIdentitySummary: Boolean = false,
 )
 
 /** Stable presentation tokens; Compose maps these to Material icons. */
@@ -127,6 +129,9 @@ data class DeviceDetailPresentation(
     val isFavorite: Boolean,
     val canToggleFavorite: Boolean,
     val wakeOnLan: WakeOnLanDetailPresentation = WakeOnLanDetailPresentation.notConfigured(),
+    val recognition: LanRecognitionDevicePresentation? = null,
+    val savedIdentityFields: Set<String> = emptySet(),
+    val hostnameSource: UiText? = null,
 ) {
     /** Derived labels keep the star, status text, and accessibility semantics aligned. */
     val favoriteStatusLabel: UiText
@@ -309,6 +314,7 @@ object DeviceCenterPresentation {
         context: NetworkContext,
         includeUnseenFavorites: Boolean = true,
         unseenEvidence: UiText = UiText(R.string.lan_not_found),
+        recognition: Map<String, LanRecognitionDevicePresentation> = emptyMap(),
     ): List<DeviceCenterDeviceItem> {
         val scope = LanNetworkScope.from(context)
         val scopedFavorites = favorites.filter { it.networkScope == scope }
@@ -327,7 +333,7 @@ object DeviceCenterPresentation {
                 observedThisScan = true,
                 isFavorite = favorite?.isFavorite == true,
                 detailKey = detailKey,
-                card = card(device, favorite),
+                card = card(device, favorite).copy(recognition = recognition[device.ipAddress]),
             )
         }
         val observedFavoriteKeys = observedItems.mapNotNull { it.favorite?.let(::favoriteKey) }.toSet()
@@ -406,16 +412,16 @@ object DeviceCenterPresentation {
         val identity = device.identity
         val role = deviceRole(device)
             ?: favorite?.let(::favoriteRole)
-        val mdnsNames = device.mdnsObservations
+        val currentMdnsNames = device.mdnsObservations
             .flatMap { observation -> listOf(observation.serviceName, observation.hostname.orEmpty()) }
             .map(String::trim)
             .filter(String::isNotBlank)
             .distinct()
-            .ifEmpty { listOfNotNull(favorite?.lastKnownMdnsName) }
-        val upnpNames = device.upnpObservations
+        val mdnsNames = currentMdnsNames.ifEmpty { listOfNotNull(favorite?.lastKnownMdnsName) }
+        val currentUpnpNames = device.upnpObservations
             .mapNotNull { it.friendlyName?.trim()?.takeIf(String::isNotBlank) }
             .distinct()
-            .ifEmpty { listOfNotNull(favorite?.lastKnownUpnpName) }
+        val upnpNames = currentUpnpNames.ifEmpty { listOfNotNull(favorite?.lastKnownUpnpName) }
         return DeviceDetailPresentation(
             detailKey = detailKey,
             displayName = deviceDisplayName(device, favorite),
@@ -452,6 +458,21 @@ object DeviceCenterPresentation {
                 savedNetworkScope = favorite?.networkScope,
                 context = wakeOnLanContext ?: context,
             ),
+            savedIdentityFields = buildSet {
+                if (identity.manufacturer == null && favorite?.vendor != null) add("vendor")
+                if (identity.modelName == null && identity.modelDescription == null && identity.modelNumber == null && favorite?.model != null) add("model")
+                if (identity.hostname == null && favorite?.lastKnownHostname != null) add("hostname")
+                if (currentMdnsNames.isEmpty() && favorite?.lastKnownMdnsName != null) add("mdns")
+                if (currentUpnpNames.isEmpty() && favorite?.lastKnownUpnpName != null) add("upnp")
+            },
+            hostnameSource = identity.hostname?.source?.let { source -> UiText(when (source) {
+                LanIdentitySource.REVERSE_DNS -> if (device.hostNameSource ==
+                    com.networktoolbox.feature.lanscan.domain.model.LanDeviceNameSource.REVERSE_DNS)
+                    R.string.lan_recognition_ptr else R.string.lan_recognition_not_recorded
+                LanIdentitySource.MDNS -> R.string.lan_recognition_mdns
+                LanIdentitySource.UPNP -> R.string.lan_recognition_upnp
+                LanIdentitySource.IP_FALLBACK -> R.string.lan_recognition_scan
+            }) },
         )
     }
 
@@ -496,6 +517,7 @@ object DeviceCenterPresentation {
             savedNetworkScope = favorite.networkScope,
             context = wakeOnLanContext ?: context,
         ),
+        savedIdentityFields = setOf("vendor", "model", "hostname", "mdns", "upnp"),
     )
 
     private fun card(device: LanDevice, favorite: FavoriteDevice?): LanDeviceCardPresentation =
@@ -528,6 +550,7 @@ object DeviceCenterPresentation {
             identitySummary = listOfNotNull(favorite.vendor, favorite.model)
                 .joinToString(" · ")
                 .takeIf(String::isNotBlank),
+            savedIdentitySummary = true,
             evidence = evidence,
             role = favoriteRole(favorite),
             macAddress = favorite.macAddress,

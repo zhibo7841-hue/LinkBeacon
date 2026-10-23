@@ -404,6 +404,7 @@ class MainActivity : AppCompatActivity() {
             val savedWebHistoryState by savedWebDiagnosticsHistoryViewModel.uiState.collectAsState()
             val subnetUiState by subnetViewModel.uiState.collectAsState()
             val lanScannerUiState by lanScannerViewModel.uiState.collectAsState()
+            val lanRecognition by lanScannerViewModel.recognition.collectAsState()
             val savedDeviceProfiles by lanScannerViewModel.savedProfiles.collectAsState()
             val deviceProfileEditState by lanScannerViewModel.deviceProfileEditState.collectAsState()
             val deviceCenterSearchState by lanScannerViewModel.deviceCenterSearchState.collectAsState()
@@ -745,6 +746,7 @@ class MainActivity : AppCompatActivity() {
                                 )
                                 TopLevelDestination.DEVICES -> LanDeviceCenterScreen(
                                     uiState = lanScannerUiState,
+                                    recognition = lanRecognition,
                                     listState = deviceCenterListState,
                                     favorites = savedDeviceProfiles,
                                     searchState = deviceCenterSearchState,
@@ -900,6 +902,7 @@ class MainActivity : AppCompatActivity() {
                             )
                             ToolScreen.LAN_SCAN -> LanScannerScreen(
                                 uiState = lanScannerUiState,
+                                recognition = lanRecognition,
                                 scrollState = lanScannerScrollState,
                                 savedProfiles = savedDeviceProfiles,
                                 onStartScan = lanScannerViewModel::startScan,
@@ -928,6 +931,7 @@ class MainActivity : AppCompatActivity() {
                                 detail = lanScannerViewModel.resolveDeviceDetail(
                                     routeKey = navigationState.deviceDetailKey,
                                     favorites = savedDeviceProfiles,
+                                    recognitionSnapshot = lanRecognition,
                                 ),
                                 scrollState = deviceDetailScrollState,
                                 favoriteErrorMessage = favoriteActionError,

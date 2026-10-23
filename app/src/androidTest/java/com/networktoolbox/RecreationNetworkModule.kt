@@ -58,7 +58,7 @@ object RecreationNetworkModule {
                 f.finishScan.await()
                 val range = (LanScanRangeCalculator().calculate(f.network.value) as LanScanRangeResult.Ready).range
                 return LanScanSession(LanScanStatus.COMPLETED, f.network.value, range,
-                    range.hostCount, range.hostCount, emptyList(), 1, 2)
+                    range.hostCount, range.hostCount, f.scanDevices, 1, 2)
             }
         }, h)
     @Provides fun reverse(): ReverseDnsEnricher = ReverseDnsEnricher { _, _ -> }
@@ -130,11 +130,13 @@ class RecreationFixture {
     ))
     var pingStarts = 0
     var scanStarts = 0
+    var scanDevices: List<LanDevice> = emptyList()
     var wakeSends = 0
     var diagnosticStarts = 0
     var tlsStarts = 0
     var websiteStarts = 0
     var profileWrites = 0
+    var profileLookupEnabled = false
     val finishScan = CompletableDeferred<Unit>()
     val finishDiagnostic = CompletableDeferred<Unit>()
     val profiles = MutableStateFlow((1..25).map { index ->

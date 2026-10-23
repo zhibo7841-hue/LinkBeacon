@@ -69,6 +69,7 @@ fun LanScannerScreen(
     isTopLevelDestination: Boolean = false,
     onOpenMenu: () -> Unit = {},
     scrollState: ScrollState? = null,
+    recognition: com.networktoolbox.feature.lanscan.presentation.LanRecognitionSnapshot? = null,
 ) {
     var identityFilter by rememberSaveable { mutableStateOf(DeviceCenterFilter.ALL) }
     ToolScreenLayout(
@@ -117,6 +118,7 @@ fun LanScannerScreen(
 
             is LanScannerUiState.Completed -> SessionContent(
                 session = state.session,
+                recognition = recognition?.forSession(state.session).orEmpty(),
                 onRescan = onRetry,
                 onModifyRange = onModifyRange,
                 savedProfiles = savedProfiles,
@@ -364,6 +366,7 @@ private fun SessionContent(
     savedProfiles: List<FavoriteDevice>,
     identityFilter: DeviceCenterFilter,
     onIdentityFilterChanged: (DeviceCenterFilter) -> Unit,
+    recognition: Map<String, com.networktoolbox.feature.lanscan.presentation.LanRecognitionDevicePresentation> = emptyMap(),
 ) {
     LanScanSessionSummaryCard(session = session)
     LanScanRescanButton(onRescan = onRescan)
@@ -372,6 +375,7 @@ private fun SessionContent(
     }
     DeviceList(
         devices = session.discoveredDevices,
+        recognition = recognition,
         context = session.initialNetworkContext,
         savedProfiles = savedProfiles,
         identityFilter = identityFilter,
@@ -459,12 +463,14 @@ private fun DeviceList(
     savedProfiles: List<FavoriteDevice>,
     identityFilter: DeviceCenterFilter,
     onIdentityFilterChanged: (DeviceCenterFilter) -> Unit,
+    recognition: Map<String, com.networktoolbox.feature.lanscan.presentation.LanRecognitionDevicePresentation> = emptyMap(),
 ) {
     val deviceItems = DeviceCenterPresentation.deviceList(
         devices = devices,
         favorites = savedProfiles,
         context = context,
         includeUnseenFavorites = false,
+        recognition = recognition,
     )
     if (deviceItems.isEmpty()) return
 

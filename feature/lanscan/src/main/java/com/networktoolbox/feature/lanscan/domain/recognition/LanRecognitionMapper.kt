@@ -24,6 +24,7 @@ object LanRecognitionMapper {
     private const val MAX_TXT_KEY_LENGTH = 64
     private const val ESPHOME_SERVICE = "_esphomelib._tcp"
     private val serviceTypePattern = Regex("_[a-z0-9-]+\\._(?:tcp|udp)")
+    private val upnpServiceTypePattern = Regex("urn:[A-Za-z0-9.-]+:service:[A-Za-z0-9_.-]+:[1-9][0-9]*", RegexOption.IGNORE_CASE)
     private val espToken = Regex("(?<![\\p{L}\\p{N}\\p{M}])esp(?:32|8266)(?![\\p{L}\\p{N}\\p{M}])", RegexOption.IGNORE_CASE)
     private val negatedEspToken = Regex("(?<![\\p{L}\\p{N}\\p{M}])(?:not|no|non)[ ._-]+esp(?:32|8266)(?![\\p{L}\\p{N}\\p{M}])", RegexOption.IGNORE_CASE)
     private val allowedTxt = setOf("platform", "board", "friendly_name", "version")
@@ -181,6 +182,21 @@ object LanRecognitionMapper {
         }
 
         fun upnp(observation: LanUpnpObservation) {
+            // Expose already collected service types, never URLs/UDNs or inferred hardware.
+            // The caller's existing per-record generation/network/time checks also guard these rows.
+            observation.services.forEach { service ->
+                safeText(service.serviceType)?.let { type ->
+                    if (!upnpServiceTypePattern.matches(type)) {
+                        limitations += LanRecognitionLimitation.INVALID_VALUE_IGNORED
+                        return@let
+                    }
+                    val ref = reference(LanRecognitionSource.UPNP, LanRecognitionField.SERVICE,
+                        listOf(type), observation.observedAt)
+                    add(LanRecognitionHint(LanRecognitionCode.SERVICE_ADVERTISED,
+                        LanRecognitionCategory.OBSERVED_SERVICE, LanRecognitionDimension.SERVICE,
+                        LanRecognitionArguments.Service(type, null, null), listOf(ref)))
+                }
+            }
             val fields = listOf(
                 Triple(observation.friendlyName, LanRecognitionCode.FRIENDLY_NAME_REPORTED, LanRecognitionDimension.NAME),
                 Triple(observation.manufacturer, LanRecognitionCode.MANUFACTURER_REPORTED, LanRecognitionDimension.MANUFACTURER),

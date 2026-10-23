@@ -60,6 +60,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
+import com.networktoolbox.feature.lanscan.domain.recognition.LanRecognitionContext
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -78,6 +82,11 @@ class LanScannerViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<LanScannerUiState>(LanScannerUiState.Idle)
     val uiState: StateFlow<LanScannerUiState> = _uiState.asStateFlow()
+    private val recognitionContext = MutableStateFlow<LanRecognitionContext?>(null)
+    private val recognitionProjector = LanRecognitionProjector()
+    val recognition: StateFlow<LanRecognitionSnapshot?> = combine(_uiState, recognitionContext) { state, current ->
+        recognitionProjector.snapshot(state, current)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val _favoriteDevices = MutableStateFlow<List<FavoriteDevice>>(emptyList())
     val favoriteDevices: StateFlow<List<FavoriteDevice>> = _favoriteDevices.asStateFlow()
     private val _savedProfiles = MutableStateFlow<List<FavoriteDevice>>(emptyList())
@@ -136,6 +145,10 @@ class LanScannerViewModel @Inject constructor(
                     updateSearchState(DeviceCenterSearchState())
                 }
                 latestReadiness = readiness
+                // Live readiness + VM-owned generation, never a token reconstructed from old results.
+                recognitionContext.value = if (readiness.rangeResult is LanScanRangeResult.Ready) {
+                    LanRecognitionContext(scanGeneration, LanNetworkFingerprint.from(readiness.networkContext))
+                } else null
                 val state = _uiState.value
                 if (enrichmentNetworkContext?.let {
                         !LanNetworkFingerprint.matches(it, readiness.networkContext)
@@ -452,12 +465,13 @@ class LanScannerViewModel @Inject constructor(
     fun resolveDeviceDetail(
         routeKey: String?,
         favorites: List<FavoriteDevice> = _savedProfiles.value,
+        recognitionSnapshot: LanRecognitionSnapshot? = recognition.value,
     ): DeviceDetailPresentation? {
         val parsed = LanDeviceDetailRouteKey.parse(routeKey) ?: return null
         val context = currentNetworkContext() ?: return null
         val scope = LanNetworkScope.from(context)
         val devices = currentDevices()
-        return when (parsed) {
+        val detail = when (parsed) {
             is LanDeviceDetailRouteKey.Parsed.Observed -> {
                 if (parsed.networkScope != null && parsed.networkScope != scope) return null
                 val device = devices.firstOrNull { current ->
@@ -517,6 +531,10 @@ class LanScannerViewModel @Inject constructor(
                 }
             }
         }
+        val session = (_uiState.value as? LanScannerUiState.Completed)?.session
+        return detail.copy(recognition = if (detail.observedThisScan && session != null) {
+            recognitionSnapshot?.forSession(session)?.get(detail.ipAddress)
+        } else null)
     }
 
     /** Starts one unified edit session. Recomposition keeps the existing draft intact. */
@@ -1301,6 +1319,8 @@ class LanScannerViewModel @Inject constructor(
 
     private fun beginNewScanGeneration(): Long {
         scanGeneration += 1L
+        recognitionContext.value = latestReadiness?.takeIf { it.rangeResult is LanScanRangeResult.Ready }
+            ?.let { LanRecognitionContext(scanGeneration, LanNetworkFingerprint.from(it.networkContext)) }
         activeScanGeneration = scanGeneration
         invalidateEnrichment()
         // One token guards both the scan callbacks and post-discovery

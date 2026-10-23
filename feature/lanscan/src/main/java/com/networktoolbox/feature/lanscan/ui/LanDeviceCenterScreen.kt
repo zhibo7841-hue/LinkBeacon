@@ -82,6 +82,7 @@ fun LanDeviceCenterScreen(
     onQuickWake: (String) -> Unit = {},
     deviceDetailEvents: Flow<DeviceDetailEvent> = emptyFlow(),
     listState: LazyListState? = null,
+    recognition: com.networktoolbox.feature.lanscan.presentation.LanRecognitionSnapshot? = null,
 ) {
     val savedProfileEvidence = stringResource(R.string.lan_scan_saved_not_scanned)
     val waitingProfileEvidence = stringResource(R.string.lan_scan_waiting_saved)
@@ -96,6 +97,7 @@ fun LanDeviceCenterScreen(
         notFoundProfileEvidence = notFoundProfileEvidence,
         unfinishedProfileEvidence = unfinishedProfileEvidence,
         localizedTypeNames = localizedDeviceTypeNames(),
+        recognition = recognition,
     )
     val hasSearchOrFilter = searchState.query.trim().isNotEmpty() ||
         searchState.filter != DeviceCenterFilter.ALL
@@ -372,6 +374,7 @@ private fun deviceCenterVisibleItems(
     notFoundProfileEvidence: String,
     unfinishedProfileEvidence: String,
     localizedTypeNames: Map<DeviceType, String>,
+    recognition: com.networktoolbox.feature.lanscan.presentation.LanRecognitionSnapshot?,
 ): DeviceCenterVisibleItems? {
     val baseItems: List<DeviceCenterDeviceItem>
     val notDiscoveredAvailable: Boolean
@@ -411,6 +414,7 @@ private fun deviceCenterVisibleItems(
                 context = state.session.initialNetworkContext,
                 includeUnseenFavorites = true,
                 unseenEvidence = UiText(notFoundProfileEvidence),
+                recognition = recognition?.forSession(state.session).orEmpty(),
             )
             notDiscoveredAvailable = true
         }

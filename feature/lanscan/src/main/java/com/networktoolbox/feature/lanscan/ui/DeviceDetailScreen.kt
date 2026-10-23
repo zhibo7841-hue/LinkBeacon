@@ -217,20 +217,34 @@ fun DeviceDetailScreen(
                 ToolResultRow(detail.addressLabel.resolve(), it)
             }
             detail.macAddress?.takeIf(String::isNotBlank)?.let { ToolResultRow("MAC", it) }
-            detail.vendor?.takeIf(String::isNotBlank)?.let { ToolResultRow(stringResource(R.string.lan_vendor), it) }
-            detail.model?.takeIf(String::isNotBlank)?.let { ToolResultRow(stringResource(R.string.lan_model), it) }
+            detail.vendor?.takeIf(String::isNotBlank)?.let {
+                ToolResultRow(identityFieldLabel(detail, "vendor", R.string.lan_vendor, R.string.lan_recognition_upnp), it)
+            }
+            detail.model?.takeIf(String::isNotBlank)?.let {
+                ToolResultRow(identityFieldLabel(detail, "model", R.string.lan_model, R.string.lan_recognition_upnp), it)
+            }
         }
 
         if (detail.hostname != null || detail.mdnsNames.isNotEmpty() || detail.upnpNames.isNotEmpty()) {
             DeviceDetailSection(title = stringResource(R.string.lan_identity)) {
-                detail.hostname?.takeIf(String::isNotBlank)?.let { ToolResultRow(stringResource(R.string.lan_hostname), it) }
+                detail.hostname?.takeIf(String::isNotBlank)?.let {
+                    val label = if ("hostname" in detail.savedIdentityFields) {
+                        stringResource(R.string.lan_recognition_saved_field, stringResource(R.string.lan_hostname))
+                    } else stringResource(R.string.lan_recognition_current_field, stringResource(R.string.lan_hostname),
+                        detail.hostnameSource?.resolve() ?: stringResource(R.string.lan_recognition_not_recorded))
+                    ToolResultRow(label, it)
+                }
                 if (detail.mdnsNames.isNotEmpty()) {
-                    ToolResultRow("mDNS", detail.mdnsNames.joinToString("\n"))
+                    ToolResultRow(identityFieldLabel(detail, "mdns", R.string.lan_recognition_name, R.string.lan_recognition_mdns), detail.mdnsNames.joinToString("\n"))
                 }
                 if (detail.upnpNames.isNotEmpty()) {
-                    ToolResultRow("UPnP", detail.upnpNames.joinToString("\n"))
+                    ToolResultRow(identityFieldLabel(detail, "upnp", R.string.lan_recognition_name, R.string.lan_recognition_upnp), detail.upnpNames.joinToString("\n"))
                 }
             }
+        }
+
+        detail.recognition?.let { recognition ->
+            LanRecognitionDetails(recognition, detail.detailKey + recognition.result.hashCode())
         }
 
         DeviceDetailSection(
@@ -505,6 +519,12 @@ private fun DeviceDetailSection(
         )
     }
 }
+
+@Composable
+private fun identityFieldLabel(detail: DeviceDetailPresentation, field: String, label: Int, source: Int): String =
+    if (field in detail.savedIdentityFields) {
+        stringResource(R.string.lan_recognition_saved_field, stringResource(label))
+    } else stringResource(R.string.lan_recognition_reported_label, stringResource(label), stringResource(source))
 
 private fun formatTimestamp(timestamp: Long): String = DateFormat
     .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault())

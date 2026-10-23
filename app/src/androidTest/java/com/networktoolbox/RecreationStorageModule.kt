@@ -3,6 +3,9 @@ package com.networktoolbox
 import com.networktoolbox.core.common.favorites.NoOpSavedDeviceRepository
 import com.networktoolbox.core.common.favorites.SavedDeviceRepository
 import com.networktoolbox.core.common.favorites.DeviceType
+import com.networktoolbox.core.common.favorites.FavoriteDeviceCandidate
+import com.networktoolbox.core.common.favorites.FavoriteIdentityMatcher
+import com.networktoolbox.core.common.favorites.associatedProfileOrNull
 import com.networktoolbox.core.common.history.*
 import com.networktoolbox.core.database.DatabaseModule
 import dagger.Module
@@ -21,6 +24,9 @@ object RecreationStorageModule {
     @Provides fun recorder(history: RecreationHistory): HistoryRecorder = HistoryRecorder { history.save(it) }
     @Provides fun profiles(f: RecreationFixture): SavedDeviceRepository = object : SavedDeviceRepository by NoOpSavedDeviceRepository {
         override fun observeProfiles() = f.profiles
+        override suspend fun findMatching(candidate: FavoriteDeviceCandidate) =
+            if (f.profileLookupEnabled) FavoriteIdentityMatcher.match(f.profiles.value, candidate).associatedProfileOrNull()
+            else null
         override suspend fun setEditableProfile(id: Long, customName: String?, deviceType: DeviceType?, notes: String?) {
             check(f.profiles.value.any { it.id == id })
             f.profileWrites++

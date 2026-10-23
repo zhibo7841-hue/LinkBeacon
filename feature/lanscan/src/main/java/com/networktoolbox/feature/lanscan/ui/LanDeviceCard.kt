@@ -128,12 +128,22 @@ fun LanDeviceCard(
                 presentation.ipAddress.takeIf(String::isNotBlank)?.let { ip ->
                     Text(ip, style = NetworkToolboxTextStyles.TechnicalData)
                 }
-                presentation.identitySummary?.let { identity ->
+                val recognitionSummary = presentation.recognition?.summary
+                val identityText = recognitionSummary ?: presentation.identitySummary?.let { identity ->
+                    UiText(if (presentation.savedIdentitySummary) R.string.lan_recognition_saved_summary
+                        else R.string.lan_recognition_upnp_summary, identity)
+                }
+                identityText?.let { identity ->
                     Text(
-                        identity,
+                        identity.resolve(),
+                        modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
+                }
+                if (presentation.recognition?.result?.limitations?.contains(
+                        com.networktoolbox.feature.lanscan.domain.recognition.LanRecognitionLimitation.OUTPUT_LIMIT_REACHED) == true) {
+                    Text(stringResource(R.string.lan_recognition_truncated), style = MaterialTheme.typography.bodySmall)
                 }
                 presentation.evidence?.let { evidence ->
                     Text(
