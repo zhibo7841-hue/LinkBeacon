@@ -24,6 +24,9 @@ fun interface ReverseDnsResolver {
         onStarted()
         return resolve(ipAddress)
     }
+
+    suspend fun resolve(ipAddress: String, onStarted: () -> Unit, onFinished: () -> Unit): ReverseDnsResolution =
+        try { resolve(ipAddress, onStarted) } finally { onFinished() }
 }
 
 sealed interface ReverseDnsResolution {
@@ -57,6 +60,16 @@ fun interface ReverseDnsEnricher {
         devices: List<LanDevice>,
         onResult: (ReverseDnsEnrichmentResult) -> Unit,
     )
+
+    /** Single admitted host; production hooks follow physical execution, not queue admission. */
+    suspend fun enrichGuarded(
+        device: LanDevice,
+        onStarted: () -> Unit,
+        onFinished: () -> Unit,
+        onResult: (ReverseDnsEnrichmentResult) -> Unit,
+    ) {
+        try { onStarted(); enrich(listOf(device), onResult) } finally { onFinished() }
+    }
 }
 
 /**
@@ -121,15 +134,25 @@ class DefaultReverseDnsEnricher(
         }.joinAll()
     }
 
+    override suspend fun enrichGuarded(
+        device: LanDevice,
+        onStarted: () -> Unit,
+        onFinished: () -> Unit,
+        onResult: (ReverseDnsEnrichmentResult) -> Unit,
+    ) = enrichDevice(device, onStarted, onFinished, onResult)
+
     private suspend fun enrichDevice(
         device: LanDevice,
+        onStarted: () -> Unit = {},
+        onFinished: () -> Unit = {},
         onResult: (ReverseDnsEnrichmentResult) -> Unit,
     ) = coroutineScope {
         val lookupFinished = AtomicBoolean(false)
         val resultGate = Any()
         val deadline = AtomicReference<Job?>()
         val result = try {
-            resolver.resolve(device.ipAddress) {
+            resolver.resolve(device.ipAddress, onStarted = {
+                onStarted()
                 val timer = launch {
                     delay(visibleDeadlineMs)
                     synchronized(resultGate) {
@@ -142,7 +165,7 @@ class DefaultReverseDnsEnricher(
                 }
                 deadline.set(timer)
                 if (lookupFinished.get()) timer.cancel()
-            }
+            }, onFinished = onFinished)
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {

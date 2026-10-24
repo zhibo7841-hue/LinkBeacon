@@ -298,7 +298,7 @@ class LanProgressiveReducerTest {
             .copy(hostName = "not-discovery-owned", macAddress = "02:11:22:33:44:55")
         val f = FixtureSession()
         f.frame(LanDiscoveryObservation.from(device))
-        assertTrue(f.task().observations.isEmpty())
+        assertTrue(f.state.hosts.getValue(IP).names.isEmpty())
         assertFalse(f.state.hosts.toString().contains("not-discovery-owned"))
         assertEquals(device.macAddress, f.state.hosts.getValue(IP).discovery.macAddress)
     }

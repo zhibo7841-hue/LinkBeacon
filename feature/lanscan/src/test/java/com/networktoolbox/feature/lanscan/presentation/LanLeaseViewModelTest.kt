@@ -13,6 +13,23 @@ import org.junit.Assert.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LanLeaseViewModelTest {
+    @Test fun `stop during baseline identity await rejects subsequent profile write`() = runTest {
+        val release = CompletableDeferred<Unit>(); var writes = 0
+        val profile = LanFavoriteIdentity.createSavedProfile(F.device(), F.network, 1)!!
+        val repository = object : SavedDeviceRepository by NoOpSavedDeviceRepository {
+            override suspend fun findIdentityMatch(candidate: FavoriteDeviceCandidate): DeviceIdentityMatchResult {
+                release.await()
+                return DeviceIdentityMatchResult.StrongMatch(profile, DeviceIdentityMatchReason.MATCH_MAC)
+            }
+            override suspend fun updateLastObserved(id: Long, observation: FavoriteDeviceObservation) { writes++ }
+        }
+        val vm = vm(repository)
+        runCurrent(); vm.startScan(); runCurrent(); finish.complete(Unit); runCurrent()
+        assertTrue(vm.uiState.value is LanScannerUiState.Completed)
+        vm.stopScan(); release.complete(Unit); advanceUntilIdle()
+        assertEquals(0, writes)
+    }
+
     private val dispatcher = StandardTestDispatcher()
     @Before fun setup() = Dispatchers.setMain(dispatcher)
     @After fun teardown() = Dispatchers.resetMain()
@@ -46,10 +63,55 @@ class LanLeaseViewModelTest {
         upnpEnricher = UpnpEnricher { _, _, _, _ -> names++ },
     )
 
-    @Test fun `real progress mirrored before names and history then normal three sources start once`() = runTest {
+    @Test fun `actual system executor starts while address scan remains unfinished`() = runTest {
+        val started = java.util.concurrent.CountDownLatch(1)
+        val release = java.util.concurrent.CountDownLatch(1)
+        val executor = com.networktoolbox.feature.lanscan.data.SystemReverseDnsExecutor()
+        val resolver = com.networktoolbox.feature.lanscan.data.AndroidReverseDnsResolver(
+            com.networktoolbox.feature.lanscan.data.CanonicalHostNameLookup {
+                started.countDown(); release.await(); "host.local"
+            }, executor,
+        )
+        val vm = vm(reverse = DefaultReverseDnsEnricher(resolver))
+        try {
+            runCurrent(); vm.startScan(); runCurrent()
+            assertTrue("real native lookup before scan completion", started.await(3, java.util.concurrent.TimeUnit.SECONDS))
+            assertEquals(0, accepted)
+            assertTrue(vm.uiState.value is LanScannerUiState.Scanning)
+        } finally {
+            vm.stopScan(); release.countDown(); executor.close(); runCurrent()
+        }
+    }
+
+    @Test fun `early name survives later frames and completion without repeated query or early profile effects`() = runTest {
+        var queries = 0
+        var profiles = 0
+        val repository = object : SavedDeviceRepository by NoOpSavedDeviceRepository {
+            override suspend fun findIdentityMatch(candidate: FavoriteDeviceCandidate): DeviceIdentityMatchResult {
+                profiles++; return DeviceIdentityMatchResult.NoMatch()
+            }
+        }
+        val vm = vm(repository, reverse = ReverseDnsEnricher { devices, result ->
+            queries++
+            result(ReverseDnsEnrichmentResult(devices.single().ipAddress, "early.local", status = ReverseDnsEnrichmentStatus.RESOLVED))
+        })
+        runCurrent(); vm.startScan(); runCurrent()
+        assertEquals(1, queries); assertEquals(0, profiles); assertEquals(0, accepted)
+        assertEquals("early.local", (vm.uiState.value as LanScannerUiState.Scanning).update.discoveredDevices.single().hostName)
+        emit(update.copy(scannedHosts = 25)); runCurrent()
+        assertEquals("early.local", (vm.uiState.value as LanScannerUiState.Scanning).update.discoveredDevices.single().hostName)
+        finish.complete(Unit); advanceUntilIdle()
+        val device = (vm.uiState.value as LanScannerUiState.Completed).session.discoveredDevices.single()
+        assertEquals("early.local", device.hostName); assertEquals(F.device().lastSeen, device.lastSeen)
+        assertEquals(1, queries); assertEquals(1, accepted); assertEquals(2, names)
+        assertNull(vm.discoveryBridge!!.state.value.addressSnapshot!!.discoveredDevices.single().hostName)
+        assertEquals(2, profiles) // Baseline plus original StrongMatch observation path, only after completion.
+    }
+
+    @Test fun `real progress starts names before history then shared sources start once`() = runTest {
         val vm = vm(); runCurrent(); vm.startScan(); runCurrent()
         assertEquals(1, vm.discoveryBridge!!.state.value.hosts.size)
-        assertEquals(0, names); assertEquals(0, accepted)
+        assertEquals(1, names); assertEquals(0, accepted)
         assertNull(vm.discoveryBridge!!.state.value.addressSnapshot)
         finish.complete(Unit); advanceUntilIdle()
         assertEquals(3, names); assertEquals(1, accepted)
@@ -62,7 +124,7 @@ class LanLeaseViewModelTest {
         vm.stopScan(); val state = vm.discoveryBridge!!.state.value
         emit(update.copy(scannedHosts = 2)); finish.complete(Unit); advanceUntilIdle()
         assertEquals(state, vm.discoveryBridge!!.state.value)
-        assertEquals(0, accepted); assertEquals(0, names); assertFalse(provider.leases.single().valid)
+        assertEquals(0, accepted); assertEquals(1, names); assertFalse(provider.leases.single().valid)
     }
 
     @Test fun `same metadata new network callback cancels scan without relying on readiness fingerprint`() = runTest {
@@ -70,7 +132,7 @@ class LanLeaseViewModelTest {
         provider.leases.single().invalidate(); runCurrent()
         finish.complete(Unit); advanceUntilIdle()
         assertFalse(vm.uiState.value is LanScannerUiState.Scanning)
-        assertEquals(0, accepted); assertEquals(0, names)
+        assertEquals(0, accepted); assertEquals(1, names)
         assertEquals(com.networktoolbox.feature.lanscan.domain.progressive.LanAddressPhase.NETWORK_INVALIDATED,
             vm.discoveryBridge!!.state.value.addressPhase)
     }
@@ -81,10 +143,10 @@ class LanLeaseViewModelTest {
         repeat(3) { assertSame(vm, store["scan"]); vm.startScan() }
         assertEquals(1, provider.leases.size)
         store.clear(); advanceUntilIdle()
-        assertFalse(provider.leases.single().valid); assertEquals(0, names)
+        assertFalse(provider.leases.single().valid); assertEquals(1, names)
     }
 
-    @Test fun `network change during profile await never starts shared or reverse sources`() = runTest {
+    @Test fun `network change during profile await prevents shared sources after early system lookup`() = runTest {
         val entered = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
         val repository = object : SavedDeviceRepository by NoOpSavedDeviceRepository {
@@ -96,7 +158,7 @@ class LanLeaseViewModelTest {
         finish.complete(Unit); runCurrent(); assertTrue(entered.isCompleted)
         provider.leases.single().invalidate(); runCurrent()
         release.complete(Unit); advanceUntilIdle()
-        assertEquals(0, names)
+        assertEquals(1, names)
         assertEquals(1, accepted) // The original accepted discovery/History freeze is not rewritten.
         assertFalse(provider.leases.single().valid)
     }
@@ -139,6 +201,28 @@ class LanLeaseViewModelTest {
         assertFalse(provider.leases.single().valid)
         assertTrue(vm.uiState.value is LanScannerUiState.Completed)
         release.complete(Unit); advanceUntilIdle()
+    }
+
+    @Test fun `concurrent system and mdns results retain both source fields`() = runTest {
+        lateinit var reverseResult: (ReverseDnsEnrichmentResult) -> Unit
+        lateinit var mdnsResult: (MdnsDeviceEnrichment) -> Unit
+        val vm = vm(reverse = ReverseDnsEnricher { _, cb -> reverseResult = cb; awaitCancellation() },
+            mdns = MdnsEnricher { _, _, _, cb -> mdnsResult = cb; awaitCancellation() })
+        runCurrent(); vm.startScan(); runCurrent(); finish.complete(Unit); runCurrent()
+        val identity = listOf(F.network.connectionType.name, F.network.interfaceName.orEmpty(),
+            F.network.ipv4Address.orEmpty(), F.network.ipv4PrefixLength.toString(), F.network.gateway.orEmpty()).joinToString("|")
+        val pool = java.util.concurrent.Executors.newFixedThreadPool(2)
+        val barrier = java.util.concurrent.CyclicBarrier(2)
+        try {
+            val a = pool.submit { barrier.await(); reverseResult(ReverseDnsEnrichmentResult(F.IP, "system.local", status = ReverseDnsEnrichmentStatus.RESOLVED)) }
+            val b = pool.submit { barrier.await(); mdnsResult(MdnsDeviceEnrichment(F.IP,
+                MdnsObservation("service", "_http._tcp", ipv4Addresses = listOf(F.IP), observedAt = 1,
+                    generation = 1, networkIdentity = identity), "service")) }
+            a.get(3, java.util.concurrent.TimeUnit.SECONDS); b.get(3, java.util.concurrent.TimeUnit.SECONDS)
+            val device = (vm.uiState.value as LanScannerUiState.Completed).session.discoveredDevices.single()
+            assertEquals("system.local", device.hostName); assertEquals("service", device.mdnsDisplayNameCandidate)
+            assertEquals(1, device.mdnsObservations.size); assertEquals(F.device().lastSeen, device.lastSeen)
+        } finally { pool.shutdownNow(); vm.stopScan(); runCurrent() }
     }
 
     @Test fun `simultaneous mdns results preserve both observations`() = runTest {

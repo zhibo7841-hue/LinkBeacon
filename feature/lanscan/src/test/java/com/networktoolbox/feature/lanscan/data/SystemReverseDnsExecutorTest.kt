@@ -10,6 +10,24 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class SystemReverseDnsExecutorTest {
+    @Test fun `cancel while start hook returns must not enter native lookup`() = runBlocking {
+        val pool = SystemReverseDnsExecutor()
+        val entered = CountDownLatch(1); val release = CountDownLatch(1)
+        val finished = CountDownLatch(1); val calls = AtomicInteger()
+        try {
+            val job = launch(start = CoroutineStart.UNDISPATCHED) {
+                pool.execute(onStarted = { entered.countDown(); release.await() },
+                    onFinished = { finished.countDown() }) {
+                    calls.incrementAndGet(); ReverseDnsResolution.NoResult
+                }
+            }
+            assertTrue(entered.await(2, TimeUnit.SECONDS))
+            job.cancelAndJoin(); release.countDown()
+            assertTrue(finished.await(2, TimeUnit.SECONDS))
+            assertEquals(0, calls.get())
+        } finally { release.countDown(); pool.close() }
+    }
+
     private class Blocked : AutoCloseable {
         val pool = SystemReverseDnsExecutor()
         val entered = CountDownLatch(4)

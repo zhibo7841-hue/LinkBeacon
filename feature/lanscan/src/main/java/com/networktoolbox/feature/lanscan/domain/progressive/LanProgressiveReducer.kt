@@ -153,7 +153,7 @@ object LanProgressiveReducer {
         val frozen = value.copy(methods = value.methods.toList(), evidence = value.evidence.toList())
         val host = if (old == null) {
             val job = LanNameJob(token, value.ipAddress, LanDeviceNameSource.REVERSE_DNS, sequence)
-            LanProgressiveHost(frozen, sequence, sequence, names = mapOf(job.source to LanNameTask(
+            LanProgressiveHost(frozen, sequence, sequence, names = if (!value.systemNameEligible) emptyMap() else mapOf(job.source to LanNameTask(
                 job, if (sources[job.source] == LanSourceStatus.RUNNING) LanNameStatus.PENDING
                 else LanNameStatus.DEFERRED,
             )))

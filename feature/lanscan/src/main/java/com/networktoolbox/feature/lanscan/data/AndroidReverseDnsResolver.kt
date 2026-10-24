@@ -19,7 +19,12 @@ class AndroidReverseDnsResolver(
     override suspend fun resolve(ipAddress: String): ReverseDnsResolution = resolve(ipAddress) {}
 
     override suspend fun resolve(ipAddress: String, onStarted: () -> Unit): ReverseDnsResolution =
-        executor.execute(onStarted) {
+        resolve(ipAddress, onStarted, {})
+
+    override suspend fun resolve(
+        ipAddress: String, onStarted: () -> Unit, onFinished: () -> Unit,
+    ): ReverseDnsResolution =
+        executor.execute(onStarted, onFinished) {
             try {
                 lookup.lookup(ipAddress).toReverseDnsResolution(ipAddress)
             } catch (error: CancellationException) {

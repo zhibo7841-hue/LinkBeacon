@@ -29,11 +29,12 @@ data class LanDiscoveryObservation(
     val evidence: List<LanDeviceEvidence>,
     val lastSeen: Long,
     val macAddress: String? = null,
+    val systemNameEligible: Boolean = true,
 ) {
     companion object {
         fun from(device: LanDevice) = LanDiscoveryObservation(
             device.ipAddress, device.isLocalDevice, device.isGateway, device.latencyMs,
-            device.discoveryMethods.toList(), device.discoveryEvidence.toList(), device.lastSeen, device.macAddress,
+            device.discoveryMethods.toList(), device.discoveryEvidence.toList(), device.lastSeen, device.macAddress, device.hostName.isNullOrBlank(),
         )
     }
 }

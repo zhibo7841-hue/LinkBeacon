@@ -596,7 +596,7 @@ class LanScannerViewModelTest {
 
     @Test
     fun `completed scan progressively applies reverse dns hostname with source`() = runTest {
-        val context = context("192.168.1.2", 30)
+        val context = context("192.168.1.2", 29)
         val range = readyRange(context)
         val viewModel = viewModel(
             readiness(context),
@@ -625,7 +625,7 @@ class LanScannerViewModelTest {
 
     @Test
     fun `rescan discards a late hostname from the previous generation`() = runTest {
-        val context = context("192.168.1.2", 30)
+        val context = context("192.168.1.2", 29)
         val range = readyRange(context)
         val lateFirstResult = CompletableDeferred<ReverseDnsEnrichmentResult>()
         var scans = 0
@@ -679,7 +679,7 @@ class LanScannerViewModelTest {
 
     @Test
     fun `network change discards pending reverse dns result`() = runTest {
-        val initial = context("192.168.1.2", 30)
+        val initial = context("192.168.1.2", 29)
         val changed = initial.copy(ipv4Address = "192.168.2.2", gateway = "192.168.2.1")
         val range = readyRange(initial)
         val readinessFlow = MutableStateFlow(readiness(initial))
@@ -711,8 +711,8 @@ class LanScannerViewModelTest {
     }
 
     @Test
-    fun `stopped scan never starts reverse dns enrichment`() = runTest {
-        val context = context("192.168.1.2", 30)
+    fun `stopped scan retains prior query and does not restart enrichment`() = runTest {
+        val context = context("192.168.1.2", 29)
         val range = readyRange(context)
         val enrichmentCalls = AtomicBoolean(false)
         val runner = object : RunLanScan {
@@ -736,12 +736,12 @@ class LanScannerViewModelTest {
         viewModel.stopScan()
         advanceUntilIdle()
 
-        assertFalse(enrichmentCalls.get())
+        assertTrue(enrichmentCalls.get())
     }
 
     @Test
     fun `completed scan applies mdns candidate and preserves reverse dns hostname`() = runTest {
-        val context = context("192.168.1.2", 30)
+        val context = context("192.168.1.2", 29)
         val range = readyRange(context)
         val original = device("192.168.1.3").copy(
             hostName = "reverse.example.lan",
@@ -783,7 +783,7 @@ class LanScannerViewModelTest {
 
     @Test
     fun `leaving completed scan cancels mdns enrichment and ignores late result`() = runTest {
-        val context = context("192.168.1.2", 30)
+        val context = context("192.168.1.2", 29)
         val range = readyRange(context)
         val pending = CompletableDeferred<MdnsDeviceEnrichment>()
         val original = device("192.168.1.3")
@@ -825,7 +825,7 @@ class LanScannerViewModelTest {
 
     @Test
     fun `stop while completed profile sync waits prevents all later name sources`() = runTest {
-        val context = context("192.168.1.2", 30)
+        val context = context("192.168.1.2", 29)
         val syncing = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
         var queries = 0
@@ -852,7 +852,7 @@ class LanScannerViewModelTest {
         viewModel.stopScan()
         release.complete(Unit)
         advanceUntilIdle()
-        assertPresentationEquals(0, queries)
+        assertPresentationEquals(1, queries)
     }
 
     private fun viewModel(

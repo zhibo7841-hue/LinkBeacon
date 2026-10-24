@@ -58,6 +58,7 @@ class SystemReverseDnsExecutor internal constructor(
 
     suspend fun execute(
         onStarted: () -> Unit = {},
+        onFinished: () -> Unit = {},
         lookup: () -> ReverseDnsResolution,
     ): ReverseDnsResolution = coroutineScope {
         var waitingEntry: Entry? = null
@@ -78,7 +79,7 @@ class SystemReverseDnsExecutor internal constructor(
         }
         try {
             suspendCancellableCoroutine { continuation ->
-                val entry = Entry(continuation, onStarted, lookup)
+                val entry = Entry(continuation, onStarted, onFinished, lookup)
                 continuation.invokeOnCancellation {
                     synchronized(gate) {
                         if (entry.waiting) {
@@ -134,6 +135,7 @@ class SystemReverseDnsExecutor internal constructor(
     private inner class Entry(
         val continuation: CancellableContinuation<ReverseDnsResolution>,
         val onStarted: () -> Unit,
+        val onFinished: () -> Unit,
         val lookup: () -> ReverseDnsResolution,
     ) : Runnable {
         var waiting = true // Access only under gate; expiry/launch/cancel are mutually exclusive.
@@ -152,6 +154,12 @@ class SystemReverseDnsExecutor internal constructor(
             var result: ReverseDnsResolution? = null
             try {
                 onStarted()
+                // A start hook may yield to concurrent Stop. Recheck after it, immediately
+                // before committing to the non-interruptible call. Beyond this boundary,
+                // cancellation only detaches delivery; physical capacity remains occupied.
+                synchronized(gate) {
+                    if (closed || !continuation.isActive) throw CancellationException("Name execution cancelled")
+                }
                 result = lookup()
             } catch (cancelled: CancellationException) {
                 continuation.cancel(cancelled)
@@ -163,6 +171,7 @@ class SystemReverseDnsExecutor internal constructor(
                     entries.remove(this)
                     fillReadyQueue()
                 }
+                runCatching { onFinished() } // Physical return, never coroutine cancellation or visible expiry.
                 // Bounded, non-conflated delivery through this call's continuation. Cancelled
                 // callers discard results; a later session can never receive this continuation.
                 if (result != null) continuation.resume(result) else continuation.cancel()

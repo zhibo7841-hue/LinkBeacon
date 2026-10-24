@@ -9,7 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 
-/** Discovery-only mirror. Effects are deliberately NOT executed: no queues, queries or database calls. */
+/** Serialized session store. Scheduling consumes admission; persistence remains outside this owner. */
 class LanDiscoveryBridge(val token: LanSessionToken, addresses: Set<String>, private val lease: NetworkLease) {
     init { require(token.networkLeaseId == lease.id && token.policyRevision == lease.policyRevision) }
     private val mutable = MutableStateFlow(LanProgressiveReducer.start(token, addresses))
@@ -64,8 +64,18 @@ class LanDiscoveryBridge(val token: LanSessionToken, addresses: Set<String>, pri
         accept(LanProgressiveEvent.AddressAccepted(token, ++sequence, snapshot))
     }
 
-    private fun accept(event: LanProgressiveEvent) {
-        mutable.value = LanProgressiveReducer.reduce(mutable.value, event).state
+    @Synchronized fun claimName(): LanNameJob? {
+        if (!lease.valid) return null
+        val job = LanNameAdmission.readyCandidates(mutable.value).firstOrNull() ?: return null
+        return job.takeIf { accept(LanProgressiveEvent.NameScheduled(it)) }
+    }
+
+    @Synchronized fun accept(event: LanProgressiveEvent): Boolean {
+        if (!lease.valid && event !is LanProgressiveEvent.PhysicalNameFinished &&
+            event !is LanProgressiveEvent.Stop && event !is LanProgressiveEvent.NetworkInvalidated) return false
+        val transition = LanProgressiveReducer.reduce(mutable.value, event)
+        mutable.value = transition.state
+        return transition.accepted
     }
 }
 
