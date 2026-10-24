@@ -69,7 +69,11 @@ object RecreationNetworkModule {
         RunLanScanUseCase(r, object : LanDiscoveryEngine {
             override suspend fun scan(request: LanScanRequest, currentNetworkContext: suspend () -> NetworkContext, onUpdate: (LanScanUpdate) -> Unit): LanScanSession {
                 f.scanStarts++
-                f.finishScan.await()
+                try { f.finishScan.await() }
+                catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    f.scanCancellations++
+                    throw cancelled
+                }
                 val range = (LanScanRangeCalculator().calculate(f.network.value) as LanScanRangeResult.Ready).range
                 return LanScanSession(LanScanStatus.COMPLETED, f.network.value, range,
                     range.hostCount, range.hostCount, f.scanDevices, 1, 2)
@@ -144,6 +148,7 @@ class RecreationFixture {
     ))
     var pingStarts = 0
     var scanStarts = 0
+    var scanCancellations = 0
     var scanDevices: List<LanDevice> = emptyList()
     var wakeSends = 0
     var diagnosticStarts = 0

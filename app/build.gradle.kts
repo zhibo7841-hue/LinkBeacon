@@ -63,6 +63,12 @@ android {
         }
     }
 
+    // Private scope is packaged only into an explicitly opted-in instrumentation APK.
+    if (providers.gradleProperty("lanAuditQa").isPresent) {
+        check(providers.gradleProperty("wifiAnalyzerQa").isPresent)
+        sourceSets.getByName("androidTest").assets.srcDir(rootProject.file("build/task160/task161-authorization/assets"))
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -144,6 +150,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.room.runtime) // QA-only isolated production Room path.
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.ext.junit)
