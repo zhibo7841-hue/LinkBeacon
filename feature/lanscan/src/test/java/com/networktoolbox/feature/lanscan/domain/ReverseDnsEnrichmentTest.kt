@@ -20,6 +20,25 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReverseDnsEnrichmentTest {
+    @Test fun `admission deferral is not a negative name response`() = runTest {
+        val results = mutableListOf<ReverseDnsEnrichmentResult>()
+        DefaultReverseDnsEnricher(ReverseDnsResolver { ReverseDnsResolution.Deferred })
+            .enrich(listOf(device("10.0.1.2"))) { results += it }
+        assertEquals(ReverseDnsEnrichmentStatus.DEFERRED, results.single().status)
+        assertEquals(null, results.single().hostname)
+    }
+
+    @Test fun `oversized pending input fails before issuing any request`() = runTest {
+        var calls = 0
+        val engine = DefaultReverseDnsEnricher(ReverseDnsResolver { calls++; ReverseDnsResolution.NoResult })
+        try {
+            engine.enrich((1..255).map { device("10.0.1.$it") }) {}
+            org.junit.Assert.fail("must reject oversized input")
+        } catch (_: IllegalArgumentException) {
+            assertEquals(0, calls)
+        }
+    }
+
     @Test
     fun `only unnamed unique discovered devices are resolved`() = runTest {
         val attempted = mutableListOf<String>()

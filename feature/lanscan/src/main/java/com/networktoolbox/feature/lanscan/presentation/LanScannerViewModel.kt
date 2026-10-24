@@ -1129,7 +1129,10 @@ class LanScannerViewModel @Inject constructor(
         session: LanScanSession,
         generation: Long,
     ) {
+        // Profile synchronization may suspend after Completed; Stop can close this generation meanwhile.
+        if (generation != enrichmentGeneration) return
         enrichmentJob = viewModelScope.launch {
+            if (generation != enrichmentGeneration) return@launch
             reverseDnsEnricher.enrich(session.discoveredDevices) { result ->
                 if (generation == enrichmentGeneration) {
                     applyReverseDnsResult(result)

@@ -1,6 +1,10 @@
 package com.networktoolbox.feature.lanscan.presentation
 
 import com.networktoolbox.core.designsystem.UiText
+import com.networktoolbox.core.common.favorites.SavedDeviceRepository
+import com.networktoolbox.core.common.favorites.NoOpSavedDeviceRepository
+import com.networktoolbox.core.common.favorites.FavoriteDeviceCandidate
+import com.networktoolbox.core.common.favorites.DeviceIdentityMatchResult
 import com.networktoolbox.core.network.model.ConnectionType
 import com.networktoolbox.core.network.model.NetworkContext
 import com.networktoolbox.feature.lanscan.domain.LanScanRangeCalculator
@@ -818,12 +822,43 @@ class LanScannerViewModelTest {
         )
     }
 
+    @Test
+    fun `stop while completed profile sync waits prevents later reverse query launch`() = runTest {
+        val context = context("192.168.1.2", 30)
+        val syncing = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        var queries = 0
+        val repository = object : SavedDeviceRepository by NoOpSavedDeviceRepository {
+            override suspend fun findIdentityMatch(candidate: FavoriteDeviceCandidate): DeviceIdentityMatchResult {
+                syncing.complete(Unit)
+                release.await()
+                return DeviceIdentityMatchResult.NoMatch()
+            }
+        }
+        val viewModel = viewModel(
+            readiness(context),
+            runner = fakeRunner(session(context, readyRange(context), listOf(device("192.168.1.1")))),
+            enricher = ReverseDnsEnricher { _, _ -> queries++ },
+            repository = repository,
+        )
+        runCurrent()
+        viewModel.startScan()
+        runCurrent()
+        assertTrue(syncing.isCompleted)
+        assertTrue(viewModel.uiState.value is LanScannerUiState.Completed)
+        viewModel.stopScan()
+        release.complete(Unit)
+        advanceUntilIdle()
+        assertPresentationEquals(0, queries)
+    }
+
     private fun viewModel(
         readiness: LanScanReadiness,
         runner: RunLanScan? = null,
         readinessFlow: Flow<LanScanReadiness> = flowOf(readiness),
         enricher: ReverseDnsEnricher = noOpEnricher(),
         mdnsEnricher: MdnsEnricher = noOpMdnsEnricher(),
+        repository: SavedDeviceRepository = NoOpSavedDeviceRepository,
     ): LanScannerViewModel {
         val effectiveRunner = runner ?: object : RunLanScan {
             override suspend fun invoke(
@@ -836,6 +871,7 @@ class LanScannerViewModelTest {
             runScan = effectiveRunner,
             reverseDnsEnricher = enricher,
             mdnsEnricher = mdnsEnricher,
+            savedDeviceRepository = repository,
         )
     }
 
