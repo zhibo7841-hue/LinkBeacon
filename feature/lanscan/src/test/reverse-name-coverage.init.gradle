@@ -1,0 +1,15 @@
+// Explicit wall-clock fixture runner. Does not change app configuration or production budgets.
+// ./gradlew -I feature/lanscan/src/test/reverse-name-coverage.init.gradle :feature:lanscan:runReverseNameCoverageAudit --no-daemon
+// Add -PauditCandidate for the isolated 20-second counterfactual (not a proposed default).
+gradle.projectsEvaluated {
+    def p = gradle.rootProject.project(':feature:lanscan')
+    p.tasks.register('runReverseNameCoverageAudit', JavaExec) {
+        def testTask = p.tasks.getByName('testDebugUnitTest')
+        dependsOn testTask.testClassesDirs
+        classpath = testTask.classpath
+        mainClass.set('com.networktoolbox.feature.lanscan.data.ReverseNameCoverageAudit')
+        def candidate = gradle.rootProject.hasProperty('auditCandidate')
+        args gradle.rootProject.file(candidate ? 'build/task151/counterfactual.csv' : 'build/task151/coverage.csv').absolutePath
+        if (candidate) args 'candidate20'
+    }
+}
