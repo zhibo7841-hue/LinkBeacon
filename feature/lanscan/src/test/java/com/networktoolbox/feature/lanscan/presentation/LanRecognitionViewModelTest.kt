@@ -19,6 +19,7 @@ class LanRecognitionViewModelTest {
     private val device = F.device().copy(mdnsObservations = listOf(F.mdns(txt = mapOf("platform" to "ESP32"))))
     private fun ready() = LanScanReadiness(F.network, LanScanRangeCalculator().calculate(F.network))
     private fun vm(block: suspend () -> LanScanSession = { F.session(device) }) = LanScannerViewModel(
+        networkLeaseProvider = FakeScanLeaseProvider(),
         observeReadiness = ObserveLanScanReadiness { readiness },
         runScan = object : RunLanScan {
             override suspend fun invoke(probeConfig: LanScanProbeConfig, onUpdate: (LanScanUpdate) -> Unit): LanScanSession {

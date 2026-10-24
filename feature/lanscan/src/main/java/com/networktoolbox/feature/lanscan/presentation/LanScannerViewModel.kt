@@ -1,5 +1,10 @@
 package com.networktoolbox.feature.lanscan.presentation
 
+import com.networktoolbox.core.network.lease.NetworkLease
+import com.networktoolbox.core.network.lease.NetworkLeaseProvider
+import com.networktoolbox.feature.lanscan.domain.progressive.LanDiscoveryInbox
+import com.networktoolbox.feature.lanscan.domain.progressive.LanDiscoveryBridge
+import com.networktoolbox.feature.lanscan.domain.progressive.LanSessionToken
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -53,6 +58,8 @@ import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -72,6 +79,7 @@ import kotlinx.coroutines.sync.withLock
 class LanScannerViewModel @Inject constructor(
     observeReadiness: ObserveLanScanReadiness,
     private val runScan: RunLanScan,
+    private val networkLeaseProvider: NetworkLeaseProvider,
     private val reverseDnsEnricher: ReverseDnsEnricher,
     private val mdnsEnricher: MdnsEnricher,
     private val upnpEnricher: UpnpEnricher = NoOpUpnpEnricher,
@@ -116,10 +124,14 @@ class LanScannerViewModel @Inject constructor(
 
     private var latestReadiness: LanScanReadiness? = null
     private var scanJob: Job? = null
+    @Volatile private var networkLease: NetworkLease? = null
+    @Volatile private var discoveryInbox: LanDiscoveryInbox? = null
+    internal var discoveryBridge: LanDiscoveryBridge? = null
+        private set
     private var enrichmentJob: Job? = null
     private var mdnsJob: Job? = null
     private var upnpJob: Job? = null
-    private var enrichmentGeneration: Long = 0L
+    @Volatile private var enrichmentGeneration: Long = 0L
     private var enrichmentNetworkContext: NetworkContext? = null
     private var scanGeneration: Long = 0L
     private var activeScanGeneration: Long? = null
@@ -277,6 +289,25 @@ class LanScannerViewModel @Inject constructor(
 
         val generation = beginNewScanGeneration()
         stopRequested.set(false)
+        networkLease = networkLeaseProvider.acquire(readiness.networkContext) {
+            // Platform callback first invalidates the lease; serialize UI cancellation on Main.
+            viewModelScope.launch {
+                if (generation == enrichmentGeneration) {
+                    discoveryBridge?.close(networkChanged = true)
+                    invalidateForNetworkChange(latestReadiness)
+                }
+            }
+        }
+        val lease = networkLease
+        if (lease == null || !lease.valid) {
+            invalidateForNetworkChange(latestReadiness)
+            return
+        }
+        discoveryBridge = LanDiscoveryBridge(
+            LanSessionToken(generation, lease.id, LanNetworkFingerprint.from(readiness.networkContext), lease.policyRevision),
+            range.hostAddresses().toSet(), lease,
+        )
+        discoveryInbox = LanDiscoveryInbox(requireNotNull(discoveryBridge), viewModelScope)
         val initialUpdate = LanScanUpdate(
             status = LanScanStatus.SCANNING,
             scannedHosts = 0,
@@ -334,13 +365,14 @@ class LanScannerViewModel @Inject constructor(
                         )
                         activeScanGeneration = null
                         _uiState.value = boundSession.toUiState()
+                        discoveryBridge?.completed(boundSession)
                     }
                     if (session.status == LanScanStatus.COMPLETED) {
                         syncFavoritesWithDevices(
                             context = session.initialNetworkContext,
                             devices = session.discoveredDevices,
                         )
-                        startPostDiscoveryEnrichment(session, generation)
+                        if (canEnrich(generation)) startPostDiscoveryEnrichment(session, generation)
                     }
                 }
             } catch (error: CancellationException) {
@@ -353,6 +385,15 @@ class LanScannerViewModel @Inject constructor(
                     )
                 }
             } finally {
+                if (generation == enrichmentGeneration) {
+                    discoveryInbox?.close()
+                    discoveryInbox = null
+                }
+                // No listener remains after a failed/cancelled scan or completed enrichment.
+                if (generation == enrichmentGeneration &&
+                    listOf(enrichmentJob, mdnsJob, upnpJob).none { it?.isActive == true }) {
+                    networkLease?.close()
+                }
                 if (scanJob === currentJob) {
                     scanJob = null
                     if (activeScanGeneration == generation) activeScanGeneration = null
@@ -1105,13 +1146,16 @@ class LanScannerViewModel @Inject constructor(
         )
 
     private fun publishScanUpdate(generation: Long, update: LanScanUpdate) {
-        if (
-            !stopRequested.get() &&
-                activeScanGeneration == generation &&
-                _uiState.value is LanScannerUiState.Scanning
-        ) {
-            val current = _uiState.value as LanScannerUiState.Scanning
-            _uiState.value = current.copy(update = update)
+        val lease = networkLease ?: return
+        if (stopRequested.get() || !lease.valid || activeScanGeneration != generation) return
+        discoveryInbox?.offer(generation, update)
+        // A Stop/replacement can run between the initial check and publication. Never cast a
+        // second read or overwrite a newer state with a captured Scanning object.
+        _uiState.update { current ->
+            if (current is LanScannerUiState.Scanning && current.sessionId == generation &&
+                !stopRequested.get() && lease.valid && activeScanGeneration == generation &&
+                update.scannedHosts >= current.update.scannedHosts
+            ) current.copy(update = update) else current
         }
     }
 
@@ -1119,23 +1163,34 @@ class LanScannerViewModel @Inject constructor(
         session: LanScanSession,
         generation: Long,
     ) {
+        if (!canEnrich(generation)) return
         enrichmentNetworkContext = session.initialNetworkContext
         startReverseDnsEnrichment(session, generation)
         startMdnsEnrichment(session, generation)
         startUpnpEnrichment(session, generation)
+        val ownedLease = networkLease
+        val jobs = listOfNotNull(enrichmentJob, mdnsJob, upnpJob)
+        viewModelScope.launch {
+            try { jobs.forEach { it.join() } } finally { ownedLease?.close() }
+        }
     }
+
+    private fun canEnrich(generation: Long): Boolean =
+        generation == enrichmentGeneration && !stopRequested.get() &&
+            networkLease?.revalidate() == true
+
 
     private fun startReverseDnsEnrichment(
         session: LanScanSession,
         generation: Long,
     ) {
         // Profile synchronization may suspend after Completed; Stop can close this generation meanwhile.
-        if (generation != enrichmentGeneration) return
+        if (!canEnrich(generation)) return
         enrichmentJob = viewModelScope.launch {
-            if (generation != enrichmentGeneration) return@launch
+            if (!canEnrich(generation)) return@launch
             reverseDnsEnricher.enrich(session.discoveredDevices) { result ->
-                if (generation == enrichmentGeneration) {
-                    applyReverseDnsResult(result)
+                if (generation == enrichmentGeneration && networkLease?.valid == true) {
+                    applyReverseDnsResult(result, generation)
                 }
             }
         }
@@ -1145,70 +1200,40 @@ class LanScannerViewModel @Inject constructor(
         session: LanScanSession,
         generation: Long,
     ) {
+        if (!canEnrich(generation)) return
         mdnsJob = viewModelScope.launch {
+            if (!canEnrich(generation)) return@launch
             mdnsEnricher.enrich(
                 devices = session.discoveredDevices,
                 networkContext = session.initialNetworkContext,
                 generation = generation,
             ) { result ->
                 if (
-                    generation == enrichmentGeneration &&
+                    generation == enrichmentGeneration && networkLease?.valid == true &&
                         result.observation.generation == generation &&
                         result.observation.networkIdentity == session.initialNetworkContext.mdnsIdentityForUi()
                 ) {
-                    applyMdnsResult(result)
+                    applyMdnsResult(result, generation)
                 }
             }
         }
     }
 
-    private fun applyReverseDnsResult(result: ReverseDnsEnrichmentResult) {
-        if (result.status != ReverseDnsEnrichmentStatus.RESOLVED || result.hostname.isNullOrBlank()) {
-            return
-        }
-        val state = _uiState.value as? LanScannerUiState.Completed ?: return
-        val updatedDevices = state.session.discoveredDevices.map { device ->
-            if (device.ipAddress == result.ipAddress) {
-                device.copy(
-                    hostName = result.hostname,
-                    hostNameSource = result.source,
-                )
-            } else {
-                device
-            }
-        }
-        _uiState.value = state.copy(
-            session = state.session.copy(discoveredDevices = updatedDevices),
-        )
-        updatedDevices.firstOrNull { it.ipAddress == result.ipAddress }?.let { device ->
-            syncFavoriteObservation(state.session.initialNetworkContext, device)
+    private fun applyReverseDnsResult(result: ReverseDnsEnrichmentResult, generation: Long) {
+        if (result.status != ReverseDnsEnrichmentStatus.RESOLVED || result.hostname.isNullOrBlank()) return
+        updateEnrichedDevice(generation, result.ipAddress) { device ->
+            device.copy(hostName = result.hostname, hostNameSource = result.source)
         }
     }
 
-    private fun applyMdnsResult(result: MdnsDeviceEnrichment) {
-        val state = _uiState.value as? LanScannerUiState.Completed ?: return
+    private fun applyMdnsResult(result: MdnsDeviceEnrichment, generation: Long) {
         val observation = result.observation.toLanMdnsObservation()
-        val updatedDevices = state.session.discoveredDevices.map { device ->
-            if (device.ipAddress != result.ipAddress) {
-                device
-            } else {
-                val observations = (device.mdnsObservations
-                    .filterNot { it.identityKey == observation.identityKey } + observation)
-                    .takeLast(MAX_MDNS_OBSERVATIONS_PER_DEVICE)
-                device.copy(
-                    // Reverse DNS remains the primary existing hostName. mDNS
-                    // contributes a candidate without overwriting that result.
-                    mdnsDisplayNameCandidate = device.mdnsDisplayNameCandidate
-                        ?: result.mdnsDisplayNameCandidate,
-                    mdnsObservations = observations,
-                )
-            }
-        }
-        _uiState.value = state.copy(
-            session = state.session.copy(discoveredDevices = updatedDevices),
-        )
-        updatedDevices.firstOrNull { it.ipAddress == result.ipAddress }?.let { device ->
-            syncFavoriteObservation(state.session.initialNetworkContext, device)
+        updateEnrichedDevice(generation, result.ipAddress) { device ->
+            device.copy(
+                mdnsDisplayNameCandidate = device.mdnsDisplayNameCandidate ?: result.mdnsDisplayNameCandidate,
+                mdnsObservations = (device.mdnsObservations.filterNot { it.identityKey == observation.identityKey } + observation)
+                    .takeLast(MAX_MDNS_OBSERVATIONS_PER_DEVICE),
+            )
         }
     }
 
@@ -1216,52 +1241,59 @@ class LanScannerViewModel @Inject constructor(
         session: LanScanSession,
         generation: Long,
     ) {
+        if (!canEnrich(generation)) return
         upnpJob = viewModelScope.launch {
+            if (!canEnrich(generation)) return@launch
             upnpEnricher.enrich(
                 devices = session.discoveredDevices,
                 networkContext = session.initialNetworkContext,
                 generation = generation,
             ) { result ->
                 if (
-                    generation == enrichmentGeneration &&
+                    generation == enrichmentGeneration && networkLease?.valid == true &&
                         result.observation.source ==
                         com.networktoolbox.feature.lanscan.domain.model.LanDeviceNameSource.UPNP &&
                         result.observation.generation == generation &&
                         result.observation.networkIdentity ==
                         session.initialNetworkContext.upnpNetworkIdentity()
                 ) {
-                    applyUpnpResult(result)
+                    applyUpnpResult(result, generation)
                 }
             }
         }
     }
 
-    private fun applyUpnpResult(result: UpnpDeviceEnrichment) {
-        val state = _uiState.value as? LanScannerUiState.Completed ?: return
-        val updatedDevices = state.session.discoveredDevices.map { device ->
-            if (device.ipAddress != result.ipAddress) {
-                device
-            } else {
-                val observations = (
-                    device.upnpObservations.filterNot { observation ->
-                        observation.udn == result.observation.udn &&
-                            observation.usn == result.observation.usn
-                    } + result.observation
-                    ).takeLast(MAX_UPNP_OBSERVATIONS_PER_DEVICE)
-                device.copy(
-                    // UPnP is an additional candidate. Existing reverse DNS and
-                    // mDNS values are never overwritten by this enrichment.
-                    upnpDisplayNameCandidate = device.upnpDisplayNameCandidate
-                        ?: result.upnpDisplayNameCandidate,
-                    upnpObservations = observations,
-                )
+    private fun applyUpnpResult(result: UpnpDeviceEnrichment, generation: Long) {
+        updateEnrichedDevice(generation, result.ipAddress) { device ->
+            device.copy(
+                upnpDisplayNameCandidate = device.upnpDisplayNameCandidate ?: result.upnpDisplayNameCandidate,
+                upnpObservations = (device.upnpObservations.filterNot {
+                    it.udn == result.observation.udn && it.usn == result.observation.usn
+                } + result.observation).takeLast(MAX_UPNP_OBSERVATIONS_PER_DEVICE),
+            )
+        }
+    }
+
+    /** NSD can call from a platform executor; CAS retains concurrent source observations. */
+    private fun updateEnrichedDevice(generation: Long, ip: String, transform: (LanDevice) -> LanDevice) {
+        val lease = networkLease ?: return
+        var applied: LanDevice? = null
+        val committed = _uiState.updateAndGet { current ->
+            applied = null // updateAndGet may retry; no database effects inside the transform.
+            if (current !is LanScannerUiState.Completed || current.session.sessionId != generation ||
+                generation != enrichmentGeneration || !lease.valid || networkLease !== lease
+            ) current else {
+                val devices = current.session.discoveredDevices.map { device ->
+                    if (device.ipAddress == ip) transform(device).also { applied = it } else device
+                }
+                if (generation != enrichmentGeneration || !lease.valid || networkLease !== lease) {
+                    applied = null
+                    current
+                } else current.copy(session = current.session.copy(discoveredDevices = devices))
             }
         }
-        _uiState.value = state.copy(
-            session = state.session.copy(discoveredDevices = updatedDevices),
-        )
-        updatedDevices.firstOrNull { it.ipAddress == result.ipAddress }?.let { device ->
-            syncFavoriteObservation(state.session.initialNetworkContext, device)
+        if (committed is LanScannerUiState.Completed) {
+            applied?.let { syncFavoriteObservation(committed.session.initialNetworkContext, it) }
         }
     }
 
@@ -1326,6 +1358,7 @@ class LanScannerViewModel @Inject constructor(
             ?.let { LanRecognitionContext(scanGeneration, LanNetworkFingerprint.from(it.networkContext)) }
         activeScanGeneration = scanGeneration
         invalidateEnrichment()
+        discoveryBridge = null
         // One token guards both the scan callbacks and post-discovery
         // enrichment. A late callback from an older session can therefore
         // never mutate the current session.
@@ -1339,6 +1372,7 @@ class LanScannerViewModel @Inject constructor(
         readiness: LanScanReadiness?,
         fallbackNotice: LanScanNotice = LanScanNotice.NETWORK_CHANGED,
     ) {
+        discoveryBridge?.close(networkChanged = true)
         stopRequested.set(true)
         activeScanGeneration = null
         scanJob?.cancel()
@@ -1355,6 +1389,11 @@ class LanScannerViewModel @Inject constructor(
     }
 
     private fun invalidateEnrichment() {
+        discoveryInbox?.close()
+        discoveryInbox = null
+        discoveryBridge?.close()
+        networkLease?.close()
+        networkLease = null
         enrichmentGeneration += 1L
         enrichmentNetworkContext = null
         enrichmentJob?.cancel()

@@ -409,6 +409,7 @@ class LanScannerViewModelTest {
         val range = readyRange(context)
         val readinessFlow = MutableStateFlow(readiness(context))
         val viewModel = LanScannerViewModel(
+        networkLeaseProvider = FakeScanLeaseProvider(),
             observeReadiness = ObserveLanScanReadiness { readinessFlow },
             runScan = fakeRunner(session(context, range, listOf(device("192.168.1.3")))),
             reverseDnsEnricher = noOpEnricher(),
@@ -823,7 +824,7 @@ class LanScannerViewModelTest {
     }
 
     @Test
-    fun `stop while completed profile sync waits prevents later reverse query launch`() = runTest {
+    fun `stop while completed profile sync waits prevents all later name sources`() = runTest {
         val context = context("192.168.1.2", 30)
         val syncing = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
@@ -839,6 +840,8 @@ class LanScannerViewModelTest {
             readiness(context),
             runner = fakeRunner(session(context, readyRange(context), listOf(device("192.168.1.1")))),
             enricher = ReverseDnsEnricher { _, _ -> queries++ },
+            mdnsEnricher = MdnsEnricher { _, _, _, _ -> queries++ },
+            upnpEnricher = com.networktoolbox.feature.lanscan.domain.UpnpEnricher { _, _, _, _ -> queries++ },
             repository = repository,
         )
         runCurrent()
@@ -859,6 +862,7 @@ class LanScannerViewModelTest {
         enricher: ReverseDnsEnricher = noOpEnricher(),
         mdnsEnricher: MdnsEnricher = noOpMdnsEnricher(),
         repository: SavedDeviceRepository = NoOpSavedDeviceRepository,
+        upnpEnricher: com.networktoolbox.feature.lanscan.domain.UpnpEnricher = com.networktoolbox.feature.lanscan.domain.NoOpUpnpEnricher,
     ): LanScannerViewModel {
         val effectiveRunner = runner ?: object : RunLanScan {
             override suspend fun invoke(
@@ -867,10 +871,12 @@ class LanScannerViewModelTest {
             ): LanScanSession = error("scan should not be started in this test")
         }
         return LanScannerViewModel(
+        networkLeaseProvider = FakeScanLeaseProvider(),
             observeReadiness = ObserveLanScanReadiness { readinessFlow },
             runScan = effectiveRunner,
             reverseDnsEnricher = enricher,
             mdnsEnricher = mdnsEnricher,
+            upnpEnricher = upnpEnricher,
             savedDeviceRepository = repository,
         )
     }

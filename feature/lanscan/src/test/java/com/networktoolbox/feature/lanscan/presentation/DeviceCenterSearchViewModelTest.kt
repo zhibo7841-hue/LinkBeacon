@@ -243,6 +243,7 @@ class DeviceCenterSearchViewModelTest {
         readinessFlow: Flow<LanScanReadiness> = flowOf(readiness),
         savedState: androidx.lifecycle.SavedStateHandle = androidx.lifecycle.SavedStateHandle(),
     ): LanScannerViewModel = LanScannerViewModel(
+        networkLeaseProvider = FakeScanLeaseProvider(),
         observeReadiness = ObserveLanScanReadiness { readinessFlow },
         runScan = runner,
         reverseDnsEnricher = ReverseDnsEnricher { _, _ -> },

@@ -35,6 +35,20 @@ import kotlinx.coroutines.flow.flowOf
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [NetworkModule::class])
 object RecreationNetworkModule {
+    // This module replaces all production network bindings for synthetic recreation tests.
+    // Actual Android lease tests instantiate AndroidNetworkLeaseProvider directly.
+    @Provides
+    fun provideNetworkLeaseProvider(): com.networktoolbox.core.network.lease.NetworkLeaseProvider =
+        com.networktoolbox.core.network.lease.NetworkLeaseProvider { _, _ ->
+            object : com.networktoolbox.core.network.lease.NetworkLease {
+                override val id = java.util.UUID.randomUUID().toString()
+                override val policyRevision = 1L
+                override var valid = true
+                override fun revalidate() = valid
+                override fun close() { valid = false }
+            }
+        }
+
     @Provides @Singleton fun wifiScanRepository(f: RecreationFixture): WifiScanRepository = object : WifiScanRepository {
         override val snapshots = MutableStateFlow(WifiAnalyzerSnapshot(
             accessStatus = WifiScanAccessStatus.PLATFORM_RESTRICTED,

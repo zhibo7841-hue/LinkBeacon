@@ -868,6 +868,7 @@ class LanFavoritesViewModelTest {
         repository: SavedDeviceRepository,
         sendWakeOnLan: SendWakeOnLan = NoOpSendWakeOnLan,
     ) = LanScannerViewModel(
+        networkLeaseProvider = FakeScanLeaseProvider(),
         observeReadiness = ObserveLanScanReadiness {
             flowOf(
                 LanScanReadiness(
