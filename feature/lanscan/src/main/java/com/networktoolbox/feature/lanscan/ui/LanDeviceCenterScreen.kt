@@ -269,6 +269,10 @@ fun LanDeviceCenterScreen(
 
             is LanScannerUiState.Cancelled -> {
                 item {
+                    Text(stringResource(R.string.lan_supplement_snapshot),
+                        style = MaterialTheme.typography.bodySmall)
+                }
+                item {
                     DeviceCenterNetworkSummaryCard(
                         context = state.session.initialNetworkContext,
                         range = state.session.range,
@@ -403,6 +407,7 @@ private fun deviceCenterVisibleItems(
                 context = state.networkContext,
                 includeUnseenFavorites = true,
                 unseenEvidence = UiText(waitingProfileEvidence),
+                recognition = recognition?.forState(state).orEmpty(),
             )
             notDiscoveredAvailable = false
         }

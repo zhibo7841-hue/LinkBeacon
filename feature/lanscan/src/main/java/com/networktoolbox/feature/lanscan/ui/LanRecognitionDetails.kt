@@ -7,7 +7,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
@@ -24,8 +23,7 @@ import java.util.Date
 
 /** Only approved typed fields are rendered. No raw TXT, network access or profile actions. */
 @Composable
-fun LanRecognitionDetails(presentation: LanRecognitionDevicePresentation, scopeKey: String) {
-    var expanded by rememberSaveable(scopeKey) { mutableStateOf(false) }
+fun LanRecognitionDetails(presentation: LanRecognitionDevicePresentation, expanded: Boolean, onToggle: () -> Unit) {
     val locale = LocalConfiguration.current.locales[0]
     OutlinedNetworkCard(modifier = Modifier.testTag("lan_recognition_details")) {
         Text(stringResource(R.string.lan_recognition_title), style = MaterialTheme.typography.titleMedium)
@@ -56,7 +54,7 @@ fun LanRecognitionDetails(presentation: LanRecognitionDevicePresentation, scopeK
                 }
             }
         }
-        TextButton(onClick = { expanded = !expanded }, modifier = Modifier.heightIn(min = 48.dp)
+        TextButton(onClick = onToggle, modifier = Modifier.heightIn(min = 48.dp)
             .testTag("lan_recognition_explain")) {
             Text(stringResource(if (expanded) R.string.lan_recognition_less else R.string.lan_recognition_more))
         }

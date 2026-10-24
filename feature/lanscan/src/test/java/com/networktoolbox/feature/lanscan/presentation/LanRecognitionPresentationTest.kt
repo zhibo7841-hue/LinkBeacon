@@ -11,6 +11,24 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LanRecognitionPresentationTest {
+    @Test fun `scanning same names retain separate routes and other network cannot reuse evidence`() {
+        val first = F.device().copy(hostName = "esp32-shared.local")
+        val second = first.copy(ipAddress = "192.168.1.41")
+        val completed = F.session(first).copy(discoveredDevices = listOf(first, second))
+        val range = (com.networktoolbox.feature.lanscan.domain.LanScanRangeCalculator().calculate(F.network)
+            as com.networktoolbox.feature.lanscan.domain.LanScanRangeResult.Ready).range
+        val state = LanScannerUiState.Scanning(F.network, range, completed.startedAt,
+            LanScanUpdate(LanScanStatus.SCANNING, 2, 254, completed.discoveredDevices), F.current.sessionId)
+        val snapshot = LanRecognitionPresentation.snapshot(state, F.current)!!
+        val items = DeviceCenterPresentation.deviceList(completed.discoveredDevices, emptyList(), F.network,
+            recognition = snapshot.forState(state))
+        assertEquals(2, items.size)
+        assertEquals(2, items.map { it.detailKey }.distinct().size)
+        assertEquals(setOf(first.ipAddress, second.ipAddress), snapshot.forState(state).keys)
+        assertTrue(snapshot.forState(state.copy(networkContext = F.network.copy(gateway = "192.168.1.254"))).isEmpty())
+        assertTrue(snapshot.forState(LanScannerUiState.Cancelled(completed.copy(status = LanScanStatus.CANCELLED))).isEmpty())
+    }
+
     @Test fun `scanning progress reuses cached evidence and remaps only changed host`() {
         var calls = 0
         val projector = LanRecognitionProjector { session, ip, current ->

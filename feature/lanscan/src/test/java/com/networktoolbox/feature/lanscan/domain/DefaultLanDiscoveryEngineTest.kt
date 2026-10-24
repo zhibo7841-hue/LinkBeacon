@@ -52,7 +52,8 @@ class DefaultLanDiscoveryEngineTest {
 
     @Test
     fun `custom range keeps local and gateway markers only when in range`() = runTest {
-        val probedHosts = mutableListOf<String>()
+        // Default workers run on Dispatchers.Default, not the runTest scheduler.
+        val probedHosts = java.util.Collections.synchronizedList(mutableListOf<String>())
         val context = context("192.168.1.206", 24, gateway = "192.168.1.1")
         val customRange = (LanCustomRangeCalculator().calculate("192.168.1.1", "192.168.1.254")
             as LanCustomRangeResult.Valid).range

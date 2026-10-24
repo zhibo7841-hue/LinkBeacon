@@ -13,6 +13,76 @@ import org.junit.Assert.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LanLeaseViewModelTest {
+    @Test fun `detail reads the same legal scanning projection and rejects stale host revisions`() = runTest {
+        val vm = vm(reverse = ReverseDnsEnricher { devices, result ->
+            result(ReverseDnsEnrichmentResult(devices.single().ipAddress, "esp32-study.local",
+                status = ReverseDnsEnrichmentStatus.RESOLVED))
+        })
+        runCurrent(); vm.startScan(); runCurrent()
+        val state = vm.uiState.value as LanScannerUiState.Scanning
+        val snapshot = LanRecognitionPresentation.snapshot(state,
+            com.networktoolbox.feature.lanscan.domain.recognition.LanRecognitionContext(
+                state.sessionId, LanNetworkFingerprint.from(state.networkContext)))!!
+        val route = LanDeviceDetailRouteKey.forObserved(LanNetworkScope.from(state.networkContext), F.device().ipAddress)
+        val detail = vm.resolveDeviceDetail(route, recognitionSnapshot = snapshot)!!
+        assertNotNull(detail.recognition)
+        assertEquals(snapshot.forState(state)[detail.ipAddress], detail.recognition)
+        assertEquals(state.sessionId, detail.observationSessionId)
+        assertFalse(detail.isStoppedSnapshot)
+        val stale = LanRecognitionSnapshot(snapshot.sessionId + 1, snapshot.networkFingerprint,
+            snapshot.devices, state.recognitionSession()!!)
+        assertNull(vm.resolveDeviceDetail(route, recognitionSnapshot = stale)!!.recognition)
+        vm.stopScan(); runCurrent()
+        assertNull(vm.resolveDeviceDetail(route, recognitionSnapshot = snapshot)!!.recognition)
+        assertTrue(vm.resolveDeviceDetail(route)!!.isStoppedSnapshot)
+        assertEquals(0, accepted)
+    }
+
+    @Test fun `detail update preserves edit draft and rejects network invalidated observation`() = runTest {
+        lateinit var reply: (ReverseDnsEnrichmentResult) -> Unit
+        val vm = vm(reverse = ReverseDnsEnricher { _, result -> reply = result })
+        runCurrent(); vm.startScan(); runCurrent()
+        val route = LanDeviceDetailRouteKey.forObserved(LanNetworkScope.from(F.network), F.device().ipAddress)
+        assertTrue(vm.beginDeviceProfileEdit(route))
+        vm.onDeviceProfileNameChanged("My edited device")
+        vm.onDeviceProfileTypeChanged(DeviceType.NAS)
+        vm.onDeviceProfileNotesChanged("Keep this draft")
+        val before = vm.deviceProfileEditState.value
+        reply(ReverseDnsEnrichmentResult(F.device().ipAddress, "esp32-late.local",
+            status = ReverseDnsEnrichmentStatus.RESOLVED)); runCurrent()
+        assertEquals(before, vm.deviceProfileEditState.value)
+        assertNotNull(vm.resolveDeviceDetail(route))
+        provider.leases.single().invalidate(); runCurrent()
+        assertNull(vm.resolveDeviceDetail(route))
+        assertEquals(0, accepted)
+    }
+
+    @Test fun `completed detail retains shared recognition and profile priority without repeated queries`() = runTest {
+        val device = F.device().copy(hostName = "esp32-study.local")
+        val vm = vm(devices = listOf(device))
+        runCurrent(); vm.startScan(); runCurrent(); finish.complete(Unit); advanceUntilIdle()
+        val state = vm.uiState.value as LanScannerUiState.Completed
+        val snapshot = LanRecognitionPresentation.snapshot(state,
+            com.networktoolbox.feature.lanscan.domain.recognition.LanRecognitionContext(
+                state.session.sessionId, state.session.networkFingerprint))!!
+        val profile = LanFavoriteIdentity.createSavedProfile(device, F.network, 1)!!.copy(
+            id = 9, customName = "User name", userDeviceType = DeviceType.NAS, notes = "Keep", isFavorite = true)
+        val route = LanDeviceDetailRouteKey.forObserved(LanNetworkScope.from(F.network), device.ipAddress)
+        val calls = names
+        repeat(3) {
+            val detail = vm.resolveDeviceDetail(route, listOf(profile), snapshot)!!
+            assertEquals(snapshot.forState(state)[device.ipAddress], detail.recognition)
+            assertEquals("User name", detail.customName)
+            assertEquals(DeviceType.NAS, detail.effectiveDeviceType)
+            assertEquals("Keep", detail.notes)
+            assertTrue(detail.isFavorite)
+            assertFalse(detail.isStoppedSnapshot)
+        }
+        assertEquals(calls, names); assertEquals(1, accepted)
+        val otherScope = LanDeviceDetailRouteKey.forObserved("another-network", device.ipAddress)
+        assertNull(vm.resolveDeviceDetail(otherScope, listOf(profile), snapshot))
+    }
+
     @Test fun `leaving settled result does not relabel finished supplementation as stopped`() = runTest {
         // Main.immediate can resume a StateFlow collector inline during bridge.close().
         Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))

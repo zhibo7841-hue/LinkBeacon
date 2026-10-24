@@ -159,4 +159,5 @@
     <string name="lan_supplement_source_unknown">Source outcome unconfirmed: %1$d</string>
     <string name="lan_supplement_source_failed">Sources failed: %1$d</string>
     <string name="lan_supplement_snapshot">Stopped scan snapshot; not a current online status.</string>
+    <string name="lan_recognition_snapshot_field">%1$s (scan snapshot · %2$s)</string>
 </resources>

@@ -539,9 +539,10 @@ class LanScannerViewModel @Inject constructor(
         recognitionSnapshot: LanRecognitionSnapshot? = recognition.value,
     ): DeviceDetailPresentation? {
         val parsed = LanDeviceDetailRouteKey.parse(routeKey) ?: return null
-        val context = currentNetworkContext() ?: return null
+        val state = _uiState.value
+        val context = currentNetworkContext(state) ?: return null
         val scope = LanNetworkScope.from(context)
-        val devices = currentDevices()
+        val devices = currentDevices(state)
         val detail = when (parsed) {
             is LanDeviceDetailRouteKey.Parsed.Observed -> {
                 if (parsed.networkScope != null && parsed.networkScope != scope) return null
@@ -602,10 +603,13 @@ class LanScannerViewModel @Inject constructor(
                 }
             }
         }
-        val session = (_uiState.value as? LanScannerUiState.Completed)?.session
-        return detail.copy(recognition = if (detail.observedThisScan && session != null) {
-            recognitionSnapshot?.forSession(session)?.get(detail.ipAddress)
-        } else null)
+        return detail.copy(
+            recognition = if (detail.observedThisScan) {
+                recognitionSnapshot?.forState(state)?.get(detail.ipAddress)
+            } else null,
+            observationSessionId = if (detail.observedThisScan) state.recognitionSession()?.sessionId else null,
+            isStoppedSnapshot = detail.observedThisScan && state is LanScannerUiState.Cancelled,
+        )
     }
 
     /** Starts one unified edit session. Recomposition keeps the existing draft intact. */
@@ -1381,7 +1385,7 @@ class LanScannerViewModel @Inject constructor(
         }
     }
 
-    private fun currentNetworkContext(): NetworkContext? = when (val state = _uiState.value) {
+    private fun currentNetworkContext(state: LanScannerUiState = _uiState.value): NetworkContext? = when (state) {
         LanScannerUiState.Idle -> latestReadiness?.networkContext
         is LanScannerUiState.Ready -> state.readiness.networkContext
         is LanScannerUiState.Scanning -> state.networkContext
@@ -1393,7 +1397,7 @@ class LanScannerViewModel @Inject constructor(
         is LanScannerUiState.Error -> state.readiness?.networkContext
     }
 
-    private fun currentDevices(): List<com.networktoolbox.feature.lanscan.domain.model.LanDevice> = when (val state = _uiState.value) {
+    private fun currentDevices(state: LanScannerUiState = _uiState.value): List<com.networktoolbox.feature.lanscan.domain.model.LanDevice> = when (state) {
         LanScannerUiState.Idle,
         is LanScannerUiState.Ready,
         is LanScannerUiState.UnsupportedNetwork,

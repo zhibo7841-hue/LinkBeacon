@@ -132,6 +132,9 @@ data class DeviceDetailPresentation(
     val recognition: LanRecognitionDevicePresentation? = null,
     val savedIdentityFields: Set<String> = emptySet(),
     val hostnameSource: UiText? = null,
+    /** Presentation scope, not a persistent device identity or a new observation. */
+    val observationSessionId: Long? = null,
+    val isStoppedSnapshot: Boolean = false,
 ) {
     /** Derived labels keep the star, status text, and accessibility semantics aligned. */
     val favoriteStatusLabel: UiText

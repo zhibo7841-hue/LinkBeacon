@@ -78,6 +78,10 @@ fun DeviceDetailScreen(
     modifier: Modifier = Modifier,
     scrollState: ScrollState? = null,
 ) {
+    // Keep expansion through a temporarily absent (lagging) projection, but not a new session.
+    var recognitionExpanded by rememberSaveable(detail?.detailKey, detail?.observationSessionId) {
+        mutableStateOf(false)
+    }
     val screenScrollState = scrollState ?: rememberSaveable(detail?.detailKey, saver = ScrollState.Saver) {
         ScrollState(initial = 0)
     }
@@ -198,6 +202,11 @@ fun DeviceDetailScreen(
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
+            if (detail.isStoppedSnapshot) {
+                Text(stringResource(R.string.lan_supplement_snapshot),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Text(
                 detail.favoriteStatusLabel.resolve(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -230,7 +239,8 @@ fun DeviceDetailScreen(
                 detail.hostname?.takeIf(String::isNotBlank)?.let {
                     val label = if ("hostname" in detail.savedIdentityFields) {
                         stringResource(R.string.lan_recognition_saved_field, stringResource(R.string.lan_hostname))
-                    } else stringResource(R.string.lan_recognition_current_field, stringResource(R.string.lan_hostname),
+                    } else stringResource(if (detail.isStoppedSnapshot) R.string.lan_recognition_snapshot_field
+                        else R.string.lan_recognition_current_field, stringResource(R.string.lan_hostname),
                         detail.hostnameSource?.resolve() ?: stringResource(R.string.lan_recognition_not_recorded))
                     ToolResultRow(label, it)
                 }
@@ -244,7 +254,7 @@ fun DeviceDetailScreen(
         }
 
         detail.recognition?.let { recognition ->
-            LanRecognitionDetails(recognition, detail.detailKey + recognition.result.hashCode())
+            LanRecognitionDetails(recognition, recognitionExpanded, { recognitionExpanded = !recognitionExpanded })
         }
 
         DeviceDetailSection(
@@ -289,7 +299,7 @@ fun DeviceDetailScreen(
         DeviceDetailSection(title = stringResource(R.string.lan_observation)) {
             ToolResultRow(
                 stringResource(R.string.device_scan_status),
-                when (detail.observationStatus) {
+                if (detail.isStoppedSnapshot) stringResource(R.string.lan_scan_stopped_title) else when (detail.observationStatus) {
                     DeviceObservationStatus.FOUND -> stringResource(R.string.lan_found)
                     DeviceObservationStatus.NOT_FOUND -> stringResource(R.string.lan_not_found)
                     DeviceObservationStatus.NOT_SCANNED -> stringResource(R.string.lan_not_scanned)
@@ -524,7 +534,8 @@ private fun DeviceDetailSection(
 private fun identityFieldLabel(detail: DeviceDetailPresentation, field: String, label: Int, source: Int): String =
     if (field in detail.savedIdentityFields) {
         stringResource(R.string.lan_recognition_saved_field, stringResource(label))
-    } else stringResource(R.string.lan_recognition_reported_label, stringResource(label), stringResource(source))
+    } else stringResource(if (detail.isStoppedSnapshot) R.string.lan_recognition_snapshot_field
+        else R.string.lan_recognition_reported_label, stringResource(label), stringResource(source))
 
 private fun formatTimestamp(timestamp: Long): String = DateFormat
     .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault())

@@ -159,4 +159,5 @@
     <string name="lan_supplement_source_unknown">来源结果未确认：%1$d</string>
     <string name="lan_supplement_source_failed">来源失败：%1$d</string>
     <string name="lan_supplement_snapshot">已停止扫描的快照，不代表当前在线状态。</string>
+    <string name="lan_recognition_snapshot_field">%1$s（扫描快照 · %2$s）</string>
 </resources>
