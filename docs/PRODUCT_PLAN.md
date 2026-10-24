@@ -45,12 +45,16 @@ controls support exploration and learning at different levels of experience.
 LinkBeacon prioritizes professional evidence and efficient operation, with technical
 explanations and troubleshooting guidance available on demand:
 
-- Keep network terminology, real measured parameters and important evidence easy
-  to inspect; use concise summaries without obscuring key technical facts.
-- Show connection, permission, request failure, cache and unknown states alongside
-  the affected data by default. These are evidence qualifiers, not optional tutorials.
-- Use progressive disclosure for extended technical detail and educational
-  explanations, not as a mandatory barrier to checking the main evidence.
+- Make core network parameters and valid test results directly visible.
+- Keep the default page focused on necessary data, actions and current status.
+- Offer general technical explanations and detailed troubleshooting guidance on
+  demand, through existing detail and expansion mechanisms where practical.
+- Retain concise source, uncertainty, cache and error qualifiers wherever they
+  affect how a result can be trusted or interpreted. Connection, permission,
+  request-failure and unknown states stay with the affected data by default.
+- Preserve network terminology and key evidence when shortening copy.
+- Consolidate repeated notices into concise supporting information, using direct
+  workflows and existing detail surfaces with the fewest necessary steps.
 - Support learning as well as professional use with clear bilingual labels,
   units, provenance, limitations and reversible troubleshooting suggestions.
 - Preserve accessibility, local-first privacy and conservative conclusions. Data
@@ -874,8 +878,11 @@ It is preparation only: proposed dependencies, discovery types, endpoint/privacy
 policy and export redaction require maintainer confirmation before their
 respective implementation tasks. The approved functional scope below is unchanged.
 
-1. **ESP32/ESP8266 / smart-home device recognition:** improve bounded
-   PTR, mDNS and SSDP/UPnP observations and cautious service hints.
+1. **Device recognition — common terminals and smart home:** prioritize effective
+   automatic names for computers, phones and tablets, retaining ESP32/ESP8266
+   and smart-home recognition within the approved B1 scope. Follow the Task 146
+   C0 direction clarification below; new-source defaults remain unapproved.
+   Improve bounded PTR, mDNS and SSDP/UPnP observations and cautious service hints.
    Explain identity sources and unknown states, preserve user-assigned
    names/types. Do not promise full recognition or infer device model
    from IP, port or guessed MAC vendor; no cloud OUI upload.
@@ -973,4 +980,36 @@ change needs maintainer approval and an update here; consequential
 decisions must also be logged in [DECISIONS.md](DECISIONS.md).
 Earlier [candidate research](research/LINKBEACON_NEXT_VERSION_CANDIDATES.md)
 is an as-of-research record, not a second authoritative roadmap.
+
+### Stage B1 direction clarification — 2026-10-24 / Task 146
+
+Within the approved device-recognition enhancement, prioritize effective automatic
+names for common computers, phones and tablets alongside the existing smart-home
+work. Distinguish discovery, automatic names, device category, brand and model/OS;
+one field does not establish the others. User-assigned names and types retain
+their existing priority, and names or service announcements never create a
+discovered/online device or become new identity-matching keys.
+
+The accepted architectural direction is an **independent bounded pipeline C**,
+starting with **C0 design**: display an IP as soon as existing host-discovery
+rules admit it, and progressively merge names and supplementary evidence from
+separately bounded per-host work. Name work must not occupy discovery workers.
+Preserve the original address-completion History freeze point and user-profile /
+Last Seen ownership. Keep the existing shared mDNS/SSDP start timing, windows and
+service catalog as C0's initial boundary.
+
+Current-network compliant DNS PTR, reverse mDNS PTR for discovered addresses and
+conditional NBSTAT are **independent validation candidates**, not implemented
+features or approved default-on protocols. Measure each source's real incremental
+benefit before choosing its default scope. Earlier shared-service windows (C1)
+and ESPHome service-catalog expansion retain separate implementation, resource,
+privacy and device-acceptance gates. This clarification changes no unrelated
+Stage B/C roadmap or v0.9.1/Google Play state.
+
+B1.1's existing-evidence mapper and presentation are locally implemented and
+reviewed at `2ef2a38`; their fixture gates do not establish real terminal coverage.
+The older Stage B preparation statements above are dated checkpoints, not claims
+that these later local B1.1 commits are absent. Task 146 authorizes documentation,
+source audit and [C0 design](V0.10_STAGE_B1_PROGRESSIVE_DISCOVERY_DESIGN.md) only;
+C0 implementation and new-source default activation require further review.
 

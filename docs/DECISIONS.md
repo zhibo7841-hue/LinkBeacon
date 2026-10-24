@@ -1,5 +1,44 @@
 # Decision Log
 
+## Decision: Minimal default UI and bounded progressive device recognition
+
+- Date: 2026-10-24
+- Status: **Accepted principles and architecture direction**, confirmed by the
+  maintainer in Task 146. Technical parameters and protocol defaults remain
+  proposals pending review; this task authorizes no Runtime implementation.
+- App-wide UI: show core network parameters and valid results directly; focus
+  defaults on necessary data, actions and state. Offer general explanations and
+  detailed troubleshooting on demand. Keep concise source, uncertainty, cache
+  and error qualifiers with the affected facts, preserving key evidence while
+  consolidating repeated notices and keeping interaction paths direct. This
+  applies across LinkBeacon, not only LAN Scanner, and complements the Task 135
+  professional-evidence-first principle without rewriting historical decisions.
+- B1 priority: improve effective automatic names for common computers, phones
+  and tablets within the approved device-recognition scope. Smart-home/ESPHome
+  work remains included but does not substitute for ordinary-terminal evidence.
+  Discovery, name, category, brand and model/OS are separately qualified facts.
+- Architecture: adopt independent bounded pipeline C, with **C0 designed first**.
+  Admitted hosts can appear by IP before names; a separate bounded per-host queue
+  progressively supplies evidence without occupying discovery workers. Preserve
+  current shared mDNS/SSDP start timing, windows and catalog in the initial C0
+  design. A single session owner must merge discovery and enrichment safely.
+- Validation: current-network compliant DNS PTR, reverse mDNS PTR and conditional
+  NBSTAT receive separate controlled experiments, one new source at a time.
+  Their default activation is not approved by this decision. Measure real name
+  coverage, delay, request/resource costs and cancellation rather than claiming
+  hardware identity or universal coverage from a protocol's existence.
+- Compatibility: preserve online evidence, identity matching, Custom Name, user
+  Device Type, Notes, Favorite, WoL, History freeze/schema and discovery-owned
+  Last Seen. Preserve existing lawful StrongMatch metadata updates, rather than
+  redefining all observation work as zero-write. Do not add online hosts from
+  names or advertisements. C1 shared-window changes and ESPHome expansion keep
+  independent authorization and safety gates.
+- Consequence: synchronize the [product baseline](PRODUCT_PLAN.md) and produce
+  [the local-source C0 design](V0.10_STAGE_B1_PROGRESSIVE_DISCOVERY_DESIGN.md).
+  B1.1 commits, Stage A/B2 dependencies, v0.9.1, Runtime, permissions, signing,
+  versions, Play and release artifacts remain unchanged. No automatic C0, B1.2,
+  B1.3, B3/B4 or release action follows this documentation decision.
+
 ## Decision: Professional evidence first with on-demand explanation
 
 - Date: 2026-10-22
