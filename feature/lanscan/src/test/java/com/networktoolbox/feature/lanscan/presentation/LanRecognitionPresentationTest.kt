@@ -11,6 +11,74 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LanRecognitionPresentationTest {
+    @Test fun `scanning progress reuses cached evidence and remaps only changed host`() {
+        var calls = 0
+        val projector = LanRecognitionProjector { session, ip, current ->
+            calls++; LanRecognitionMapper.mapScanning(session, ip, current)
+        }
+        val range = (com.networktoolbox.feature.lanscan.domain.LanScanRangeCalculator().calculate(F.network)
+            as com.networktoolbox.feature.lanscan.domain.LanScanRangeResult.Ready).range
+        val devices = (1..20).map { F.device().copy(ipAddress = "192.168.1.$it") }
+        val state = LanScannerUiState.Scanning(F.network, range, 1000,
+            LanScanUpdate(LanScanStatus.SCANNING, 20, 254, devices), F.current.sessionId)
+        projector.snapshot(state, F.current)
+        assertEquals(20, calls)
+        repeat(10) { projector.snapshot(state.copy(update = state.update.copy(
+            scannedHosts = 21 + it, elapsedMs = 100L + it)), F.current) }
+        assertEquals(20, calls)
+        projector.snapshot(state.copy(update = state.update.copy(discoveredDevices = devices.mapIndexed { index, d ->
+            if (index == 0) d.copy(hostName = "esp32-study.local") else d
+        })), F.current)
+        assertEquals(21, calls)
+    }
+
+    @Test fun `scanning projection retains current evidence before address completion`() {
+        val range = (com.networktoolbox.feature.lanscan.domain.LanScanRangeCalculator().calculate(F.network)
+            as com.networktoolbox.feature.lanscan.domain.LanScanRangeResult.Ready).range
+        val device = F.device().copy(hostName = "esp32-study.local")
+        val state = LanScannerUiState.Scanning(F.network, range, 1000,
+            LanScanUpdate(LanScanStatus.SCANNING, 1, 254, listOf(device), elapsedMs = 10), F.current.sessionId)
+        val result = LanRecognitionPresentation.snapshot(state, F.current)
+        assertNotNull("Scanning must use the shared evidence projection", result)
+        assertEquals(LanRecognitionCategory.WEAK_NAME_CLUE, result!!.devices.getValue(F.IP).rows.single().hint.category)
+        assertNull(result.devices.getValue(F.IP).summary)
+    }
+
+    @Test fun `scanning projection rejects prior names and preserves mapper guards`() {
+        val range = (com.networktoolbox.feature.lanscan.domain.LanScanRangeCalculator().calculate(F.network)
+            as com.networktoolbox.feature.lanscan.domain.LanScanRangeResult.Ready).range
+        val first = F.device().copy(hostName = "esp32-first.local")
+        val state = LanScannerUiState.Scanning(F.network, range, 1000,
+            LanScanUpdate(LanScanStatus.SCANNING, 1, 254, listOf(first)), F.current.sessionId)
+        val projection = LanRecognitionPresentation.snapshot(state, F.current)!!
+        assertTrue(projection.forState(state).isNotEmpty())
+        assertTrue("Progress-only publication must not blink unchanged evidence",
+            projection.forState(state.copy(update = state.update.copy(scannedHosts = 2, elapsedMs = 30))).isNotEmpty())
+        assertTrue(projection.forState(state.copy(sessionId = 99)).isEmpty())
+        assertTrue(projection.forState(state.copy(update = state.update.copy(discoveredDevices =
+            listOf(first.copy(hostName = "esp8266-new.local"))))).isEmpty())
+        assertEquals(LanRecognitionStatus.NOT_CURRENT,
+            LanRecognitionMapper.map(state.recognitionSession()!!, F.IP, F.current).status)
+        assertEquals(LanRecognitionStatus.NOT_CURRENT,
+            LanRecognitionMapper.mapScanning(state.recognitionSession()!!.copy(networkChanged = true), F.IP, F.current).status)
+    }
+
+    @Test fun `global supplementation retains distinct uncertain outcomes`() {
+        val names = mapOf(
+            com.networktoolbox.feature.lanscan.domain.progressive.LanNameStatus.DEFERRED to 2,
+            com.networktoolbox.feature.lanscan.domain.progressive.LanNameStatus.FAILED to 3,
+            com.networktoolbox.feature.lanscan.domain.progressive.LanNameStatus.TIMED_OUT to 4,
+            com.networktoolbox.feature.lanscan.domain.progressive.LanNameStatus.UNKNOWN to 5)
+        val status = LanSupplementPresentation(false, false, names, mapOf(
+            com.networktoolbox.feature.lanscan.domain.progressive.LanSourceStatus.UNKNOWN to 2))
+        val text = status.text.testText()
+        assertTrue(text.contains("未执行：2")); assertTrue(text.contains("查询失败：3"))
+        assertTrue(text.contains("查询超时：4")); assertTrue(text.contains("查询结果未确认：5"))
+        assertTrue(text.contains("来源结果未确认：2")); assertFalse(text.contains("无可用结果"))
+        assertTrue(status.copy(running = true).text.testText().contains("信息补充中"))
+        assertTrue(status.copy(stopped = true).text.testText().contains("已停止"))
+    }
+
     private fun snapshot(device: LanDevice = F.device(), current: LanRecognitionContext? = F.current) =
         LanRecognitionPresentation.snapshot(LanScannerUiState.Completed(F.session(device)), current)!!
 

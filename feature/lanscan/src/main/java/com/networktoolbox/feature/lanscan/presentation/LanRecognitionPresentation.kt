@@ -24,10 +24,22 @@ class LanRecognitionSnapshot(
     val devices: Map<String, LanRecognitionDevicePresentation>,
     private val capturedSession: LanScanSession,
 ) {
-    fun forSession(session: LanScanSession): Map<String, LanRecognitionDevicePresentation> {
-        if (session.status != LanScanStatus.COMPLETED || session.networkChanged ||
+    fun forSession(session: LanScanSession): Map<String, LanRecognitionDevicePresentation> =
+        if (session.status == LanScanStatus.COMPLETED) validated(session) else emptyMap()
+
+    fun forState(state: LanScannerUiState): Map<String, LanRecognitionDevicePresentation> =
+        state.recognitionSession()?.let(::validated).orEmpty()
+
+    private fun validated(session: LanScanSession): Map<String, LanRecognitionDevicePresentation> {
+        // Separately collected progress may lead the projection by one emission.
+        // Counters/time do not change recognition evidence; keep every other
+        // header field and each host observation guarded exactly as before.
+        val comparable = if (session.status == LanScanStatus.SCANNING) session.copy(
+            scannedHosts = capturedSession.scannedHosts, finishedAt = capturedSession.finishedAt,
+        ) else session
+        if (session.networkChanged ||
             session.sessionId != sessionId || session.networkFingerprint != networkFingerprint ||
-            session.copy(discoveredDevices = capturedSession.discoveredDevices) != capturedSession
+            comparable.copy(discoveredDevices = capturedSession.discoveredDevices) != capturedSession
         ) return emptyMap()
         // UI state and recognition are collected separately. Even within one generation,
         // never attach a prior platform/conflict report to changed or ambiguous observations.
@@ -40,7 +52,10 @@ class LanRecognitionSnapshot(
 
 /** VM-owned, single-collector cache; no process-global or saved-profile recognition state. */
 internal class LanRecognitionProjector(
-    private val map: (LanScanSession, String, LanRecognitionContext) -> LanRecognitionResult = LanRecognitionMapper::map,
+    private val map: (LanScanSession, String, LanRecognitionContext) -> LanRecognitionResult = { session, ip, context ->
+        if (session.status == LanScanStatus.SCANNING) LanRecognitionMapper.mapScanning(session, ip, context)
+        else LanRecognitionMapper.map(session, ip, context)
+    },
 ) {
     private data class Cached(val device: LanDevice, val presentation: LanRecognitionDevicePresentation?)
     private var header: LanScanSession? = null
@@ -48,14 +63,15 @@ internal class LanRecognitionProjector(
     private var cache = emptyMap<String, Cached>()
 
     fun snapshot(state: LanScannerUiState, current: LanRecognitionContext?): LanRecognitionSnapshot? {
-        val session = (state as? LanScannerUiState.Completed)?.session
+        val session = state.recognitionSession()
         if (session == null || current == null) {
             header = null
             context = null
             cache = emptyMap()
             return null
         }
-        val nextHeader = session.copy(discoveredDevices = emptyList())
+        val nextHeader = session.copy(discoveredDevices = emptyList(),
+            scannedHosts = 0, finishedAt = session.startedAt)
         val previous = if (header == nextHeader && context == current) cache else emptyMap()
         val next = session.discoveredDevices.groupBy { it.ipAddress }.mapNotNull { (ip, candidates) ->
             val device = candidates.singleOrNull() ?: return@mapNotNull null
@@ -136,4 +152,16 @@ object LanRecognitionPresentation {
             LanRecognitionArguments.None -> UiText(R.string.lan_recognition_not_recorded)
         }
     }
+}
+
+/** A detached read-only view with its actual SCANNING status, never a persisted result. */
+internal fun LanScannerUiState.recognitionSession(): LanScanSession? = when (this) {
+    is LanScannerUiState.Completed -> session
+    is LanScannerUiState.Scanning -> LanScanSession(
+        status = LanScanStatus.SCANNING, initialNetworkContext = networkContext, range = range,
+        scannedHosts = update.scannedHosts, totalHosts = update.totalHosts,
+        discoveredDevices = update.discoveredDevices, startedAt = startedAt,
+        finishedAt = startedAt + (update.elapsedMs ?: 0), sessionId = sessionId,
+    )
+    else -> null
 }

@@ -148,4 +148,15 @@
     <string name="lan_recognition_more">识别说明与名称线索</string>
     <string name="lan_recognition_less">收起识别说明与名称线索</string>
     <string name="lan_recognition_explanation">这些是本次扫描的观察，不是经过认证的硬件身份。公告端口不代表连接成功，自报字段和名称可以被修改或伪造。缺少证据不表示设备离线，也不能排除某种平台。部分冲突可能在采集阶段已丢失；PTR/mDNS 的会话归属依赖既有扫描保护。识别提示不改变保存资料或观察时间。</string>
+    <string name="lan_supplement_running">地址扫描完成 · 信息补充中</string>
+    <string name="lan_supplement_finished">信息补充已结束</string>
+    <string name="lan_supplement_stopped">信息补充已停止</string>
+    <string name="lan_supplement_deferred">未执行：%1$d</string>
+    <string name="lan_supplement_failed">查询失败：%1$d</string>
+    <string name="lan_supplement_timeout">查询超时：%1$d</string>
+    <string name="lan_supplement_no_data">查询无可用结果：%1$d</string>
+    <string name="lan_supplement_unknown">查询结果未确认：%1$d</string>
+    <string name="lan_supplement_source_unknown">来源结果未确认：%1$d</string>
+    <string name="lan_supplement_source_failed">来源失败：%1$d</string>
+    <string name="lan_supplement_snapshot">已停止扫描的快照，不代表当前在线状态。</string>
 </resources>

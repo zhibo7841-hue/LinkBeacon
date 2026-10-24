@@ -92,6 +92,7 @@ class LanScannerViewModel @Inject constructor(
     val uiState: StateFlow<LanScannerUiState> = _uiState.asStateFlow()
     private val recognitionContext = MutableStateFlow<LanRecognitionContext?>(null)
     private val recognitionProjector = LanRecognitionProjector()
+    private var supplementPresentationJob: Job? = null
     val recognition: StateFlow<LanRecognitionSnapshot?> = combine(_uiState, recognitionContext) { state, current ->
         recognitionProjector.snapshot(state, current)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -326,6 +327,9 @@ class LanScannerViewModel @Inject constructor(
         )
         lastScanRange = range
         val ownedBridge = requireNotNull(discoveryBridge)
+        supplementPresentationJob = viewModelScope.launch {
+            ownedBridge.state.collect { snapshot -> publishSupplement(snapshot) }
+        }
         enrichmentJob = viewModelScope.launch {
             LanProgressiveNames(ownedBridge, lease, reverseDnsEnricher,
                 current = { generation == enrichmentGeneration && !stopRequested.get() && networkLease === lease },
@@ -377,6 +381,7 @@ class LanScannerViewModel @Inject constructor(
                         _uiState.update { boundSession.copy(
                             discoveredDevices = withSessionNames(boundSession.discoveredDevices, generation),
                         ).toUiState() }
+                        publishSupplement(ownedBridge.state.value)
                     }
                     if (session.status == LanScanStatus.COMPLETED) {
                         syncFavoritesWithDevices(
@@ -1438,10 +1443,29 @@ class LanScannerViewModel @Inject constructor(
         }
     }
 
+    private fun publishSupplement(snapshot: LanProgressiveSession) {
+        _uiState.update { current ->
+            if (current is LanScannerUiState.Completed && current.session.sessionId == snapshot.token.generation &&
+                enrichmentGeneration == snapshot.token.generation && discoveryBridge?.token == snapshot.token) {
+                current.copy(supplement = LanSupplementPresentation.from(snapshot))
+            } else current
+        }
+    }
+
     private fun invalidateEnrichment() {
         discoveryInbox?.close()
         discoveryInbox = null
+        val beforeClose = discoveryBridge?.state?.value
+        // Main.immediate may deliver close's StateFlow emission inline. Stop the
+        // presenter first, then preserve a settled result instead of relabelling
+        // ordinary screen departure as cancelled work. Repeated close is inert.
+        supplementPresentationJob?.cancel()
+        supplementPresentationJob = null
         discoveryBridge?.close()
+        if (beforeClose?.accepting == true) {
+            (if (beforeClose.logicallySettled) beforeClose else discoveryBridge?.state?.value)
+                ?.let(::publishSupplement)
+        }
         networkLease?.close()
         networkLease = null
         enrichmentGeneration += 1L

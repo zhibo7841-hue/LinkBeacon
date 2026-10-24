@@ -13,7 +13,7 @@ import java.security.MessageDigest
 import java.util.Locale
 import java.util.TreeMap
 
-/** Pure interpretation of one device already present in the caller's current completed scan. */
+/** Pure interpretation of a device in the caller's current scan, through explicit status-specific entries. */
 object LanRecognitionMapper {
     const val MAX_HINTS = 32
     const val MAX_CONFLICT_VALUES = 4
@@ -40,11 +40,22 @@ object LanRecognitionMapper {
         ipAddress: String,
         current: LanRecognitionContext,
     ): LanRecognitionResult {
+        return mapEligible(session, ipAddress, current, allowScanning = false)
+    }
+
+    /** Explicit live-scan input; never relabels a running session as COMPLETED. */
+    fun mapScanning(session: LanScanSession, ipAddress: String, current: LanRecognitionContext): LanRecognitionResult {
+        if (session.status != LanScanStatus.SCANNING) return LanRecognitionResult(LanRecognitionStatus.NOT_CURRENT)
+        return mapEligible(session, ipAddress, current, allowScanning = true)
+    }
+
+    private fun mapEligible(session: LanScanSession, ipAddress: String, current: LanRecognitionContext,
+        allowScanning: Boolean): LanRecognitionResult {
         val network = session.initialNetworkContext
         if (current.sessionId <= 0L || session.sessionId != current.sessionId ||
             session.networkFingerprint != current.networkFingerprint ||
             session.networkFingerprint != LanNetworkFingerprint.from(network) ||
-            session.status != LanScanStatus.COMPLETED || session.networkChanged ||
+            (session.status != LanScanStatus.COMPLETED && !(allowScanning && session.status == LanScanStatus.SCANNING)) || session.networkChanged ||
             network.activeNetworkAvailable != true || network.vpnActive != false ||
             network.connectionType !in setOf(ConnectionType.WIFI, ConnectionType.ETHERNET)
         ) return LanRecognitionResult(LanRecognitionStatus.NOT_CURRENT)

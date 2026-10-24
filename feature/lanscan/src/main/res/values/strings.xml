@@ -148,4 +148,15 @@
     <string name="lan_recognition_more">Evidence notes and name clues</string>
     <string name="lan_recognition_less">Hide evidence notes and name clues</string>
     <string name="lan_recognition_explanation">These are observations from the current scan, not authenticated hardware identities. Advertised ports do not prove a successful connection. Self-reports and names can be changed or spoofed. Missing evidence does not mean a device is offline or exclude a platform. Some conflicts may have been lost during collection; PTR/mDNS rely on the guarded scan for session provenance. Recognition does not change saved profiles or observation timestamps.</string>
+    <string name="lan_supplement_running">Address scan complete · Enriching information</string>
+    <string name="lan_supplement_finished">Information enrichment finished</string>
+    <string name="lan_supplement_stopped">Information enrichment stopped</string>
+    <string name="lan_supplement_deferred">Not executed: %1$d</string>
+    <string name="lan_supplement_failed">Queries failed: %1$d</string>
+    <string name="lan_supplement_timeout">Queries timed out: %1$d</string>
+    <string name="lan_supplement_no_data">Queries with no usable result: %1$d</string>
+    <string name="lan_supplement_unknown">Query outcome unconfirmed: %1$d</string>
+    <string name="lan_supplement_source_unknown">Source outcome unconfirmed: %1$d</string>
+    <string name="lan_supplement_source_failed">Sources failed: %1$d</string>
+    <string name="lan_supplement_snapshot">Stopped scan snapshot; not a current online status.</string>
 </resources>

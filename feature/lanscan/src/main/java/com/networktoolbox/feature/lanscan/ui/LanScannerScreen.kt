@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.networktoolbox.core.designsystem.NetworkToolAccent
@@ -111,28 +112,19 @@ fun LanScannerScreen(
             is LanScannerUiState.Scanning -> ScanningContent(
                 state = state,
                 onStopScan = onStopScan,
-                savedProfiles = savedProfiles,
-                identityFilter = identityFilter,
-                onIdentityFilterChanged = { identityFilter = it },
             )
 
             is LanScannerUiState.Completed -> SessionContent(
                 session = state.session,
-                recognition = recognition?.forSession(state.session).orEmpty(),
+                supplement = state.supplement,
                 onRescan = onRetry,
                 onModifyRange = onModifyRange,
-                savedProfiles = savedProfiles,
-                identityFilter = identityFilter,
-                onIdentityFilterChanged = { identityFilter = it },
             )
 
             is LanScannerUiState.Cancelled -> SessionContent(
                 session = state.session,
                 onRescan = onRetry,
                 onModifyRange = onModifyRange,
-                savedProfiles = savedProfiles,
-                identityFilter = identityFilter,
-                onIdentityFilterChanged = { identityFilter = it },
             )
 
             is LanScannerUiState.NetworkChanged -> NetworkChangedContent(
@@ -148,6 +140,17 @@ fun LanScannerScreen(
                 message = state.message.resolve(),
                 onRetry = onRetry,
             )
+        }
+        // One composition location across scanning/completion/stop retains row and scroll identity.
+        val list = when (val state = uiState) {
+            is LanScannerUiState.Scanning -> state.update.discoveredDevices to state.networkContext
+            is LanScannerUiState.Completed -> state.session.discoveredDevices to state.session.initialNetworkContext
+            is LanScannerUiState.Cancelled -> state.session.discoveredDevices to state.session.initialNetworkContext
+            else -> null
+        }
+        list?.let { (devices, context) ->
+            DeviceList(devices, context, savedProfiles, identityFilter, { identityFilter = it },
+                recognition?.forState(uiState).orEmpty())
         }
     }
 }
@@ -336,26 +339,8 @@ private fun NetworkSummaryCard(
 }
 
 @Composable
-private fun ScanningContent(
-    state: LanScannerUiState.Scanning,
-    onStopScan: () -> Unit,
-    savedProfiles: List<FavoriteDevice>,
-    identityFilter: DeviceCenterFilter,
-    onIdentityFilterChanged: (DeviceCenterFilter) -> Unit,
-) {
-    val update = state.update
-    LanScanRunningCard(
-        rangeLabel = state.range.displayLabel,
-        update = update,
-        onStopScan = onStopScan,
-    )
-    DeviceList(
-        devices = update.discoveredDevices,
-        context = state.networkContext,
-        savedProfiles = savedProfiles,
-        identityFilter = identityFilter,
-        onIdentityFilterChanged = onIdentityFilterChanged,
-    )
+private fun ScanningContent(state: LanScannerUiState.Scanning, onStopScan: () -> Unit) {
+    LanScanRunningCard(rangeLabel = state.range.displayLabel, update = state.update, onStopScan = onStopScan)
 }
 
 @Composable
@@ -363,24 +348,17 @@ private fun SessionContent(
     session: LanScanSession,
     onRescan: () -> Unit,
     onModifyRange: () -> Unit,
-    savedProfiles: List<FavoriteDevice>,
-    identityFilter: DeviceCenterFilter,
-    onIdentityFilterChanged: (DeviceCenterFilter) -> Unit,
-    recognition: Map<String, com.networktoolbox.feature.lanscan.presentation.LanRecognitionDevicePresentation> = emptyMap(),
+    supplement: com.networktoolbox.feature.lanscan.presentation.LanSupplementPresentation? = null,
 ) {
     LanScanSessionSummaryCard(session = session)
-    LanScanRescanButton(onRescan = onRescan)
-    TextButton(onClick = onModifyRange) {
-        Text(stringResource(R.string.lan_change_range))
+    if (session.status == com.networktoolbox.feature.lanscan.domain.model.LanScanStatus.CANCELLED) {
+        Text(stringResource(R.string.lan_supplement_snapshot), style = MaterialTheme.typography.bodySmall)
+    } else supplement?.let {
+        Text(it.text.resolve(), modifier = Modifier.testTag("lan_supplement"),
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
-    DeviceList(
-        devices = session.discoveredDevices,
-        recognition = recognition,
-        context = session.initialNetworkContext,
-        savedProfiles = savedProfiles,
-        identityFilter = identityFilter,
-        onIdentityFilterChanged = onIdentityFilterChanged,
-    )
+    LanScanRescanButton(onRescan = onRescan)
+    TextButton(onClick = onModifyRange) { Text(stringResource(R.string.lan_change_range)) }
 }
 
 @Composable
@@ -535,6 +513,7 @@ private fun DeviceList(
             key(deviceItem.detailKey) {
                 LanDeviceCard(
                     presentation = deviceItem.card,
+                    modifier = Modifier.testTag("lan_row_${deviceItem.card.ipAddress}"),
                     showMac = true,
                 )
             }

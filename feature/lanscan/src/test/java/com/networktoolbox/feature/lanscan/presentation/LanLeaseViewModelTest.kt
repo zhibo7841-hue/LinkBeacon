@@ -13,6 +13,19 @@ import org.junit.Assert.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LanLeaseViewModelTest {
+    @Test fun `leaving settled result does not relabel finished supplementation as stopped`() = runTest {
+        // Main.immediate can resume a StateFlow collector inline during bridge.close().
+        Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+        val vm = vm()
+        vm.startScan(); runCurrent(); finish.complete(Unit); advanceUntilIdle()
+        val before = (vm.uiState.value as LanScannerUiState.Completed).supplement!!
+        assertFalse(before.running); assertFalse(before.stopped)
+        vm.stopScan(); runCurrent()
+        assertEquals(before, (vm.uiState.value as LanScannerUiState.Completed).supplement)
+        vm.stopScan(); runCurrent()
+        assertEquals(before, (vm.uiState.value as LanScannerUiState.Completed).supplement)
+    }
+
     @Test fun `stop during baseline identity await rejects subsequent profile write`() = runTest {
         val release = CompletableDeferred<Unit>(); var writes = 0
         val profile = LanFavoriteIdentity.createSavedProfile(F.device(), F.network, 1)!!
@@ -105,6 +118,11 @@ class LanLeaseViewModelTest {
         assertEquals("early.local", device.hostName); assertEquals(F.device().lastSeen, device.lastSeen)
         assertEquals(1, queries); assertEquals(1, accepted); assertEquals(2, names)
         assertNull(vm.discoveryBridge!!.state.value.addressSnapshot!!.discoveredDevices.single().hostName)
+        val supplement = (vm.uiState.value as LanScannerUiState.Completed).supplement!!
+        assertFalse(supplement.running); assertFalse(supplement.stopped)
+        assertEquals(2, supplement.sources[com.networktoolbox.feature.lanscan.domain.progressive.LanSourceStatus.UNKNOWN])
+        assertEquals("early.local", DeviceCenterPresentation.deviceList(listOf(device), emptyList(), F.network)
+            .single().card.displayName.raw)
         assertEquals(2, profiles) // Baseline plus original StrongMatch observation path, only after completion.
     }
 
@@ -200,7 +218,10 @@ class LanLeaseViewModelTest {
         vm.stopScan(); runCurrent()
         assertFalse(provider.leases.single().valid)
         assertTrue(vm.uiState.value is LanScannerUiState.Completed)
+        val stopped = (vm.uiState.value as LanScannerUiState.Completed).supplement!!
+        assertTrue(stopped.stopped); assertFalse(stopped.running)
         release.complete(Unit); advanceUntilIdle()
+        assertEquals(stopped, (vm.uiState.value as LanScannerUiState.Completed).supplement)
     }
 
     @Test fun `concurrent system and mdns results retain both source fields`() = runTest {
