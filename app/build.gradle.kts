@@ -68,6 +68,13 @@ android {
         check(providers.gradleProperty("wifiAnalyzerQa").isPresent)
         sourceSets.getByName("androidTest").assets.srcDir(rootProject.file("build/task160/task161-authorization/assets"))
     }
+    // Experimental protocol code is shared only by JVM/instrumentation tests.
+    sourceSets.getByName("test").java.srcDir("src/nbstatTest/java")
+    sourceSets.getByName("androidTest").java.srcDir("src/nbstatTest/java")
+    if (providers.gradleProperty("nbstatQa").isPresent) {
+        check(providers.gradleProperty("wifiAnalyzerQa").isPresent)
+        sourceSets.getByName("androidTest").assets.srcDir(rootProject.file("build/task162/authorization/assets"))
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
