@@ -99,7 +99,7 @@ object LanRecognitionPresentation {
         if (rows.isEmpty() && result.limitations.isEmpty()) return null
         val summary = rows.firstOrNull { it.hint.code == LanRecognitionCode.PLATFORM_DECLARATIONS_CONFLICT }
             ?: rows.firstOrNull { it.hint.code == LanRecognitionCode.PLATFORM_REPORTED }
-            ?: rows.firstOrNull { it.hint.category == LanRecognitionCategory.DEVICE_REPORTED }
+            ?: rows.firstOrNull { it.hint.category == LanRecognitionCategory.DEVICE_REPORTED && it.hint.sources != setOf(LanRecognitionSource.NBSTAT) }
             ?: rows.firstOrNull { it.hint.category == LanRecognitionCategory.OBSERVED_SERVICE }
         val summaryText = summary?.let { row -> when (val args = row.hint.arguments) {
             is LanRecognitionArguments.Service -> UiText(R.string.lan_recognition_service_short, args.type,
@@ -116,12 +116,20 @@ object LanRecognitionPresentation {
             }) })
     }
 
+    fun category(result: CategoryResult): UiText? = when {
+        result.certainty == CategoryCertainty.POSSIBLE && result.category == DeviceCategory.COMPUTER -> UiText(R.string.lan_category_possible_computer)
+        result.certainty == CategoryCertainty.CONFIRMED && result.category == DeviceCategory.NETWORK_INFRASTRUCTURE -> UiText(R.string.lan_category_network_reported)
+        else -> null
+    }
+
     fun source(evidence: LanRecognitionEvidence): UiText = when (evidence.source) {
         LanRecognitionSource.SYSTEM_REVERSE_DNS -> UiText(R.string.lan_recognition_ptr)
         LanRecognitionSource.MDNS -> UiText(if (evidence.field in setOf(LanRecognitionField.PLATFORM,
             LanRecognitionField.BOARD, LanRecognitionField.FRIENDLY_NAME, LanRecognitionField.VERSION))
             R.string.lan_recognition_mdns_txt else R.string.lan_recognition_mdns)
         LanRecognitionSource.UPNP -> UiText(R.string.lan_recognition_upnp)
+        LanRecognitionSource.NBSTAT -> UiText(R.string.lan_recognition_nbstat)
+        LanRecognitionSource.SSH -> UiText(R.string.lan_recognition_ssh)
         LanRecognitionSource.SCAN_CONTEXT -> UiText(R.string.lan_recognition_scan)
     }
 

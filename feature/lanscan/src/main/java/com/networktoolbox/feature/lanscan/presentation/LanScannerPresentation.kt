@@ -14,6 +14,7 @@ import java.util.Locale
 
 object LanScannerPresentation {
     fun devicePrimaryText(device: LanDevice): String = device.identity.displayName.value
+        .takeUnless { it == device.ipAddress } ?: device.hostRecognition?.nbstatName ?: device.ipAddress
 
     /**
      * The user-facing fallback for a device without an observed name.

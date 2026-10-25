@@ -26,7 +26,7 @@ enum class LanRecognitionDimension {
     MODEL_NAME, MODEL_NUMBER, MODEL_DESCRIPTION, PROTOCOL_DEVICE_TYPE, AVAILABILITY,
 }
 
-enum class LanRecognitionSource { SYSTEM_REVERSE_DNS, MDNS, UPNP, SCAN_CONTEXT }
+enum class LanRecognitionSource { SYSTEM_REVERSE_DNS, MDNS, UPNP, NBSTAT, SSH, SCAN_CONTEXT }
 
 enum class LanRecognitionField {
     SERVICE, HOSTNAME, INSTANCE_NAME, PLATFORM, BOARD, FRIENDLY_NAME, VERSION,
@@ -77,4 +77,5 @@ data class LanRecognitionResult(
     val status: LanRecognitionStatus,
     val hints: List<LanRecognitionHint> = emptyList(),
     val limitations: Set<LanRecognitionLimitation> = emptySet(),
+    val deviceCategory: CategoryResult = CategoryResult(),
 )

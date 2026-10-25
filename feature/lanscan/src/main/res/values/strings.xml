@@ -160,4 +160,8 @@
     <string name="lan_supplement_source_failed">Sources failed: %1$d</string>
     <string name="lan_supplement_snapshot">Stopped scan snapshot; not a current online status.</string>
     <string name="lan_recognition_snapshot_field">%1$s (scan snapshot · %2$s)</string>
+    <string name="lan_recognition_nbstat">NBSTAT workstation self-report</string>
+    <string name="lan_recognition_ssh">SSH initial identification (self-reported software)</string>
+    <string name="lan_category_possible_computer">Possible computer</string>
+    <string name="lan_category_network_reported">Network infrastructure (self-reported)</string>
 </resources>

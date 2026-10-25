@@ -124,6 +124,11 @@ import kotlinx.coroutines.SupervisorJob
 object NetworkModule {
     @Provides
     @Singleton
+    fun provideLanHostEnricher(@ApplicationContext context: Context): com.networktoolbox.feature.lanscan.domain.recognition.LanHostEnricher =
+        com.networktoolbox.feature.lanscan.data.AndroidLanHostEnricher(context)
+
+    @Provides
+    @Singleton
     fun provideScanNetworkLeaseProvider(@ApplicationContext context: Context):
         com.networktoolbox.core.network.lease.NetworkLeaseProvider =
         com.networktoolbox.core.network.data.AndroidNetworkLeaseProvider(context)

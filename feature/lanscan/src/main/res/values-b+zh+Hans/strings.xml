@@ -160,4 +160,8 @@
     <string name="lan_supplement_source_failed">来源失败：%1$d</string>
     <string name="lan_supplement_snapshot">已停止扫描的快照，不代表当前在线状态。</string>
     <string name="lan_recognition_snapshot_field">%1$s（扫描快照 · %2$s）</string>
+    <string name="lan_recognition_nbstat">NBSTAT 工作站自报</string>
+    <string name="lan_recognition_ssh">SSH 初始标识（软件自报）</string>
+    <string name="lan_category_possible_computer">可能是计算机</string>
+    <string name="lan_category_network_reported">网络设备（设备自报）</string>
 </resources>

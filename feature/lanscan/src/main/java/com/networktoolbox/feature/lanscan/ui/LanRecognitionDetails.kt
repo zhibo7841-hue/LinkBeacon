@@ -27,6 +27,9 @@ fun LanRecognitionDetails(presentation: LanRecognitionDevicePresentation, expand
     val locale = LocalConfiguration.current.locales[0]
     OutlinedNetworkCard(modifier = Modifier.testTag("lan_recognition_details")) {
         Text(stringResource(R.string.lan_recognition_title), style = MaterialTheme.typography.titleMedium)
+        LanRecognitionPresentation.category(presentation.result.deviceCategory)?.let {
+            Text(it.resolve(), style = MaterialTheme.typography.bodyMedium)
+        }
         presentation.limitations.forEach { Text(it.resolve(), style = MaterialTheme.typography.bodySmall) }
         val groups = listOf(
             LanRecognitionCategory.INSUFFICIENT_OR_CONFLICTING to R.string.lan_recognition_conflicts,

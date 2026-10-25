@@ -128,6 +128,9 @@ fun LanDeviceCard(
                 presentation.ipAddress.takeIf(String::isNotBlank)?.let { ip ->
                     Text(ip, style = NetworkToolboxTextStyles.TechnicalData)
                 }
+                val categoryText = presentation.deviceType?.let(DeviceCenterPresentation::deviceTypeLabel)
+                    ?: presentation.recognition?.result?.deviceCategory?.let(com.networktoolbox.feature.lanscan.presentation.LanRecognitionPresentation::category)
+                categoryText?.let { Text(it.resolve(), style = MaterialTheme.typography.bodySmall) }
                 val recognitionSummary = presentation.recognition?.summary
                 val identityText = recognitionSummary ?: presentation.identitySummary?.let { identity ->
                     UiText(if (presentation.savedIdentitySummary) R.string.lan_recognition_saved_summary

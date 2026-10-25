@@ -436,7 +436,7 @@ object DeviceCenterPresentation {
                 ?: identity.modelDescription?.value
                 ?: identity.modelNumber?.value
                 ?: favorite?.model,
-            hostname = identity.hostname?.value ?: favorite?.lastKnownHostname,
+            hostname = identity.hostname?.value ?: device.hostRecognition?.nbstatName ?: favorite?.lastKnownHostname,
             mdnsNames = mdnsNames,
             upnpNames = upnpNames,
             role = role,
@@ -464,7 +464,8 @@ object DeviceCenterPresentation {
             savedIdentityFields = buildSet {
                 if (identity.manufacturer == null && favorite?.vendor != null) add("vendor")
                 if (identity.modelName == null && identity.modelDescription == null && identity.modelNumber == null && favorite?.model != null) add("model")
-                if (identity.hostname == null && favorite?.lastKnownHostname != null) add("hostname")
+                if (identity.hostname == null && device.hostRecognition?.nbstatName == null &&
+                    favorite?.lastKnownHostname != null) add("hostname")
                 if (currentMdnsNames.isEmpty() && favorite?.lastKnownMdnsName != null) add("mdns")
                 if (currentUpnpNames.isEmpty() && favorite?.lastKnownUpnpName != null) add("upnp")
             },
@@ -475,7 +476,7 @@ object DeviceCenterPresentation {
                 LanIdentitySource.MDNS -> R.string.lan_recognition_mdns
                 LanIdentitySource.UPNP -> R.string.lan_recognition_upnp
                 LanIdentitySource.IP_FALLBACK -> R.string.lan_recognition_scan
-            }) },
+            }) } ?: device.hostRecognition?.nbstatName?.let { UiText(R.string.lan_recognition_nbstat) },
         )
     }
 
@@ -599,7 +600,7 @@ object DeviceCenterPresentation {
         val device = item.device ?: return false
         if (device.isLocalDevice || device.isGateway) return true
         val identity = device.identity
-        return identity.displayName.source != LanIdentitySource.IP_FALLBACK ||
+        return device.hostRecognition?.nbstatName != null || identity.displayName.source != LanIdentitySource.IP_FALLBACK ||
             identity.hostname != null ||
             identity.manufacturer != null ||
             identity.modelName != null ||

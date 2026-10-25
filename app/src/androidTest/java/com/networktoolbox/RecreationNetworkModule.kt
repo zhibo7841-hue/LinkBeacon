@@ -35,6 +35,9 @@ import kotlinx.coroutines.flow.flowOf
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [NetworkModule::class])
 object RecreationNetworkModule {
+    @Provides fun hostEnricher(): com.networktoolbox.feature.lanscan.domain.recognition.LanHostEnricher =
+        com.networktoolbox.feature.lanscan.domain.recognition.NoOpLanHostEnricher
+
     // This module replaces all production network bindings for synthetic recreation tests.
     // Actual Android lease tests instantiate AndroidNetworkLeaseProvider directly.
     @Provides

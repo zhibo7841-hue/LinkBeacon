@@ -188,6 +188,7 @@ data class LanDevice(
     val discoveryMethods: List<LanDiscoveryMethod>,
     val discoveryEvidence: List<LanDeviceEvidence>,
     val lastSeen: Long,
+    val hostRecognition: com.networktoolbox.feature.lanscan.domain.recognition.LanHostRecognition? = null,
 )
 
 data class LanHostProbeResult(

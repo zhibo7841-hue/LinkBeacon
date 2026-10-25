@@ -1,6 +1,6 @@
 package com.networktoolbox.nbstat
 
-/** RFC1002 4.2.17/18 experiment. Never a production discovery or identity source. */
+/** RFC1002 4.2.17/18 bounded name parser. Never online or persistent identity evidence. */
 object NbstatProtocol {
     const val MAX_PACKET = 4096
     // This isolated experiment only sends the wildcard in the empty NetBIOS scope.

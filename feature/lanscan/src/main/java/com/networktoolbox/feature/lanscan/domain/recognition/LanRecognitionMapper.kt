@@ -91,7 +91,19 @@ object LanRecognitionMapper {
                 output.upnp(observation)
             }
         }
-        return output.finish()
+        val extra = device.hostRecognition?.takeIf {
+            it.generation == session.sessionId && it.networkFingerprint == session.networkFingerprint &&
+                it.observedAt >= session.startedAt
+        }
+        extra?.nbstatName?.let { name ->
+            output.addHostFact(name, LanRecognitionSource.NBSTAT, extra.observedAt, false)
+        }
+        extra?.sshSoftware?.let { software ->
+            output.addHostFact(software, LanRecognitionSource.SSH, extra.observedAt, true)
+        }
+        val result = output.finish()
+        return result.copy(deviceCategory = CategoryMapper.map(result, CategoryEvidence(
+            names = listOfNotNull(extra?.nbstatName), nameConflict = extra?.nbstatConflict == true)))
     }
 
     private class Output(scope: List<String>) {
@@ -251,6 +263,17 @@ object LanRecognitionMapper {
                 hints.pollLastEntry()
                 limitations += LanRecognitionLimitation.OUTPUT_LIMIT_REACHED
             }
+        }
+
+        fun addHostFact(value: String, source: LanRecognitionSource, time: Long, service: Boolean) {
+            val text = safeText(value, 255) ?: return
+            add(LanRecognitionHint(
+                if (service) LanRecognitionCode.SERVICE_ADVERTISED else LanRecognitionCode.FRIENDLY_NAME_REPORTED,
+                if (service) LanRecognitionCategory.OBSERVED_SERVICE else LanRecognitionCategory.DEVICE_REPORTED,
+                if (service) LanRecognitionDimension.SERVICE else LanRecognitionDimension.NAME,
+                if (service) LanRecognitionArguments.Service("SSH", text, 22) else LanRecognitionArguments.Text(text),
+                listOf(reference(source, if (service) LanRecognitionField.SERVICE else LanRecognitionField.HOSTNAME,
+                    listOf(text), time))))
         }
 
         fun finish(): LanRecognitionResult {
