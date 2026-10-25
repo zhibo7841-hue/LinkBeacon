@@ -69,6 +69,41 @@ Public documentation uses professional, constructive and welcoming language.
 Describe supported workflows and evidence positively while preserving accurate
 technical limitations, learning support, accessibility and privacy.
 
+## Unified device-category evidence principle — Task 171 / 2026-10-25
+
+All device categories use the same three assessment levels: **Confirmed (明确)**,
+**Possible (可能)** and **Unknown (未知)**. This applies to computers/servers,
+phones/tablets, routers/APs/network equipment, storage/NAS, printers, TV/media,
+cameras, smart-home/IoT and other devices; it does not promise automatic coverage
+of every category.
+
+- Confirmed requires an explicit, attributable category declaration or comparably
+  direct evidence. A device self-report is not identity, hardware or security
+  authentication and must retain its source in details.
+- Possible requires meaningful observed indirect evidence. Repeating weak clues
+  does not turn them into confirmation. Missing or unresolved conflicting
+  evidence stays Unknown; names, ports, service software and inventory truth are
+  not substitutes for category evidence.
+- Device name, device category, category level/source and service information
+  are independent. A gateway is a network role; SSH, SMB or Web services do not
+  establish Linux/server, NAS or physical router identity.
+- User-assigned names and categories take priority. Preserve Notes, Favorite,
+  WoL, persistent identity, History freeze and First/Last Seen ownership.
+  Automatic category inference is not a new persistent identity key.
+- Reuse the current C0 session owner for progressive updates: Unknown → Possible
+  → Confirmed only when new valid evidence supports the change. Invalidated or
+  conflicting evidence can remove a result; Stop, Rescan and network changes
+  must reject late observations. Category mapping must not block host discovery.
+- Keep the default list simple: name/IP, category (with a Possible qualifier or
+  Unknown state), and necessary service information. Put detailed evidence and
+  software versions in details, without scores or stacked confidence labels.
+
+This is an accepted product principle, not an expansion of the v0.10.0 release
+scope. Task 171 consolidates isolated QA only; NBSTAT, experimental PTR/SSH and
+WSD do not become production-default sources. Production integration and actual
+category coverage require separate acceptance. See
+[the evidence matrix and QA review](V0.10_STAGE_B1_TASK171_CATEGORY_RULES.md).
+
 ## Functional scope
 
 ### In scope

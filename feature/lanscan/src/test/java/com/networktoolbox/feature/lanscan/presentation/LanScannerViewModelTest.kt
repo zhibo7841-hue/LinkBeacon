@@ -855,6 +855,43 @@ class LanScannerViewModelTest {
         assertPresentationEquals(1, queries)
     }
 
+    @Test
+    fun `sparse QA discovery accepts completion without pretending whole subnet was scanned`() = runTest {
+        val context = context("192.168.1.2", 24)
+        val devices = listOf(device("192.168.1.10"), device("192.168.1.20"))
+        val result = session(context, readyRange(context), devices).copy(scannedHosts = 2, totalHosts = 2)
+        val vm = viewModel(readiness(context), fakeRunner(result))
+        advanceUntilIdle()
+        val requested = mutableSetOf("192.168.1.10", "192.168.1.20")
+        vm.configureQaDiscoveryAdmission(requested)
+        requested.clear() // admission is detached from caller mutation
+        vm.startScan(); advanceUntilIdle()
+        val bridge = requireNotNull(vm.discoveryBridge).state.value
+        assertPresentationEquals(2, bridge.totalHosts)
+        assertPresentationEquals(com.networktoolbox.feature.lanscan.domain.progressive.LanAddressPhase.COMPLETED, bridge.addressPhase)
+        assertPresentationEquals(2, (vm.uiState.value as LanScannerUiState.Completed).session.scannedHosts)
+        assertTrue(runCatching { vm.configureQaDiscoveryAdmission(setOf("192.168.1.30")) }.isFailure)
+    }
+
+    @Test
+    fun `QA admission rejects outside current range before runner starts`() = runTest {
+        val vm = viewModel(readiness(context("192.168.1.2", 24)))
+        advanceUntilIdle()
+        assertTrue(runCatching { vm.configureQaDiscoveryAdmission(emptySet()) }.isFailure)
+        vm.configureQaDiscoveryAdmission(setOf("192.168.2.10"))
+        assertTrue(runCatching { vm.startScan() }.isFailure)
+        assertTrue(vm.uiState.value is LanScannerUiState.Ready)
+    }
+
+    @Test
+    fun `default discovery admission remains complete automatic range`() = runTest {
+        val context = context("192.168.1.2", 24)
+        val vm = viewModel(readiness(context), fakeRunner(session(context, readyRange(context), emptyList())))
+        advanceUntilIdle(); vm.startScan(); advanceUntilIdle()
+        assertPresentationEquals(254, requireNotNull(vm.discoveryBridge).state.value.totalHosts)
+        assertPresentationEquals(254, (vm.uiState.value as LanScannerUiState.Completed).session.totalHosts)
+    }
+
     private fun viewModel(
         readiness: LanScanReadiness,
         runner: RunLanScan? = null,

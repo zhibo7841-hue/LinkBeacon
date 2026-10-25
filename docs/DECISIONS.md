@@ -1,5 +1,38 @@
 # Decision Log
 
+## Decision: Uniform three-level device-category assessment
+
+- Date: 2026-10-25
+- Status: **Accepted product principle**, expressly confirmed by the maintainer
+  in Task 171; implementation is confined to consolidation of Task 168–170 QA.
+- Decision: use Confirmed / Possible / Unknown for every device category. The
+  same contract supports consistent presentation and maintainable evidence rules
+  without treating the number of guesses as identification coverage.
+- Confirmed: directly attributable category evidence, including explicit device
+  self-report, is sufficient for the stated category only. It is not identity or
+  security authentication, a physical form-factor guarantee, or proof of OS/model.
+- Possible: meaningful actual indirect evidence is required. A valid NBSTAT
+  workstation observation can support a computer candidate; keywords, open
+  services, inventory truth or repeated weak clues cannot manufacture confirmation.
+- Separation: name, category, evidence level/source and service/role stay distinct.
+  SSH is not Linux/server hardware, SMB is not NAS hardware, and gateway IP is
+  not physical router proof. Name conflicts do not override independent valid
+  category evidence; unresolved category conflicts remain Unknown with sources.
+- Conflict policy: no last-result-wins. Consistent sources retain their provenance;
+  contradictory explicit categories remain Unknown. In the current conservative
+  QA mapping, incompatible weak/strong category claims also remain Unknown with
+  both reasons, rather than silently discarding the weaker claim. Duplicate weak
+  evidence never increases level. User settings remain highest priority.
+- Lifecycle: reuse C0 generation/network/target admission for progressive updates
+  and invalidation. Stopped or obsolete sessions cannot repopulate categories.
+  Inferences do not become durable identity keys or modify profiles, Notes,
+  Favorite, WoL, History snapshots, Room or First/Last Seen rules.
+- Delivery boundary: no new protocol, new WSD Probe or LAN scan in this task.
+  Offline fixtures test behavior, not real recognition rates. Prior live captures
+  retain their historical status; their replay is not a new discovery result.
+  Accepted principles do not automatically enable QA sources or enlarge v0.10.0.
+  Production integration remains a separate maintainer review.
+
 ## Decision: Minimal default UI and bounded progressive device recognition
 
 - Date: 2026-10-24

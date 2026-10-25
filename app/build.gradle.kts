@@ -52,6 +52,9 @@ android {
             if (providers.gradleProperty("wifiAnalyzerQa").isPresent) {
                 applicationIdSuffix = ".wifiqa"
             }
+            if (providers.gradleProperty("recognitionQa").isPresent) {
+                applicationIdSuffix = ".task168"
+            }
         }
         release {
             signingConfig = signingConfigs.getByName("release")
@@ -69,8 +72,25 @@ android {
         sourceSets.getByName("androidTest").assets.srcDir(rootProject.file("build/task160/task161-authorization/assets"))
     }
     // Experimental protocol code is shared only by JVM/instrumentation tests.
-    sourceSets.getByName("test").java.srcDir("src/nbstatTest/java")
-    sourceSets.getByName("androidTest").java.srcDir("src/nbstatTest/java")
+    if (providers.gradleProperty("recognitionQa").isPresent) {
+        // Explicitly isolated, debug-only experiment. No private assets or protocol code in release.
+        sourceSets.getByName("debug").apply {
+            java.srcDirs("src/recognitionQa/java", "src/recognitionQaCore/java", "src/nbstatTest/java")
+            manifest.srcFile("src/recognitionQa/AndroidManifest.xml")
+            assets.srcDir(rootProject.file(when {
+                providers.gradleProperty("categoryQa").isPresent -> "build/task171/authorization"
+                providers.gradleProperty("wsdQa").isPresent -> "build/task170/authorization"
+                else -> "build/task168/authorization"
+            }))
+        }
+        sourceSets.getByName("androidTest").java.srcDir("src/recognitionQaTest/java")
+        if (providers.gradleProperty("categoryQa").isPresent) {
+            sourceSets.getByName("androidTest").assets.srcDir(rootProject.file("build/task171/replay"))
+        }
+    } else {
+        sourceSets.getByName("test").java.srcDirs("src/nbstatTest/java", "src/recognitionQaCore/java")
+        sourceSets.getByName("androidTest").java.srcDir("src/nbstatTest/java")
+    }
     if (providers.gradleProperty("nbstatQa").isPresent) {
         check(providers.gradleProperty("wifiAnalyzerQa").isPresent)
         sourceSets.getByName("androidTest").assets.srcDir(rootProject.file("build/task162/authorization/assets"))

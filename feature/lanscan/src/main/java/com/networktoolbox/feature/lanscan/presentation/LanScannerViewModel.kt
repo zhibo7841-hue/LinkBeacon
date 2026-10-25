@@ -145,6 +145,7 @@ class LanScannerViewModel @Inject constructor(
     private var customEndAddress = ""
     private var customRangeResult: LanCustomRangeResult = LanCustomRangeResult.Incomplete
     private var lastScanRange: LanScanRange? = null
+    private var qaDiscoveryAdmission: Set<String>? = null
     private val favoriteOperationMutex = Mutex()
     private val deviceProfileOperationMutex = Mutex()
     private val wakeOnLanOperationMutex = Mutex()
@@ -190,6 +191,17 @@ class LanScannerViewModel @Inject constructor(
 
     fun startScan() {
         beginScan(requestedRange = null, forceCurrentNetwork = false)
+    }
+
+    /**
+     * Isolated QA adapters may supply a sparse, explicit discovery set. Configure before
+     * the first scan and pair with a RunLanScan that ONLY probes these addresses.
+     * Production callers never set this: the ordinary range and discovery behavior are unchanged.
+     */
+    fun configureQaDiscoveryAdmission(addresses: Set<String>) {
+        check(scanGeneration == 0L && scanJob == null)
+        require(addresses.size in 1..254)
+        qaDiscoveryAdmission = addresses.toSet()
     }
 
     fun rescan() {
@@ -289,6 +301,8 @@ class LanScannerViewModel @Inject constructor(
             return
         }
 
+        val rangeAddresses = range.hostAddresses().toSet()
+        val admission = qaDiscoveryAdmission?.also { require(rangeAddresses.containsAll(it)) } ?: rangeAddresses
         val generation = beginNewScanGeneration()
         stopRequested.set(false)
         networkLease = networkLeaseProvider.acquire(readiness.networkContext) {
@@ -307,13 +321,13 @@ class LanScannerViewModel @Inject constructor(
         }
         discoveryBridge = LanDiscoveryBridge(
             LanSessionToken(generation, lease.id, LanNetworkFingerprint.from(readiness.networkContext), lease.policyRevision),
-            range.hostAddresses().toSet(), lease,
+            admission, lease,
         )
         discoveryInbox = LanDiscoveryInbox(requireNotNull(discoveryBridge), viewModelScope)
         val initialUpdate = LanScanUpdate(
             status = LanScanStatus.SCANNING,
             scannedHosts = 0,
-            totalHosts = range.hostCount,
+            totalHosts = admission.size,
             discoveredDevices = emptyList(),
             elapsedMs = 0,
             sessionId = generation,
