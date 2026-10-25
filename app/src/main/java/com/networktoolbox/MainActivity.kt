@@ -2,6 +2,12 @@ package com.networktoolbox
 
 import com.networktoolbox.feature.report.presentation.DiagnosticHistoryLocalization
 import com.networktoolbox.feature.report.presentation.ReportLocalizationContext
+import com.networktoolbox.feature.webdiagnostics.export.WebExportSource
+import com.networktoolbox.feature.webdiagnostics.export.WebExportDocument
+import com.networktoolbox.feature.webdiagnostics.export.WebExportFormat
+import com.networktoolbox.feature.webdiagnostics.ui.WebExportActions
+import com.networktoolbox.feature.webdiagnostics.ui.WebExportAction
+import com.networktoolbox.feature.webdiagnostics.R as WebR
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -137,6 +143,8 @@ class MainActivity : AppCompatActivity() {
     private val textExportViewModel: TextExportViewModel by viewModels()
     private var pdfLauncher: ActivityResultLauncher<String>? = null
     private var textLauncher: ActivityResultLauncher<String>? = null
+    private val webExportViewModel: WebExportViewModel by viewModels()
+    private var webExportLauncher: ActivityResultLauncher<String>? = null
     private val wifiPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { grants ->
@@ -267,7 +275,78 @@ class MainActivity : AppCompatActivity() {
         pdfLauncher = null
         textLauncher?.unregister()
         textLauncher = null
+        webExportLauncher?.unregister()
+        webExportLauncher = null
         super.onDestroy()
+    }
+
+    private fun requestWebExport(document: WebExportDocument, action: WebExportAction) {
+        val format=when(action) {
+            WebExportAction.COPY, WebExportAction.SAVE_TXT -> WebExportFormat.TXT
+            WebExportAction.SAVE_MARKDOWN -> WebExportFormat.MARKDOWN
+            else -> WebExportFormat.PDF
+        }
+        val delivery=when(action) {
+            WebExportAction.COPY -> WebExportDelivery.COPY
+            WebExportAction.SHARE_PDF -> WebExportDelivery.SHARE
+            else -> WebExportDelivery.SAVE
+        }
+        webExportViewModel.prepare(document,format,delivery)
+    }
+
+    private fun registerWebExportRequest(request: WebExportRequest): ActivityResultLauncher<String> {
+        webExportLauncher?.unregister()
+        return activityResultRegistry.register("web-export:${request.id}",
+            ActivityResultContracts.CreateDocument(request.format.mimeType)) { uri ->
+            val app=applicationContext
+            val success=getString(WebR.string.web_export_saved)
+            val failure=getString(WebR.string.web_export_failed)
+            val expired=getString(WebR.string.web_export_expired)
+            webExportViewModel.completeAsync(request.id,uri==null,{content->
+                val stream=app.contentResolver.openOutputStream(requireNotNull(uri)) ?: error("No output stream")
+                stream.use {it.write(content)}
+            }) {outcome->
+                val text=when(outcome) {
+                    WebExportOutcome.SAVED -> success
+                    WebExportOutcome.FAILED -> failure
+                    WebExportOutcome.EXPIRED -> expired
+                    else -> null
+                }
+                text?.let {Toast.makeText(app,it,Toast.LENGTH_LONG).show()}
+            }
+        }.also {webExportLauncher=it}
+    }
+
+    private fun deliverWebExport(request: WebExportRequest) {
+        try {
+            when(request.delivery) {
+                WebExportDelivery.SAVE -> if(webExportViewModel.markLaunched(request.id)) {
+                    registerWebExportRequest(request).launch(request.fileName)
+                }
+                WebExportDelivery.COPY -> {
+                    val text=requireNotNull(webExportViewModel.copyText(request.id))
+                    getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("LinkBeacon",text))
+                    Toast.makeText(this,getString(WebR.string.web_export_copied),Toast.LENGTH_SHORT).show()
+                    webExportViewModel.finish(request.id)
+                }
+                WebExportDelivery.SHARE -> {
+                    val file=requireNotNull(webExportViewModel.sharedFile(request.id))
+                    val uri=FileProvider.getUriForFile(this,"${BuildConfig.APPLICATION_ID}.fileprovider",file)
+                    val intent=Intent(Intent.ACTION_SEND).apply {
+                        type=request.format.mimeType;putExtra(Intent.EXTRA_STREAM,uri)
+                        clipData=ClipData.newUri(contentResolver,request.fileName,uri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    val outcome=launchWebExportChooser(Intent.createChooser(intent,getString(WebR.string.web_export_share)),::startActivity)
+                    if(outcome!=WebShareOutcome.STARTED) Toast.makeText(this,
+                        getString(if(outcome==WebShareOutcome.NO_APP) WebR.string.web_export_no_app else WebR.string.web_export_failed),Toast.LENGTH_LONG).show()
+                    webExportViewModel.finish(request.id)
+                }
+            }
+        } catch(e:Exception) {
+            webExportViewModel.finish(request.id)
+            Toast.makeText(this,getString(if(e is ActivityNotFoundException) WebR.string.web_export_no_app else WebR.string.web_export_failed),Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun copyDiagnosticReport(text: String) {
@@ -384,6 +463,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        webExportViewModel.uiState.value?.takeIf {it.phase==WebExportPhase.PICKER}?.let(::registerWebExportRequest)
         pdfExportViewModel.requestId?.let(::registerPdfRequest)
         textExportViewModel.requestId?.let { id ->
             val format = textExportViewModel.requestFormat
@@ -393,6 +473,17 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContent {
             val dashboardUiState by dashboardViewModel.uiState.collectAsState()
+            val webExportRequest by webExportViewModel.uiState.collectAsState()
+            LaunchedEffect(webExportRequest?.id,webExportRequest?.phase) {
+                webExportRequest?.let {request->when(request.phase) {
+                    WebExportPhase.READY -> deliverWebExport(request)
+                    WebExportPhase.FAILED,WebExportPhase.EXPIRED -> {
+                        Toast.makeText(this@MainActivity,getString(if(request.phase==WebExportPhase.EXPIRED) WebR.string.web_export_expired else WebR.string.web_export_failed),Toast.LENGTH_LONG).show()
+                        webExportViewModel.finish(request.id)
+                    }
+                    else -> Unit
+                } }
+            }
             val recentDiagnosisRecord by dashboardViewModel.recentDiagnosis.collectAsState()
             val dnsUiState by dnsViewModel.uiState.collectAsState()
             val historyUiState by historyViewModel.uiState.collectAsState()
@@ -504,6 +595,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             fun openTool(screen: ToolScreen) {
+                webExportViewModel.leaveBeforeLaunch()
                 closeDrawer()
                 if (toolScreen == ToolScreen.LAN_SCAN && screen != ToolScreen.LAN_SCAN) {
                     lanScannerViewModel.stopScan()
@@ -569,6 +661,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             fun selectTopLevel(destination: TopLevelDestination) {
+                webExportViewModel.leaveBeforeLaunch()
                 closeDrawer()
                 if (reportUiState.status is ReportStatus.Running) {
                     reportViewModel.stopCheck()
@@ -585,6 +678,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             fun goBack() {
+                webExportViewModel.leaveBeforeLaunch()
                 if (toolScreen == ToolScreen.NONE) return
                 if (toolScreen == ToolScreen.DEVICE_PROFILE_EDIT) {
                     if (lanScannerViewModel.requestDeviceProfileEditClose()) {
@@ -836,6 +930,10 @@ class MainActivity : AppCompatActivity() {
                                 onToggleSans = tlsCheckViewModel::toggleSans,
                                 onToggleChain = tlsCheckViewModel::toggleChain,
                                 onBack = ::goBack,
+                                exportActions = {
+                                    val completed=tlsCheckUiState.runState as? com.networktoolbox.feature.webdiagnostics.presentation.TlsCheckRunState.Completed
+                                    WebExportActions(completed?.let {WebExportSource.Tls(it.result,it.completedAtEpochMs)},webExportRequest!=null,::requestWebExport)
+                                },
                             )
                             ToolScreen.WEBSITE_DIAGNOSTICS -> WebsiteDiagnosticsScreen(
                                 uiState = websiteDiagnosticsUiState,
@@ -848,6 +946,10 @@ class MainActivity : AppCompatActivity() {
                                 onToggleRecommendations = websiteDiagnosticsViewModel::toggleRecommendations,
                                 onToggleCertificate = websiteDiagnosticsViewModel::toggleCertificate,
                                 onBack = ::goBack,
+                                exportActions = {
+                                    val completed=websiteDiagnosticsUiState.runState as? com.networktoolbox.feature.webdiagnostics.presentation.WebsiteDiagnosticsRunState.Completed
+                                    WebExportActions(completed?.let {WebExportSource.Website(it.snapshot)},webExportRequest!=null,::requestWebExport)
+                                },
                             )
                             ToolScreen.WEB_DIAGNOSTICS_HISTORY -> WebDiagnosticsHistoryScreen(
                                 restored = savedWebHistoryState.restored.takeIf {
@@ -856,6 +958,10 @@ class MainActivity : AppCompatActivity() {
                                 loading = navigationState.reportHistoryId != null &&
                                     (savedWebHistoryState.id != navigationState.reportHistoryId || savedWebHistoryState.loading),
                                 onBack = ::goBack,
+                                exportActions = {
+                                    val restored=savedWebHistoryState.restored?.takeIf {savedWebHistoryState.id==navigationState.reportHistoryId && !savedWebHistoryState.loading}
+                                    WebExportActions(restored?.let {WebExportSource.restored(it,navigationState.reportHistoryId)},webExportRequest!=null,::requestWebExport)
+                                },
                             )
                             ToolScreen.REPORT -> key(reportScrollKey) {
                                 ReportScreen(

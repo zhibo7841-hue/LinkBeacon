@@ -111,7 +111,7 @@ object RecreationNetworkModule {
     }
     @Provides fun tlsCheck(f: RecreationFixture): RunTlsCheck = RunTlsCheck { _, _, _ ->
         f.tlsStarts++
-        error("Unexpected SSL/TLS Check in recreation test")
+        f.exportTlsResult ?: error("Unexpected SSL/TLS Check in recreation test")
     }
     @Provides fun websiteDiagnostics(f: RecreationFixture): WebsiteDiagnosticUseCase = object : WebsiteDiagnosticUseCase {
         override suspend fun run(
@@ -119,7 +119,7 @@ object RecreationNetworkModule {
             onProgress: (WebsiteDiagnosticProgress) -> Unit,
         ): WebsiteDiagnosticSnapshot {
             f.websiteStarts++
-            error("Unexpected Website Diagnostics in recreation test")
+            return f.exportWebsiteResult ?: error("Unexpected Website Diagnostics in recreation test")
         }
     }
     @Provides fun analyzer(): DiagnosticAnalyzerV4 = DefaultDiagnosticAnalyzerV4()
@@ -140,6 +140,8 @@ object RecreationNetworkModule {
 }
 
 class RecreationFixture {
+    var exportTlsResult: com.networktoolbox.feature.webdiagnostics.domain.TlsCheckResult? = null
+    var exportWebsiteResult: WebsiteDiagnosticSnapshot? = null
     var wifiObserverStarts = 0
     var wifiObserverStops = 0
     var wifiRefreshes = 0

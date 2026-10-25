@@ -23,7 +23,7 @@ enum class TlsInputError { TARGET_REQUIRED, TARGET_INVALID, PORT_REQUIRED, PORT_
 sealed interface TlsCheckRunState {
     data object Idle : TlsCheckRunState
     data class Running(val progress: TlsCheckProgress) : TlsCheckRunState
-    data class Completed(val result: TlsCheckResult) : TlsCheckRunState
+    data class Completed(val result: TlsCheckResult, val completedAtEpochMs: Long? = null) : TlsCheckRunState
     data class Cancelled(val progress: TlsCheckProgress?) : TlsCheckRunState
 }
 
@@ -75,7 +75,7 @@ class TlsCheckViewModel @Inject constructor(
                     lastProgress = progress
                     _uiState.update { it.copy(runState = TlsCheckRunState.Running(progress)) }
                 }
-                _uiState.update { it.copy(runState = TlsCheckRunState.Completed(result)) }
+                _uiState.update { it.copy(runState = TlsCheckRunState.Completed(result, System.currentTimeMillis())) }
                 saveHistoryOnce(runId, result)
             } catch (cancelled: CancellationException) {
                 _uiState.update { it.copy(runState = TlsCheckRunState.Cancelled(lastProgress)) }
