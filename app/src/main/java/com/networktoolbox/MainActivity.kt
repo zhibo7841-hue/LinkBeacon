@@ -8,6 +8,8 @@ import com.networktoolbox.feature.webdiagnostics.export.WebExportFormat
 import com.networktoolbox.feature.webdiagnostics.ui.WebExportActions
 import com.networktoolbox.feature.webdiagnostics.ui.WebExportAction
 import com.networktoolbox.feature.webdiagnostics.R as WebR
+import com.networktoolbox.feature.rdap.RdapViewModel
+import com.networktoolbox.feature.rdap.RdapScreen
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -144,6 +146,7 @@ class MainActivity : AppCompatActivity() {
     private var pdfLauncher: ActivityResultLauncher<String>? = null
     private var textLauncher: ActivityResultLauncher<String>? = null
     private val webExportViewModel: WebExportViewModel by viewModels()
+    private val rdapViewModel: RdapViewModel by viewModels()
     private var webExportLauncher: ActivityResultLauncher<String>? = null
     private val wifiPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
@@ -267,6 +270,11 @@ class MainActivity : AppCompatActivity() {
                 message?.let { Toast.makeText(appContext, it, Toast.LENGTH_LONG).show() }
             })
         }.also { textLauncher = it }
+    }
+
+    override fun onStop() {
+        if (!isChangingConfigurations) rdapViewModel.stop()
+        super.onStop()
     }
 
     override fun onDestroy() {
@@ -474,6 +482,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val dashboardUiState by dashboardViewModel.uiState.collectAsState()
             val webExportRequest by webExportViewModel.uiState.collectAsState()
+            val rdapUiState by rdapViewModel.uiState.collectAsState()
             LaunchedEffect(webExportRequest?.id,webExportRequest?.phase) {
                 webExportRequest?.let {request->when(request.phase) {
                     WebExportPhase.READY -> deliverWebExport(request)
@@ -595,6 +604,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             fun openTool(screen: ToolScreen) {
+                if(screen!=ToolScreen.DOMAIN_REGISTRATION) rdapViewModel.stop()
                 webExportViewModel.leaveBeforeLaunch()
                 closeDrawer()
                 if (toolScreen == ToolScreen.LAN_SCAN && screen != ToolScreen.LAN_SCAN) {
@@ -661,6 +671,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             fun selectTopLevel(destination: TopLevelDestination) {
+                rdapViewModel.stop()
                 webExportViewModel.leaveBeforeLaunch()
                 closeDrawer()
                 if (reportUiState.status is ReportStatus.Running) {
@@ -678,6 +689,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             fun goBack() {
+                rdapViewModel.stop()
                 webExportViewModel.leaveBeforeLaunch()
                 if (toolScreen == ToolScreen.NONE) return
                 if (toolScreen == ToolScreen.DEVICE_PROFILE_EDIT) {
@@ -715,6 +727,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             fun openDrawerDestination(destination: ToolScreen) {
+                rdapViewModel.stop()
                 closeDrawer()
                 if (destination != ToolScreen.SETTINGS) {
                     if (reportUiState.status is ReportStatus.Running) {
@@ -837,6 +850,7 @@ class MainActivity : AppCompatActivity() {
                                     onOpenReport = { openTool(ToolScreen.REPORT) },
                                     onOpenTlsCheck = { openTool(ToolScreen.TLS_CHECK) },
                                     onOpenWebsiteDiagnostics = { openTool(ToolScreen.WEBSITE_DIAGNOSTICS) },
+                                    onOpenRdap = { openTool(ToolScreen.DOMAIN_REGISTRATION) },
                                 )
                                 TopLevelDestination.DEVICES -> LanDeviceCenterScreen(
                                     uiState = lanScannerUiState,
@@ -919,6 +933,8 @@ class MainActivity : AppCompatActivity() {
                                 onStop = tracerouteViewModel::stop,
                                 onBack = ::goBack,
                             )
+                            ToolScreen.DOMAIN_REGISTRATION -> RdapScreen(rdapUiState,rdapViewModel::input,
+                                rdapViewModel::request,rdapViewModel::confirm,rdapViewModel::dismiss,rdapViewModel::stop,::goBack)
                             ToolScreen.TLS_CHECK -> TlsCheckScreen(
                                 uiState = tlsCheckUiState,
                                 onTargetChanged = tlsCheckViewModel::onTargetChanged,

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_rdap">域名注册查询</string>
+    <string name="home_rdap_help">查询 RDAP 域名注册信息</string>
+</resources>

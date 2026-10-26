@@ -32,6 +32,7 @@ fun ToolsScreen(
     modifier: Modifier = Modifier,
     scrollState: ScrollState? = null,
     onOpenMenu: () -> Unit = {},
+    onOpenRdap: () -> Unit = {},
 ) {
     val callbacks = DashboardNavigationCallbacks(
         onOpenPing = onOpenPing,
@@ -45,6 +46,7 @@ fun ToolsScreen(
         onOpenReport = onOpenReport,
         onOpenTlsCheck = onOpenTlsCheck,
         onOpenWebsiteDiagnostics = onOpenWebsiteDiagnostics,
+        onOpenRdap = onOpenRdap,
     )
 
     Surface(modifier = modifier.fillMaxSize()) {

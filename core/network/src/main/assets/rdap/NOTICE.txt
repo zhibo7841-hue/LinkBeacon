@@ -1,0 +1,11 @@
+IANA RDAP DNS Bootstrap Service Registry
+Source: https://data.iana.org/rdap/dns.json
+Publication: 2026-10-22T23:00:04Z
+Retrieved: 2026-10-25 (UTC)
+SHA-256: 1d731769a3bd29054e2a5a7828cec1b27831c46103b4c70a000d5ffcb6c285e1
+
+This is a byte-for-byte snapshot of IANA's public protocol registry data,
+not third-party application code. Source terms and attribution guidance:
+https://www.iana.org/help/licensing-terms
+No additional executable or JSON dependency is bundled.
+The snapshot selects services; it contains no user lookup results.

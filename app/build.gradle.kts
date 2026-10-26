@@ -148,6 +148,7 @@ dependencies {
     implementation(project(":feature:traceroute"))
     implementation(project(":feature:webdiagnostics"))
     implementation(project(":feature:wifi"))
+    implementation(project(":feature:rdap"))
     implementation(project(":feature:port"))
     implementation(project(":feature:ping"))
     implementation(project(":feature:report"))

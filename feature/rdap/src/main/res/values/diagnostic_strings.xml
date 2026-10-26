@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rdap_dns_policy_summary">The service resolved to a disallowed address; query stopped.</string>
+    <string name="rdap_exchanges">HTTP exchanges (request headers written)</string>
+    <string name="rdap_reason">Technical reason code</string>
+    <string name="rdap_address_class">Resolved address categories</string>
+    <string name="rdap_public_ipv4">Public IPv4</string>
+    <string name="rdap_public_ipv6">Public IPv6</string>
+    <string name="rdap_private_address">Private address</string>
+    <string name="rdap_loopback">Loopback address</string>
+    <string name="rdap_link_local">Link-local address</string>
+    <string name="rdap_cgnat">Shared address space (CGNAT)</string>
+    <string name="rdap_documentation">Documentation address</string>
+    <string name="rdap_benchmark">Benchmark address (198.18.0.0/15); not an allowed public service destination</string>
+    <string name="rdap_multicast">Multicast address</string>
+    <string name="rdap_unspecified">Unspecified / zero network</string>
+    <string name="rdap_reserved">Reserved or unsupported special-use address</string>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rdap_dns_policy_summary">服务解析到了不允许的地址，查询已停止。</string>
+    <string name="rdap_exchanges">HTTP 交换数（请求头已写入）</string>
+    <string name="rdap_reason">技术原因代码</string>
+    <string name="rdap_address_class">解析地址类别</string>
+    <string name="rdap_public_ipv4">公共 IPv4</string>
+    <string name="rdap_public_ipv6">公共 IPv6</string>
+    <string name="rdap_private_address">私有地址</string>
+    <string name="rdap_loopback">回环地址</string>
+    <string name="rdap_link_local">链路本地地址</string>
+    <string name="rdap_cgnat">共享地址空间（CGNAT）</string>
+    <string name="rdap_documentation">文档示例地址</string>
+    <string name="rdap_benchmark">基准测试地址（198.18.0.0/15），不属于允许的公共服务目标</string>
+    <string name="rdap_multicast">组播地址</string>
+    <string name="rdap_unspecified">未指定地址或零网络</string>
+    <string name="rdap_reserved">保留或暂不支持的特殊用途地址</string>
+</resources>

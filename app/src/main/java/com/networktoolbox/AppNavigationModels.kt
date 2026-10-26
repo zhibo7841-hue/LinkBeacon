@@ -34,6 +34,7 @@ internal enum class ToolScreen {
     TLS_CHECK,
     WEBSITE_DIAGNOSTICS,
     WEB_DIAGNOSTICS_HISTORY,
+    DOMAIN_REGISTRATION,
     REPORT,
     HISTORY,
     SETTINGS,

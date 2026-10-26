@@ -13,7 +13,7 @@ class CoreUiResourceParityTest {
         .first { File(it, "settings.gradle.kts").exists() }
     private val modules = listOf("app", "core/designsystem", "feature/dashboard", "feature/lanscan",
         "feature/ping", "feature/dns", "feature/port", "feature/traceroute", "feature/subnet",
-        "feature/history", "feature/report", "feature/wifi")
+        "feature/history", "feature/report", "feature/wifi", "feature/rdap")
 
     @Test fun englishAndHansKeysQuantitiesAndPlaceholdersMatch() {
         for (module in modules) {
