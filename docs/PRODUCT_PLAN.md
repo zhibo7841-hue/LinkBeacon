@@ -46,7 +46,12 @@ LinkBeacon prioritizes professional evidence and efficient operation, with techn
 explanations and troubleshooting guidance available on demand:
 
 - Make core network parameters and valid test results directly visible.
-- Keep the default page focused on necessary data, actions and current status.
+- Keep the default interface concise, focused on necessary data, actions and
+  current status. Do not add redundant tutorials, suggestion cards, repeated
+  reminders or pop-ups.
+- Add prompts only when needed for permissions, errors, security, privacy or
+  data-loss risks, or when explicitly requested by the maintainer. Preserve key
+  network data, error states and necessary evidence.
 - Offer general technical explanations and detailed troubleshooting guidance on
   demand, through existing detail and expansion mechanisms where practical.
 - Retain concise source, uncertainty, cache and error qualifiers wherever they
@@ -56,7 +61,7 @@ explanations and troubleshooting guidance available on demand:
 - Consolidate repeated notices into concise supporting information, using direct
   workflows and existing detail surfaces with the fewest necessary steps.
 - Support learning as well as professional use with clear bilingual labels,
-  units, provenance, limitations and reversible troubleshooting suggestions.
+  units, provenance, limitations and optional troubleshooting guidance on demand.
 - Preserve accessibility, local-first privacy and conservative conclusions. Data
   density must not rely on tiny text, colour alone or fabricated certainty.
 
@@ -65,9 +70,36 @@ UI guidance would obscure key technical evidence. It does not remove existing
 analysis functions, expand the approved v0.10.0 feature scope or authorize a
 whole-app UI rewrite.
 
+The maintainer's 2026-10-26 clarification (Task 182) governs new UI additions;
+it does not authorize removing existing analysis functions or hiding necessary
+permission, error, safety or evidence states.
+
 Public documentation uses professional, constructive and welcoming language.
 Describe supported workflows and evidence positively while preserving accurate
 technical limitations, learning support, accessibility and privacy.
+
+## Development testing and version acceptance
+
+Maintainer-confirmed rules — 2026-10-26 / Task 182:
+
+- **Default automated physical device:** Sony Xperia 1 II, Android 12.
+  Routine small tasks run only the automated checks relevant to the change.
+  When physical-device automation is needed, use this default rather than
+  automatically repeating a full multi-device regression for each small task.
+- After a complete version is finished, the maintainer performs acceptance on
+  other devices. Development automation does not substitute for the
+  maintainer's explicit version-acceptance confirmation.
+- **Push, Merge, Tag and Release are prohibited until the maintainer explicitly
+  confirms version acceptance.** Passing automated gates or completing a task
+  does not satisfy that confirmation or automatically authorize these actions.
+- Mark every untested Android version **Not Tested**. Keep actual historical,
+  automated and maintainer acceptance evidence distinct; do not infer a pass
+  from another Android version or device.
+
+These rules govern future development and acceptance work without rewriting
+past test/release records or changing approved feature scope. The existing
+final signed-artifact representative-device RC gate remains in force; routine
+task automation and final version acceptance are separate stages.
 
 ## Unified device-category evidence principle — Task 171 / 2026-10-25
 
@@ -929,13 +961,49 @@ respective implementation tasks. The approved functional scope below is unchange
    Follow the professional-data-first single-page
    [Wi-Fi review specification](V0.10_STAGE_B_WIFI_DESIGN.md): retain current
    connection and Networks / Channels, make BSSID/RSSI/band/channel easy to
-   verify, show status qualifiers by default and expand educational explanations
-   on demand. Current-connection and scanned-AP facts remain independent;
-   never invent current-link Channel Width. Task 135 is documentation only,
-   not authorization to implement B2.1/B2.2 or alter scan lifecycles.
-3. **Domain registration WHOIS / RDAP:** add an on-demand, bounded,
-   validated domain lookup, RDAP-first with legacy WHOIS fallback only
-   when protocol and privacy review justify it. Explain hidden/missing,
+   verify. Maintainer-confirmed Task 188 (2026-10-28) supersedes the old
+   per-card grading/teaching presentation: actual measured data first, no default
+   subjective RSSI quality labels, repeated observation ages or teaching controls.
+   Retain necessary permission, cache, failure and uncertainty states. Expand
+   real technical parameters, sources and observation times on demand. Current
+   connection and scanned-AP facts remain independent; never invent current-link
+   Channel Width. Search, filters, refresh, Channels and scan lifecycles remain.
+   Task 188 also confirms Device Detail order: overview, editable local profile,
+   network checks, Wake-on-LAN, basic information, observations, recognition.
+   Remove only the redundant relationship card, not identity/scope facts.
+   Saving a blank/whitespace WoL MAC clears the optional MAC/UDP-port configuration;
+   keep the saved identity, observed MAC and other user/observation fields, even
+   for a previously WoL-only profile. Disable wake until a valid MAC is configured
+   again, with the existing default UDP port. No schema or release-scope change.
+3. **Domain and public-IP registration — RDAP / WHOIS:** one existing
+   registration page with RDAP as default and WHOIS selected manually from
+   the input-side dropdown. Switching retains input and makes no request;
+   old results cannot represent the new protocol. No automatic fallback in
+   either direction (maintainer-confirmed Task 183, 2026-10-27).
+   Normalize full hostnames with ICU IDNA and derive the registry-level
+   domain from reviewed ICANN Public Suffix rules, keeping PRIVATE hosting
+   boundaries distinct and showing the actual query when converted. RDAP
+   supports eligible public IPv4/IPv6 via IANA longest-prefix Bootstrap;
+   WHOIS supports domains via reviewed registry TCP 43 endpoints and public
+   IPv4/IPv6 via `whois.iana.org` and bounded official RIR referrals
+   (maintainer-confirmed Task 184, 2026-10-27). Task 186 (2026-10-28) confirms
+   direct user-initiated Query with no blocking confirmation or pre-query
+   conversion hint. Existing Privacy & Data remains available; protocol-specific
+   external-service/plaintext disclosure is in query details. Actual target is
+   shown in the result.
+   IANA upstream allocations remain distinct from final RIR
+   records. Trusted service-hostname Fake-IP mappings use the captured system
+   network/proxy route; HTTPS still validates the original hostname. Mapping
+   addresses are not server identity or acceptable user registration-IP inputs.
+   TCP 43 can still be blocked by the current network/proxy. Task 184 Android 12
+   acceptance passed normal-Wi-Fi WHOIS IPv4/IPv6 and four bounded OpenClash
+   domain/IP RDAP/WHOIS paths; see [current B3 evidence](V0.10_STAGE_B3_IMPLEMENTATION.md#task-184--public-ip-whois-and-system-route-compatibility).
+   Task 185 extends official WHOIS TLD discovery and structured domain/IP
+   records, including ARIN multiple matches, with compact bilingual results
+   and explicit raw-response copy. This remains the existing registration tool;
+   final maintainer acceptance is pending, not implied by Task 184 transport QA.
+   Android 13/16 are Not Tested. No ASN/GeoIP/ownership
+   inference, new page, result History or background lookup. Explain hidden/missing,
    rate-limited and unsupported fields and distinguish domain
    registration from DNS availability/connectivity. Review lookup
    recipient visibility, redirects, timeout, cancellation, resource
@@ -979,6 +1047,9 @@ exportable Website Diagnostics evidence, not webpage rendering,
 WebView capture or a generic screenshot utility.
 
 ### Stage D — mandatory quality and release gate
+
+These are version-level gates. Routine task automation and the maintainer's
+version acceptance follow the [current testing policy](#development-testing-and-version-acceptance).
 
 - Run complete relevant JVM tests, lint, builds, instrumentation,
   deterministic LAN/identity and export fixtures, permission denial,

@@ -1,5 +1,149 @@
 # Decision Log
 
+## Decision: Compact Wi-Fi facts and removable Wake-on-LAN configuration
+
+- Date: 2026-10-28 / Task 188, explicitly confirmed by the maintainer.
+- Default current/nearby Wi-Fi cards show SSID, BSSID, measured RSSI/dBm,
+  band/channel and a genuine current-connection match where available. No
+  subjective RSSI grades, repeated per-AP ages, permanent teaching text or
+  explanation controls. Expand existing real technical parameters and provenance.
+  Preserve important permission/cache/failure/staleness/uncertainty states and
+  independent current-connection versus scanned-AP evidence, including width.
+- Device Detail places WoL immediately after network checks and before basic
+  information. Remove the redundant standalone network-relationship card only;
+  retain identity, scope, association, scan session and recognition evidence.
+- Blank/whitespace WoL MAC means clear the entire optional MAC/UDP configuration,
+  not an empty valid MAC. Nonempty input retains strict validation. Clearing
+  does not delete a WoL-only saved profile or change its observed MAC, identity,
+  custom name/type/notes/favorite or First/Last Seen. Subsequent ordinary scan
+  observations may update Last Seen by the existing rules, never restore WoL.
+  A newly configured MAC uses the existing default port. No extra confirmation.
+- This supersedes conflicting older presentation/clear-retention descriptions,
+  not the scanner, identity algorithm, schema, permissions or release roadmap.
+  Task 188 leaves local review changes only: no commit/push/RC or publication.
+
+
+## Decision: Direct registration query and compact selectable presentation
+
+- Date: 2026-10-28 / Task 186, explicitly approved by the maintainer.
+- Clicking Query starts the selected protocol directly. This supersedes the
+  Task 178/183/184 blocking first-action confirmation and pre-query converted
+  target hint. Existing Privacy & Data stays available. Protocol-specific
+  external-service/plaintext WHOIS disclosure is in on-demand query details;
+  no replacement modal or permanent warning. Data recipients, transport and
+  retention do not change.
+- Results use the actual query target as their heading, with original input
+  only when different. Native text selection and region-level copy replace
+  per-field copy icons. Dates/statuses may be localized without changing the
+  underlying value; original timestamps/codes and complete responses remain
+  available. More fields, service notices/terms and query/raw details expand
+  independently. Separate matching network records remain separate.
+- Home, Tools and Devices reuse the existing small top-level header with
+  matching alignment and a Home title; Devices retains Search and navigation.
+- This is a UI/presentation change only. Query/referral logic, network budgets,
+  History/profiles, versions/signing, policies/Play and release scope are
+  unchanged. Final maintainer acceptance remains pending; no commit or remote
+  operation is authorized.
+
+## Decision: Complete registration fields and bounded official WHOIS discovery
+
+- Date: 2026-10-28 / Task 185, explicitly authorized for implementation;
+  **the registration module remains pending maintainer final acceptance**.
+- Keep one manual RDAP/WHOIS page and the existing input, network-route,
+  cancellation and request budgets. A versioned IANA root-db snapshot includes
+  `.asia`; other confirmed TLDs may query the IANA TLD WHOIS object and then
+  its validated `whois` service, within the same whole-query budget. A registry
+  response does not authorize arbitrary domain referrals or protocol fallback.
+- ARIN alone receives `+ n <public IP>` to request detailed matching network
+  records. Preserve separate network objects and source/summary provenance;
+  sort containing ranges by specificity without asserting end-user ownership.
+- Show actual main fields, qualify partial/unparsed/upstream results, retain
+  per-source raw text and user-initiated copy in memory. No History/profile,
+  policy publication, version, signing, Play or release change. Android 12 is
+  this task's representative device; existing Task 182 governance is unchanged.
+
+
+## Decision: Public-IP WHOIS referrals and system-route/Fake-IP compatibility
+
+- Date: 2026-10-27 / Task 184; **accepted for implementation** by the maintainer.
+- Both existing protocol choices accept a domain or public IPv4/IPv6. Keep the
+  compact input-side selector, offline ICANN PSL/ICU conversion and explicit
+  user action. Switching preserves input, clears obsolete results and never
+  queries. Existing once-per-protocol privacy disclosure remains.
+- Public-IP WHOIS starts at `whois.iana.org:43`. Follow only actual `refer`, `ReferralServer`, or initial-IANA-only `whois` values naming the five official RIR WHOIS services. No
+  octet-to-registry table, arbitrary server, automatic retry or RDAP fallback.
+  At most three server exchanges share 15 seconds and 128 KiB, with 64 KiB per
+  response, 3-second connect and 5-second read limits. Preserve per-step source,
+  target, result and bounded raw text; an IANA upstream allocation is not a
+  final regional registration record or proof of the end user's identity.
+- An IANA-selected RDAP or reviewed WHOIS service hostname may resolve to
+  198.18.0.0/15 on a Fake-IP network. Treat that as a transport mapping, retain
+  current Android Network routing and system proxy/PAC selection, and preserve
+  original-hostname HTTPS/TLS validation. Never substitute a mapped address
+  for server identity or accept it as a user-entered public IP. Other local/
+  reserved direct service destinations remain rejected.
+- System HTTP proxy routes use bounded CONNECT; proxy exclusions/PAC DIRECT
+  decisions come from the system selector. No custom proxy credentials, TLS
+  bypass, global DNS override, router changes or hidden direct-route fallback.
+  A proxy/network may deny TCP 43, and authenticated/SOCKS proxies are not
+  supported. Report actual errors, not 'no records'.
+- Task 184 supersedes only Task 183's initial domain-only WHOIS and direct-only
+  transport limits. Historical evidence remains unchanged. Current verification
+  is recorded in `V0.10_STAGE_B3_IMPLEMENTATION.md`: Android 12 normal-Wi-Fi
+  WHOIS IPv4/IPv6 and the four OpenClash paths pass. Android 13/16 are Not Tested.
+  Task 182 testing/release governance, History/profiles, the 38 protected files,
+  store assets, versions/signing and Play boundaries remain unchanged. No
+  commit, push, merge, rebase, tag, release or signed RC is authorized.
+
+## Decision: Complete the existing registration lookup with manual WHOIS and public-IP RDAP
+
+- Date: 2026-10-27
+- Status: **Accepted for implementation**, expressly confirmed by the maintainer
+  in Task 183; this is an enhancement of the existing B3 tool.
+- One page: RDAP remains the default; the input-side dropdown contains RDAP
+  and WHOIS only. Switching retains input, clears obsolete protocol results
+  and does not query. Neither protocol automatically falls back to the other.
+- Targets: ICU IDNA retains raw input, normalized full hostname and actual
+  registration query. Reviewed ICANN Public Suffix rules (including wildcard
+  and exception rules) determine registry-level domains; PRIVATE hosting
+  suffixes must not make hosted subdomains look independently registered.
+  Unknown suffixes are rejected rather than guessed using DNS or two labels.
+- RDAP public IPv4/IPv6 uses reviewed IANA directories and longest-prefix
+  matching. Private/special-use inputs are rejected before external access.
+  Registration country/region is not device geolocation; no ASN/GeoIP is added.
+- WHOIS first version is domain-only plaintext TCP 43 to reviewed registry
+  endpoints, with one necessary pre-query privacy disclosure. No arbitrary
+  user server, referral follow-up, retry or server rotation. Time, bytes,
+  cancellation, active-network binding and resource cleanup remain bounded.
+  Raw text has no RDAP-equivalent status semantics and is not logged.
+- Scope and release boundary: preserve HTTPS RDAP security, in-memory results,
+  existing History/profiles and other approved v0.10 features. No Room change,
+  online policy/Data Safety edit, version/signing/RC change or new testing/
+  release route is authorized. Task 182 testing/acceptance governance applies;
+  Task 183 does not authorize Commit, Push, Merge, Tag or Release.
+
+## Decision: Default automation device and maintainer version acceptance
+
+- Date: 2026-10-26
+- Status: **Accepted**, explicitly confirmed by the maintainer in Task 182.
+- Default automated physical device: **Sony Xperia 1 II / Android 12**.
+  Routine small tasks run only relevant automated checks; use this device when
+  physical-device automation is needed, without automatically repeating full
+  multi-device regression for every small task.
+- Version acceptance: after a complete version is finished, the maintainer
+  performs acceptance on other devices. Development automation is not that
+  acceptance and must not be reported as maintainer confirmation.
+- Publication/integration gate: **no Push, Merge, Tag or Release before explicit
+  maintainer confirmation of version acceptance**. Passing tests or finishing
+  an implementation task does not approve these actions.
+- Evidence: untested Android versions are **Not Tested**. Preserve the dates
+  and scope of historical tests; do not turn another device's pass into a pass
+  for an untested version.
+- Boundary: synchronize [the product testing policy](PRODUCT_PLAN.md#development-testing-and-version-acceptance).
+  This current governance rule does not rewrite historical pushes/releases,
+  alter feature scope or remove the final signed-artifact representative RC
+  gate. It authorizes no Runtime, version/signing, commit or remote operation.
+
 ## Decision: Uniform three-level device-category assessment
 
 - Date: 2026-10-25
@@ -46,6 +190,13 @@
   consolidating repeated notices and keeping interaction paths direct. This
   applies across LinkBeacon, not only LAN Scanner, and complements the Task 135
   professional-evidence-first principle without rewriting historical decisions.
+- Maintainer clarification (2026-10-26 / Task 182): keep the default interface
+  concise; do not add redundant tutorials, suggestion cards, repeated reminders
+  or pop-ups. Add prompts only when necessary for permissions, errors, security,
+  privacy or data-loss risks, or when explicitly requested by the maintainer.
+  Preserve key network data, error states and necessary evidence. Optional
+  explanations remain available on demand; this clarification does not remove
+  existing analysis functions or authorize a Runtime/UI rewrite.
 - B1 priority: improve effective automatic names for common computers, phones
   and tablets within the approved device-recognition scope. Smart-home/ESPHome
   work remains included but does not substitute for ordinary-terminal evidence.
