@@ -25,6 +25,7 @@ import java.io.File
 
 class RdapTestState {
     var starts=0
+    var registrationBehavior:RunRegistrationLookup?=null
     var behavior: RunRdapLookup=RunRdapLookup {_,_->error("Unexpected RDAP lookup")}
 }
 @Module
@@ -32,6 +33,11 @@ class RdapTestState {
 object RdapDeviceModule {
     @Provides @Singleton fun state()=RdapTestState()
     @Provides @Singleton fun normalizer(): RdapDomainNormalizer=AndroidRdapDomainNormalizer()
+    @Provides @Singleton fun input(@dagger.hilt.android.qualifiers.ApplicationContext context:Context)=androidRegistrationInput(context)
+    @Provides @Singleton fun registration(s:RdapTestState):RunRegistrationLookup=RunRegistrationLookup {input,protocol,progress->
+        s.starts++
+        s.registrationBehavior?.run(input,protocol,progress) ?: s.behavior.run(requireNotNull(input.domain),progress)
+    }
     @Provides @Singleton fun lookup(s:RdapTestState): RunRdapLookup=RunRdapLookup {d,p->s.starts++;s.behavior.run(d,p)}
 }
 
@@ -102,7 +108,7 @@ class RdapDeviceTest {
     private fun open(zh:Boolean) {
         locale(if(zh) "zh-Hans" else "en")
         compose.onNode(hasText(compose.activity.getString(R.string.shell_tools)) and isSelectable()).performClick()
-        compose.onNodeWithText(if(zh) "域名注册查询" else "Domain Registration").performScrollTo().performClick()
+        compose.onNodeWithText("RDAP / WHOIS").performScrollTo().performClick()
         compose.onNodeWithTag("rdap_input").assertExists()
     }
     private fun request(name:String="example.com") {
@@ -126,17 +132,17 @@ class RdapDeviceTest {
         for(s in listOf("xn--a.com","xn--.com","a..com","_x.com","*.com","example.com\n","a\u202e.com","https://example.com","localhost","10.0.0.1","\uD800.com")) assertNull(s,n.normalize(s))
         assertEquals(0,rdap.starts)
     }
-    @Test fun bilingualConsentDetailsAndRecreationHaveNoHistoryOrExtraRequests() {
+    @Test fun bilingualDirectQueryDetailsAndRecreationHaveNoHistoryOrExtraRequests() {
         val records=history.records.value.toList();val writes=history.writes;val profiles=fixture.profiles.value.toList()
         rdap.behavior=RunRdapLookup {d,_->RdapResult(RdapStatus.SUCCESS,d,"https://rdap.registry.example.net/domain/example.com",1_700_000_000_000,17,
             RdapRegistration("Fixture Registrar","2020-01-01T00:00:00Z",null,null,listOf("active"),listOf("ns1.example.net"),RdapDnssec.SIGNED,true,listOf("<b>Plain fixture notice</b>")),1,200)}
         for(zh in listOf(false,true)) {
             open(zh);val before=rdap.starts;request()
-            if(before==0) {assertEquals(0,rdap.starts);compose.onNodeWithTag("rdap_confirm").assertExists()}
+            compose.onNodeWithTag("rdap_confirm").assertDoesNotExist()
             confirmIfNeeded();compose.waitUntil(5000) {owner().uiState.value.result?.status==RdapStatus.SUCCESS}
             compose.onNodeWithText("Fixture Registrar").assertExists()
             step("details_before")
-            compose.onNodeWithTag("rdap_details").performScrollTo().performClick()
+            compose.onNodeWithTag("registration_notices").performScrollTo().performClick()
             step("details_after")
             compose.onNodeWithText("<b>Plain fixture notice</b>").assertHasNoClickAction()
             val snapshot=owner().uiState.value.result
@@ -147,7 +153,7 @@ class RdapDeviceTest {
     }
     @Test fun invalidInputCancelNetworkChangeOfflineAndLeaveAreBilingual() {
         open(false);request("https://example.com");assertEquals(0,rdap.starts)
-        compose.onNodeWithText("Invalid domain input").assertExists()
+        compose.onNodeWithText("Invalid registration query input").assertExists()
         rdap.behavior=RunRdapLookup {_,progress->progress(RdapPhase.QUERYING);awaitCancellation()}
         request();confirmIfNeeded();compose.onNodeWithTag("rdap_running").assertExists()
         compose.onNodeWithTag("rdap_stop").performClick();compose.onNodeWithText("Query stopped").assertExists()
@@ -160,7 +166,7 @@ class RdapDeviceTest {
         compose.onNode(hasText(compose.activity.getString(R.string.shell_home)) and isSelectable()).performClick()
         assertFalse(owner().uiState.value.running);assertEquals(count+5,rdap.starts)
         open(true);assertEquals(count+5,rdap.starts)
-        request("http://example.com");compose.onNodeWithText("域名输入无效").assertExists()
+        request("http://example.com");compose.onNodeWithText("注册查询输入无效").assertExists()
     }
     @Test fun dnsAddressRejectionExplainsOnlyObservedCategoryInFoldedDetails() {
         rdap.behavior=RunRdapLookup {d,_->RdapResult(RdapStatus.UNSAFE_ENDPOINT,d,observedAt=1,durationMs=2,
@@ -199,7 +205,7 @@ class RdapDeviceTest {
         rdap.behavior=RunRdapLookup {query,progress->require(query.ascii==name);real.run(query,progress)}
         val records=history.records.value.toList();val writes=history.writes;val profiles=fixture.profiles.value.toList()
         val zh=args.getString("rdapLocale")=="zh"
-        open(zh);request(name);assertEquals(0,rdap.starts);compose.onNodeWithTag("rdap_confirm").performClick()
+        open(zh);request(name);compose.onNodeWithTag("rdap_confirm").assertDoesNotExist()
         compose.waitUntil(30_000) {owner().uiState.value.result!=null && !owner().uiState.value.running}
         val r=requireNotNull(owner().uiState.value.result)
         val e=r.evidence
@@ -249,7 +255,7 @@ class RdapDeviceTest {
         val real=androidRdapLookup(app)
         rdap.behavior=RunRdapLookup {query,progress->require(query.ascii==name);real.run(query,progress)}
         val records=history.records.value.toList();val writes=history.writes;val profiles=fixture.profiles.value.toList()
-        open(args.getString("rdapLocale")=="zh");request(name);assertEquals(0,rdap.starts);compose.onNodeWithTag("rdap_confirm").performClick()
+        open(args.getString("rdapLocale")=="zh");request(name);compose.onNodeWithTag("rdap_confirm").assertDoesNotExist()
         compose.waitUntil(35_000) {owner().uiState.value.result!=null && !owner().uiState.value.running}
         val r=requireNotNull(owner().uiState.value.result)
         assertTrue(r.requests<=RdapLimits.REQUESTS);assertEquals(1,rdap.starts)

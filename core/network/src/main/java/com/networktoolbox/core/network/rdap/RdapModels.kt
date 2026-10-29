@@ -22,7 +22,7 @@ enum class RdapStatus {
     QUERY_REJECTED, RATE_LIMITED, SERVER_ERROR, NETWORK_UNAVAILABLE, DNS_FAILED,
     TLS_FAILED, TIMEOUT, CANCELLED, INVALID_RESPONSE, RESPONSE_TOO_LARGE,
     NETWORK_CHANGED, REDIRECT_REJECTED, UNSAFE_ENDPOINT, PROXY_UNSUPPORTED,
-    BOOTSTRAP_UNAVAILABLE, BUSY,
+    BOOTSTRAP_UNAVAILABLE, BUSY, WHOIS_SERVICE_NOT_FOUND,
 }
 enum class RdapPhase { BOOTSTRAP, RESOLVING, QUERYING, PARSING }
 enum class RdapBootstrapSource { BUNDLED, CACHE, UPDATED }
@@ -31,6 +31,7 @@ data class RdapRegistration(
     val registrar: String?, val registeredAt: String?, val changedAt: String?, val expiresAt: String?,
     val statuses: List<String>, val nameservers: List<String>, val dnssec: RdapDnssec,
     val restricted: Boolean, val notices: List<String>,
+    val organization: String? = null, val databaseUpdatedAt: String? = null,
 )
 data class RdapResult(
     val status: RdapStatus, val domain: RdapDomain?, val source: String? = null,
@@ -39,9 +40,19 @@ data class RdapResult(
     val bootstrapSource: RdapBootstrapSource? = null, val bootstrapPublication: String? = null,
     val bootstrapFetchedAt: Long? = null, val vpn: Boolean? = null,
     val reason:RdapReason?=null,val evidence:RdapTransportEvidence=RdapTransportEvidence(),
+    val protocol: RegistrationProtocol = RegistrationProtocol.RDAP,
+    val input: RegistrationInput? = null,
+    val ipNetwork: RdapIpNetwork? = null,
+    val whoisText: String? = null,
+    val whoisSteps: List<WhoisStep> = emptyList(),
+    val whoisIpRecord: WhoisIpRecord? = null,
+    val whoisIpRecords: List<WhoisIpRecord> = emptyList(),
+    val rawRdap: String? = null,
 )
 fun interface RunRdapLookup {
     suspend fun run(domain: RdapDomain, onProgress: (RdapPhase) -> Unit): RdapResult
+    suspend fun runIp(ip: RegistrationIp, onProgress: (RdapPhase) -> Unit): RdapResult =
+        RdapResult(RdapStatus.UNSUPPORTED,null,observedAt=System.currentTimeMillis(),durationMs=0)
 }
 class RdapFailure(val status: RdapStatus,val reason:RdapReason?=null) : java.io.IOException(status.name)
 data class RdapHttpResponse(val code: Int, val body: ByteArray = byteArrayOf(), val location: String? = null)
@@ -49,7 +60,14 @@ interface RdapHttpSession : AutoCloseable {
     val changed: Boolean
     val vpn: Boolean?
     val evidence:RdapTransportEvidence get()=RdapTransportEvidence()
+    val requestEvidence:RdapTransportEvidence get()=evidence
+    fun authorizeHttps(urls:Set<String>) {}
+    fun authorizeWhoisDomain(ianaText:String, domain:RdapDomain) {}
     suspend fun get(url: String, limit: Int, remainingMs: Long, onProgress: (RdapPhase) -> Unit): RdapHttpResponse
+    suspend fun whois(server: String, domain: RdapDomain, onProgress: (RdapPhase) -> Unit): ByteArray =
+        whois(server,domain.ascii,WhoisLimits.BODY_BYTES,onProgress)
+    suspend fun whois(server:String,query:String,limit:Int,onProgress:(RdapPhase)->Unit):ByteArray =
+        throw RdapFailure(RdapStatus.UNSUPPORTED)
 }
 fun interface RdapTransport { suspend fun open(): RdapHttpSession }
 data class RdapBootstrapSnapshot(val bytes: ByteArray, val fetchedAt: Long, val source: RdapBootstrapSource)

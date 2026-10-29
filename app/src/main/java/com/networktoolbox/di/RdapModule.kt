@@ -14,4 +14,7 @@ import javax.inject.Singleton
 object RdapModule {
     @Provides @Singleton fun normalizer(): RdapDomainNormalizer = AndroidRdapDomainNormalizer()
     @Provides @Singleton fun lookup(@ApplicationContext context: Context): RunRdapLookup = androidRdapLookup(context)
+    @Provides @Singleton fun input(@ApplicationContext context: Context): RegistrationInputResolver = androidRegistrationInput(context)
+    @Provides @Singleton fun registration(@ApplicationContext context: Context,rdap:RunRdapLookup): RunRegistrationLookup =
+        RegistrationLookup(rdap,AndroidRdapTransport(context))
 }

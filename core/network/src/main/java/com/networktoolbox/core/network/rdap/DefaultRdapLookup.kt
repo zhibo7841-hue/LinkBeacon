@@ -13,19 +13,30 @@ class DefaultRdapLookup(
     private val nano: ()->Long = System::nanoTime,
     private val io: CoroutineDispatcher = Dispatchers.IO,
     private val observer:RdapObserver=RdapObserver.NONE,
+    private val ipStores: ((String)->RdapBootstrapStore)? = null,
 ) : RunRdapLookup {
     private val mutex = Mutex()
-    override suspend fun run(domain: RdapDomain,onProgress:(RdapPhase)->Unit): RdapResult {
+    override suspend fun run(domain: RdapDomain,onProgress:(RdapPhase)->Unit): RdapResult = execute(domain,null,onProgress)
+    override suspend fun runIp(ip: RegistrationIp,onProgress:(RdapPhase)->Unit): RdapResult = execute(null,ip,onProgress)
+    private suspend fun execute(domain: RdapDomain?,ip: RegistrationIp?,onProgress:(RdapPhase)->Unit): RdapResult {
         val start = nano(); val observed = clock()
-        if(RdapDomainSyntax.ascii(domain.ascii)?.ascii!=domain.ascii)
+        if((domain!=null && RdapDomainSyntax.ascii(domain.ascii)?.ascii!=domain.ascii) ||
+            (ip!=null && (!RdapAddressPolicy.public(ip.address) || RegistrationIp.parse(ip.text)!=ip)) || (domain==null && ip==null))
             return RdapResult(RdapStatus.INVALID_INPUT,null,observedAt=observed,durationMs=0)
         if (!mutex.tryLock()) return RdapResult(RdapStatus.BUSY,domain,observedAt=observed,durationMs=0)
         var requests = 0; var source: String? = null; var code: Int? = null
         var snapshot: RdapBootstrapSnapshot? = null; var bootstrap: RdapBootstrap? = null
+        var authorized=emptySet<String>();var rawRdap:String?=null
         var session: RdapHttpSession? = null;var reason:RdapReason?=null
+        var ipBootstrap:RdapIpBootstrap?=null;var ipNetwork:RdapIpNetwork?=null
+        val selectedStore=if(ip==null) store else ipStores?.invoke(ip.family)
+        val directoryUrl=if(ip==null) RdapLimits.BOOTSTRAP_URL else "https://data.iana.org/rdap/${ip.family}.json"
+        fun parseDirectory(bytes:ByteArray) {if(ip==null) bootstrap=RdapBootstrap.parse(bytes) else ipBootstrap=RdapIpBootstrap.parse(bytes,ip.family)}
+        fun select()=if(ip==null) bootstrap?.select(requireNotNull(domain)) else ipBootstrap?.select(ip)
         fun result(status: RdapStatus,registration: RdapRegistration? = null) = RdapResult(status,domain,source,
             clock(),TimeUnit.NANOSECONDS.toMillis(nano()-start).coerceAtLeast(0),registration,requests,code,
-            snapshot?.source,bootstrap?.publication,snapshot?.fetchedAt,session?.vpn,reason,session?.evidence ?: RdapTransportEvidence())
+            snapshot?.source,bootstrap?.publication ?: ipBootstrap?.publication,snapshot?.fetchedAt,session?.vpn,reason,session?.evidence ?: RdapTransportEvidence(),
+            ipNetwork=ipNetwork,rawRdap=rawRdap)
         try {
             return withTimeout(RdapLimits.TOTAL_MS) {
                 val owner = currentCoroutineContext()
@@ -37,29 +48,32 @@ class DefaultRdapLookup(
                     val remaining = RdapLimits.TOTAL_MS-TimeUnit.NANOSECONDS.toMillis(nano()-start)
                     if (remaining <= 0) throw RdapFailure(RdapStatus.TIMEOUT)
                     if (session==null) session=transport.open()
+                    requireNotNull(session).authorizeHttps(authorized)
                     return requireNotNull(session).get(url,limit,remaining,onProgress).also {check()}
                 }
                 onProgress(RdapPhase.BOOTSTRAP)
                 val valid = withContext(io) {
-                    store.load().mapNotNull {s -> runCatching {s to RdapBootstrap.parse(s.bytes)}.getOrNull()}
-                        .filter {it.first.fetchedAt in 1..(clock()+300_000)}.maxByOrNull {it.first.fetchedAt}
+                    selectedStore?.load()?.sortedByDescending {it.fetchedAt}?.firstOrNull {s ->
+                        s.fetchedAt in 1..(clock()+300_000) && runCatching {parseDirectory(s.bytes)}.isSuccess
+                    }
                 }
-                snapshot=valid?.first; bootstrap=valid?.second
+                snapshot=valid
                 val stale = snapshot==null || clock()-requireNotNull(snapshot).fetchedAt > RdapLimits.BOOTSTRAP_AGE_MS
-                if (stale || bootstrap?.select(domain)==null) {
-                    source=RdapLimits.BOOTSTRAP_URL
-                    val response = get(RdapLimits.BOOTSTRAP_URL,RdapLimits.BOOTSTRAP_BYTES)
+                if (stale || select()==null) {
+                    source=directoryUrl
+                    val response = get(directoryUrl,RdapLimits.BOOTSTRAP_BYTES)
                     code=response.code
                     if (response.code!=200) throw RdapFailure(RdapStatus.BOOTSTRAP_UNAVAILABLE)
-                    bootstrap=withContext(io) {RdapBootstrap.parse(response.body)}
+                    withContext(io) {parseDirectory(response.body)}
                     snapshot=RdapBootstrapSnapshot(response.body,clock(),RdapBootstrapSource.UPDATED)
-                    withContext(io) {runCatching {store.save(response.body,requireNotNull(snapshot).fetchedAt)}}
+                    withContext(io) {runCatching {selectedStore?.save(response.body,requireNotNull(snapshot).fetchedAt)}}
                 }
                 check()
-                val urls = bootstrap?.select(domain) ?: return@withTimeout result(RdapStatus.UNSUPPORTED)
+                val urls = select() ?: return@withTimeout result(RdapStatus.UNSUPPORTED)
                 val bases = urls.mapNotNull(RdapEndpointPolicy::base)
                 if (bases.isEmpty()) return@withTimeout result(if(urls.any {it.startsWith("http://")}) RdapStatus.HTTP_ONLY else RdapStatus.UNSUPPORTED)
-                val allowed = bases.map {RdapEndpointPolicy.query(it,domain)}.toSet()
+                val allowed = bases.map {if(ip==null) RdapEndpointPolicy.query(it,requireNotNull(domain)) else RdapEndpointPolicy.ipQuery(it,ip)}.toSet()
+                authorized=allowed
                 var url = allowed.first(); var redirects = 0; val seen = mutableSetOf<String>()
                 while (true) {
                     if (!seen.add(url)) throw RdapFailure(RdapStatus.REDIRECT_REJECTED)
@@ -79,7 +93,11 @@ class DefaultRdapLookup(
                     }
                     if(status!=RdapStatus.SUCCESS) return@withTimeout result(status)
                     onProgress(RdapPhase.PARSING)
-                    val registration=withContext(io) {parser.parse(response.body,domain)}
+                    val registration=withContext(io) {
+                        if(ip==null) parser.parse(response.body,requireNotNull(domain))
+                        else {ipNetwork=RdapIpResponseParser.parse(response.body,ip);null}
+                    }
+                    rawRdap=response.body.toString(Charsets.UTF_8)
                     observer.emit(RdapTraceStep.PARSED)
                     check(); return@withTimeout result(RdapStatus.SUCCESS,registration)
                 }

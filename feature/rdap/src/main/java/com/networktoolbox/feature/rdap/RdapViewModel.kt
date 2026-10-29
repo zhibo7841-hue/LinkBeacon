@@ -9,59 +9,58 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class RdapUiState(val input: String="",val running: Boolean=false,val consent: Boolean=false,
-    val phase: RdapPhase=RdapPhase.BOOTSTRAP,val result: RdapResult?=null)
+data class RdapUiState(val input: String="",val running: Boolean=false,
+    val phase: RdapPhase=RdapPhase.BOOTSTRAP,val result: RdapResult?=null,
+    val protocol:RegistrationProtocol=RegistrationProtocol.RDAP,val target:RegistrationInput?=null)
 
 @HiltViewModel
-class RdapViewModel @Inject constructor(private val runLookup: RunRdapLookup,
-    private val normalizer: RdapDomainNormalizer): ViewModel() {
+class RdapViewModel @Inject constructor(private val runLookup: RunRegistrationLookup,
+    private val resolver: RegistrationInputResolver): ViewModel() {
     private val state=MutableStateFlow(RdapUiState())
     val uiState=state.asStateFlow()
-    private var agreed=false
-    private var pending: RdapDomain?=null
     private var job: Job?=null
     private var generation=0
     fun input(value: String) {
         if(state.value.running) return
-        pending=null;state.value=RdapUiState(input=value.take(1025))
+        val input=value.take(1025)
+        state.value=RdapUiState(input=input,protocol=state.value.protocol,target=resolver.resolve(input,state.value.protocol))
+    }
+    fun protocol(value:RegistrationProtocol) {
+        if(value==state.value.protocol) return
+        stop()
+        state.value=RdapUiState(input=state.value.input,protocol=value,target=resolver.resolve(state.value.input,value))
     }
     fun request() {
-        if(state.value.running || state.value.consent) return
-        val domain=normalizer.normalize(state.value.input)
+        if(state.value.running) return
+        val domain=resolver.resolve(state.value.input,state.value.protocol)
         if(domain==null) {
             state.value=state.value.copy(result=RdapResult(RdapStatus.INVALID_INPUT,null,
-                observedAt=System.currentTimeMillis(),durationMs=0));return
+                observedAt=System.currentTimeMillis(),durationMs=0,protocol=state.value.protocol));return
         }
-        if(!agreed) {pending=domain;state.value=state.value.copy(consent=true);return}
         start(domain)
     }
-    fun confirm() {
-        val domain=pending ?: return
-        agreed=true;pending=null;start(domain)
-    }
-    fun dismiss() {pending=null;state.value=state.value.copy(consent=false)}
-    private fun start(domain: RdapDomain) {
+    private fun start(domain: RegistrationInput) {
         val id=++generation
-        state.value=state.value.copy(running=true,consent=false,result=null,phase=RdapPhase.BOOTSTRAP)
+        val protocol=state.value.protocol
+        state.value=state.value.copy(running=true,result=null,phase=RdapPhase.BOOTSTRAP,target=domain)
         job=viewModelScope.launch {
             try {
-                val result=runLookup.run(domain) {phase ->
-                    if(id==generation) state.value=state.value.copy(phase=phase)
+                val result=runLookup.run(domain,protocol) {phase ->
+                    viewModelScope.launch {if(id==generation && state.value.running) state.value=state.value.copy(phase=phase)}
                 }
                 ensureActive()
-                if(id==generation) state.value=state.value.copy(running=false,result=result)
+                if(id==generation) state.value=state.value.copy(running=false,result=result.copy(protocol=protocol,input=domain))
             } catch(e: CancellationException) {throw e}
             catch(_: Exception) {
                 if(id==generation) state.value=state.value.copy(running=false,
-                    result=RdapResult(RdapStatus.NETWORK_UNAVAILABLE,domain,observedAt=System.currentTimeMillis(),durationMs=0))
+                    result=RdapResult(RdapStatus.NETWORK_UNAVAILABLE,domain.domain,observedAt=System.currentTimeMillis(),durationMs=0,protocol=protocol,input=domain))
             }
         }
     }
     fun stop() {
-        dismiss()
         if(!state.value.running) return
         generation++;job?.cancel();job=null
         state.value=state.value.copy(running=false,result=RdapResult(RdapStatus.CANCELLED,
-            normalizer.normalize(state.value.input),observedAt=System.currentTimeMillis(),durationMs=0))
+            state.value.target?.domain,observedAt=System.currentTimeMillis(),durationMs=0,protocol=state.value.protocol,input=state.value.target))
     }
 }

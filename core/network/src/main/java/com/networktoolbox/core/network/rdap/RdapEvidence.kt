@@ -25,4 +25,5 @@ data class RdapTransportEvidence(
     val httpExchanges:Int=0,val httpResponses:Int=0,val bodiesRead:Int=0,
     val addressClasses:Set<RdapAddressClass> = emptySet(),val privateDns:Boolean?=null,
     val proxyConfigured:Boolean?=null,
+    val mappedServiceAddress:Boolean=false, val systemProxyUsed:Boolean=false,
 )

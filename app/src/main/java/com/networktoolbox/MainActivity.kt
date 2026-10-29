@@ -934,7 +934,7 @@ class MainActivity : AppCompatActivity() {
                                 onBack = ::goBack,
                             )
                             ToolScreen.DOMAIN_REGISTRATION -> RdapScreen(rdapUiState,rdapViewModel::input,
-                                rdapViewModel::request,rdapViewModel::confirm,rdapViewModel::dismiss,rdapViewModel::stop,::goBack)
+                                rdapViewModel::request,rdapViewModel::stop,::goBack,rdapViewModel::protocol,::copyDiagnosticReport)
                             ToolScreen.TLS_CHECK -> TlsCheckScreen(
                                 uiState = tlsCheckUiState,
                                 onTargetChanged = tlsCheckViewModel::onTargetChanged,

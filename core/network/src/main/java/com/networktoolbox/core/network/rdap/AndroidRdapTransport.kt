@@ -56,7 +56,7 @@ object RdapAddressPolicy {
             pinned.any {canonical(it).address.contentEquals(canonical(actual).address)}
 }
 
-/** Owns the active Network for one action. No system proxy bypass: unverifiable proxy paths fail closed. */
+/** Owns the active Network for one action, including system proxy and trusted service mappings. */
 class AndroidRdapTransport(context: Context,private val observer:RdapObserver=RdapObserver.NONE) : RdapTransport {
     private val app = context.applicationContext
     private val cm = requireNotNull(app.getSystemService(ConnectivityManager::class.java))
@@ -70,7 +70,15 @@ class AndroidRdapTransport(context: Context,private val observer:RdapObserver=Rd
     private inner class Session(private val network: Network) : RdapHttpSession {
         private val closed = AtomicBoolean()
         private val moved = AtomicBoolean()
+        private val allowedHttps=java.util.concurrent.ConcurrentHashMap.newKeySet<String>().apply {
+            addAll(listOf(RdapLimits.BOOTSTRAP_URL,"https://data.iana.org/rdap/ipv4.json","https://data.iana.org/rdap/ipv6.json"))
+        }
+        override fun authorizeHttps(urls:Set<String>) {
+            if(urls.any {!RdapEndpointPolicy.requestAllowed(it)}) throw RdapFailure(RdapStatus.UNSAFE_ENDPOINT,RdapReason.ENDPOINT_URI)
+            allowedHttps.addAll(urls)
+        }
         private val activeCall = AtomicReference<Call?>()
+        private val activeSocket = AtomicReference<Socket?>()
         private val activeDns = AtomicReference<CancellationSignal?>()
         private val activeFailure = AtomicReference<(() -> Unit)?>(null)
         private val capturedProperties=cm.getLinkProperties(network)
@@ -79,7 +87,11 @@ class AndroidRdapTransport(context: Context,private val observer:RdapObserver=Rd
             privateDns=capturedProperties?.isPrivateDnsActive,
             proxyConfigured=initialSystemProxy!=null || capturedProperties?.httpProxy!=null))
         override val evidence get()=observations.get()
-        private fun observed(update:(RdapTransportEvidence)->RdapTransportEvidence) {observations.updateAndGet(update)}
+        private val requestObservations=AtomicReference(RdapTransportEvidence())
+        override val requestEvidence get()=requestObservations.get()
+        private fun observed(update:(RdapTransportEvidence)->RdapTransportEvidence) {
+            observations.updateAndGet(update);requestObservations.updateAndGet(update)
+        }
         private fun linkKey(properties: LinkProperties?): List<Any?> = listOf(
             properties?.interfaceName,properties?.linkAddresses?.toSet(),properties?.routes?.toSet(),
             properties?.dnsServers?.toSet(),properties?.httpProxy,
@@ -106,7 +118,7 @@ class AndroidRdapTransport(context: Context,private val observer:RdapObserver=Rd
             }
         }
         init {cm.registerDefaultNetworkCallback(callback);observer.emit(RdapTraceStep.NETWORK_CAPTURED)}
-        private fun invalidate() {moved.set(true);activeCall.get()?.cancel();activeDns.get()?.cancel();activeFailure.get()?.invoke()}
+        private fun invalidate() {moved.set(true);runCatching {activeSocket.get()?.close()};activeCall.get()?.cancel();activeDns.get()?.cancel();activeFailure.get()?.invoke()}
         private fun check() {
             if(changed) throw RdapFailure(RdapStatus.NETWORK_CHANGED)
             if(closed.get()) throw RdapFailure(RdapStatus.CANCELLED)
@@ -136,71 +148,36 @@ class AndroidRdapTransport(context: Context,private val observer:RdapObserver=Rd
             }
         } catch(_: TimeoutCancellationException) {throw RdapFailure(RdapStatus.TIMEOUT)}
         finally {activeFailure.set(null);activeDns.getAndSet(null)?.cancel()}
-        override suspend fun get(url: String,limit: Int,remainingMs: Long,onProgress:(RdapPhase)->Unit): RdapHttpResponse {
+        private suspend fun route(host:String,url:String,onProgress:(RdapPhase)->Unit):RegistrationRoute {
             check()
-            if(RdapEndpointPolicy.base(url)==null) throw RdapFailure(RdapStatus.UNSAFE_ENDPOINT,RdapReason.ENDPOINT_URI)
+            val proxy=try {
+                // Android's selector honors proxy exclusions and PAC decisions as well as static proxies.
+                base.proxySelector.select(URI(url)).firstOrNull() ?: Proxy.NO_PROXY
+            } catch(_:Exception) {throw RdapFailure(RdapStatus.PROXY_UNSUPPORTED,RdapReason.PROXY_PATH)}
+            if(proxy.type() !in setOf(Proxy.Type.DIRECT,Proxy.Type.HTTP)) throw RdapFailure(RdapStatus.PROXY_UNSUPPORTED,RdapReason.PROXY_PATH)
+            onProgress(RdapPhase.RESOLVING);observer.emit(RdapTraceStep.DNS_STARTED)
+            val endpoint=proxy.address() as? InetSocketAddress
+            val resolveHost=if(proxy.type()==Proxy.Type.DIRECT) host else endpoint?.hostString ?: throw RdapFailure(RdapStatus.PROXY_UNSUPPORTED)
+            val numeric=RegistrationIp.parse(resolveHost)
+            val pinned=(numeric?.let {listOf(it.address)} ?: addresses(resolveHost)).map(RdapAddressPolicy::canonical).distinct();check()
+            val classes=pinned.map(RdapAddressPolicy::classify).toSet()
+            observed {it.copy(dnsCompleted=it.dnsCompleted || numeric==null,addressClasses=it.addressClasses+classes)}
+            observer.emit(RdapTraceStep.DNS_COMPLETED,pinned.size,classes)
+            val route=if(proxy.type()==Proxy.Type.DIRECT) RegistrationRoute.direct(host,pinned,true)
+                else RegistrationRoute.systemProxy(host,proxy,pinned)
+            observed {it.copy(mappedServiceAddress=it.mappedServiceAddress || route.mapped,
+                systemProxyUsed=it.systemProxyUsed || route.proxied)}
+            return route
+        }
+        override suspend fun get(url: String,limit: Int,remainingMs: Long,onProgress:(RdapPhase)->Unit): RdapHttpResponse {
+            requestObservations.set(RdapTransportEvidence())
+            check()
+            if(url !in allowedHttps || !RdapEndpointPolicy.requestAllowed(url)) throw RdapFailure(RdapStatus.UNSAFE_ENDPOINT,RdapReason.ENDPOINT_URI)
             observer.emit(RdapTraceStep.ENDPOINT_ALLOWED)
             val uri=URI(url)
-            if(initialSystemProxy!=null || cm.getLinkProperties(network)?.httpProxy!=null)
-                throw RdapFailure(RdapStatus.PROXY_UNSUPPORTED,RdapReason.PROXY_PATH)
-            val proxies=try {base.proxySelector.select(uri)} catch(_: Exception) {throw RdapFailure(RdapStatus.PROXY_UNSUPPORTED,RdapReason.PROXY_PATH)}
-            if(proxies.isNullOrEmpty() || proxies.any {it.type()!=Proxy.Type.DIRECT}) throw RdapFailure(RdapStatus.PROXY_UNSUPPORTED,RdapReason.PROXY_PATH)
-            onProgress(RdapPhase.RESOLVING)
-            observer.emit(RdapTraceStep.DNS_STARTED)
-            val raw=addresses(uri.host)
-            val pinned=raw.map(RdapAddressPolicy::canonical).distinct();check()
-            val classes=pinned.map(RdapAddressPolicy::classify).toSet()
-            observed {it.copy(dnsCompleted=true,addressClasses=it.addressClasses+classes)}
-            observer.emit(RdapTraceStep.DNS_COMPLETED,pinned.size,classes)
-            observer.emit(RdapTraceStep.CANONICALIZED,raw.count {RdapAddressPolicy.canonical(it)!==it})
-            if(pinned.isEmpty() || pinned.any {!RdapAddressPolicy.public(it)}) {
-                observer.emit(RdapTraceStep.DNS_REJECTED,classes=classes)
-                throw RdapFailure(RdapStatus.UNSAFE_ENDPOINT,RdapReason.DNS_ADDRESS_POLICY)
-            }
-            val invalidRoute=AtomicBoolean()
-            val client=base.newBuilder().socketFactory(network.socketFactory)
-                // ProxySelector was checked above; do not let it change paths after validation.
-                .proxy(Proxy.NO_PROXY).dns {host -> if(host.equals(uri.host,true)) pinned else throw UnknownHostException()}
-                .protocols(listOf(Protocol.HTTP_1_1))
-                .connectionPool(ConnectionPool(0,1,TimeUnit.SECONDS))
-                .connectTimeout(RdapLimits.CONNECT_MS,TimeUnit.MILLISECONDS)
-                .readTimeout(RdapLimits.READ_MS,TimeUnit.MILLISECONDS)
-                .callTimeout(remainingMs.coerceAtLeast(1),TimeUnit.MILLISECONDS)
-                .eventListener(object: EventListener() {
-                    override fun connectStart(call: Call,inetSocketAddress: InetSocketAddress,proxy: Proxy) {
-                        observer.emit(RdapTraceStep.CONNECT_STARTED)
-                        if(proxy.type()!=Proxy.Type.DIRECT || !RdapAddressPolicy.verified(pinned,inetSocketAddress.address)) {
-                            observer.emit(RdapTraceStep.CONNECT_REJECTED);invalidRoute.set(true);call.cancel()
-                        }
-                    }
-                    override fun secureConnectStart(call:Call) {observed {it.copy(tcpConnected=true)};observer.emit(RdapTraceStep.TCP_CONNECTED)}
-                    override fun secureConnectEnd(call:Call,handshake:Handshake?) {if(handshake!=null) {
-                        observed {it.copy(tlsCompleted=true)};observer.emit(RdapTraceStep.TLS_COMPLETED)
-                    }}
-                    override fun requestHeadersEnd(call:Call,request:Request) {
-                        observed {it.copy(httpExchanges=it.httpExchanges+1)};observer.emit(RdapTraceStep.HTTP_HEADERS_WRITTEN)
-                    }
-                    override fun responseHeadersEnd(call:Call,response:Response) {
-                        observed {it.copy(httpResponses=it.httpResponses+1)};observer.emit(RdapTraceStep.HTTP_RESPONSE,response.code)
-                    }
-                })
-                .addNetworkInterceptor(object: Interceptor {
-                  private val sent=AtomicBoolean()
-                  override fun intercept(chain: Interceptor.Chain): Response {
-                    if(!sent.compareAndSet(false,true)) throw RdapFailure(RdapStatus.INVALID_RESPONSE)
-                    check()
-                    val route=chain.connection()?.route()
-                    val peer=(chain.connection()?.socket()?.remoteSocketAddress as? InetSocketAddress)?.address
-                    if(route?.proxy?.type()!=Proxy.Type.DIRECT || !RdapAddressPolicy.verified(pinned,peer)) {
-                        observer.emit(RdapTraceStep.SOCKET_REJECTED)
-                        throw RdapFailure(RdapStatus.UNSAFE_ENDPOINT,RdapReason.SOCKET_ADDRESS_POLICY)
-                    }
-                    val response=chain.proceed(chain.request())
-                    // OkHttp can otherwise repeat a 503 with Retry-After: 0 internally.
-                    return if(response.code==503) response.newBuilder().removeHeader("Retry-After").build() else response
-                  }
-                }).build()
-            val request=Request.Builder().url(url).get().header("Accept",if(url==RdapLimits.BOOTSTRAP_URL) "application/json" else "application/rdap+json")
+            val route=route(uri.host,url,onProgress)
+            val client=registrationHttpClient(base,network.socketFactory,route,remainingMs,::check,observer,::observed)
+            val request=Request.Builder().url(url).get().header("Accept",if(url in setOf(RdapLimits.BOOTSTRAP_URL,"https://data.iana.org/rdap/ipv4.json","https://data.iana.org/rdap/ipv6.json")) "application/json" else "application/rdap+json")
                 .header("User-Agent","LinkBeacon-RDAP").build()
             val call=client.newCall(request);activeCall.set(call);check()
             onProgress(RdapPhase.QUERYING)
@@ -212,14 +189,13 @@ class AndroidRdapTransport(context: Context,private val observer:RdapObserver=Rd
                         override fun onFailure(call: Call,e: IOException) {
                             val status=when {
                                 changed -> RdapStatus.NETWORK_CHANGED
-                                invalidRoute.get() -> RdapStatus.UNSAFE_ENDPOINT
                                 e is RdapFailure -> e.status
                                 e is SSLException || e.cause is SSLException -> RdapStatus.TLS_FAILED
                                 e is InterruptedIOException -> RdapStatus.TIMEOUT
                                 e is UnknownHostException -> RdapStatus.DNS_FAILED
                                 else -> RdapStatus.NETWORK_UNAVAILABLE
                             }
-                            val reason=if(invalidRoute.get()) RdapReason.CONNECT_ADDRESS_POLICY else (e as? RdapFailure)?.reason
+                            val reason=(e as? RdapFailure)?.reason
                             if(c.isActive) runCatching {c.resumeWithException(RdapFailure(status,reason))}
                         }
                         override fun onResponse(call: Call,response: Response) {
@@ -256,9 +232,33 @@ class AndroidRdapTransport(context: Context,private val observer:RdapObserver=Rd
                 }
             } finally {activeFailure.set(null);activeCall.compareAndSet(call,null);call.cancel();client.connectionPool.evictAll()}
         }
+        private val allowedWhoisDomains=java.util.concurrent.ConcurrentHashMap.newKeySet<Pair<String,String>>()
+        override fun authorizeWhoisDomain(ianaText:String,domain:RdapDomain) {
+            val server=WhoisServers.fromIana(ianaText,domain) ?: throw RdapFailure(RdapStatus.WHOIS_SERVICE_NOT_FOUND)
+            allowedWhoisDomains.add(server to domain.ascii)
+        }
+        override suspend fun whois(server:String,query:String,limit:Int,onProgress:(RdapPhase)->Unit):ByteArray {
+            requestObservations.set(RdapTransportEvidence())
+            check()
+            if(!WhoisServers.allowed(server,query) && (server to query) !in allowedWhoisDomains) throw RdapFailure(RdapStatus.UNSAFE_ENDPOINT)
+            val route=route(server,"https://$server:43/",onProgress)
+            val socket=network.socketFactory.createSocket();activeSocket.set(socket)
+            return try {
+                whoisSocketTransaction(socket,route,query,limit,::check) {
+                    observed {it.copy(tcpConnected=true)};onProgress(RdapPhase.QUERYING)
+                }
+            } catch(e:Exception) {
+                if(e is CancellationException) throw e
+                throw RdapFailure(when {changed -> RdapStatus.NETWORK_CHANGED
+                    e is RdapFailure -> e.status
+                    e is InterruptedIOException -> RdapStatus.TIMEOUT
+                    else -> RdapStatus.NETWORK_UNAVAILABLE})
+            } finally {activeFailure.set(null);activeSocket.compareAndSet(socket,null);runCatching {socket.close()}}
+        }
         override fun close() {
             if(closed.compareAndSet(false,true)) {
                 activeCall.getAndSet(null)?.cancel();activeDns.getAndSet(null)?.cancel()
+                runCatching {activeSocket.getAndSet(null)?.close()}
                 runCatching {cm.unregisterNetworkCallback(callback)}
                 observer.emit(RdapTraceStep.SESSION_CLOSED)
             }

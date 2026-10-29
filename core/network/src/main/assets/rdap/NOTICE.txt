@@ -9,3 +9,31 @@ not third-party application code. Source terms and attribution guidance:
 https://www.iana.org/help/licensing-terms
 No additional executable or JSON dependency is bundled.
 The snapshot selects services; it contains no user lookup results.
+
+Task 183 additions (reviewed 2026-10-27):
+- ipv4.json and ipv6.json: byte-identical IANA Bootstrap snapshots from
+  https://data.iana.org/rdap/ipv4.json and https://data.iana.org/rdap/ipv6.json.
+  Their adjacent meta.json files record publication, retrieval, bytes and hash.
+  Same IANA attribution/terms as above. Each family has an independent cache;
+  refresh only during explicit action under the existing 180-day budget policy.
+- public_suffix_list.dat: unmodified UTF-8 Public Suffix List, MPL 2.0.
+  https://publicsuffix.org/list/public_suffix_list.dat
+  VERSION 2026-10-22_08-36-41_UTC; COMMIT 8437e5262f13305f94087abe699b4fe2be1d1de8.
+  Full source notices retained; complete license in MPL-2.0.txt. This data file,
+  not LinkBeacon's independently written matcher, is covered by the MPL.
+  Use ICANN rules for registry-level targets. PRIVATE rules are retained in
+  source but do not establish independent domain registration boundaries.
+  No implicit wildcard for unknown TLDs; unsupported inputs fail closed.
+  Update strategy: maintainer-reviewed snapshot refresh before releases and
+  when suffix coverage changes; verify source/header/hash/license and fixtures.
+  No automatic download or periodic job. Snapshot age can limit coverage.
+- WHOIS allowlist: .com/.net -> whois.verisign-grs.com; .cn -> whois.cnnic.cn.
+  Sources reviewed: https://www.iana.org/domains/root/db/com.html
+  https://www.iana.org/domains/root/db/net.html
+  https://www.iana.org/domains/root/db/cn.html
+  No .uk WHOIS endpoint is listed in its current IANA root record; not enabled.
+  Recheck allowlist during release review. No arbitrary referrals/server retry.
+
+Added data/license total: 361843 bytes before packaging (plus small metadata).
+No executable dependency or new Android API requirement. Android minSdk 31
+retains platform ICU IDNA. Source and license are distributed in app assets.

@@ -1,0 +1,8 @@
+{
+  "source": "https://data.iana.org/rdap/ipv6.json",
+  "retrieved": "2026-10-27",
+  "fetchedAtEpochMs": 1793031372995,
+  "sha256": "3292eb71787b903f7a6798ff31f7f2239fb61ce346be142a3719ffa26deaf080",
+  "bytes": 1476,
+  "publication": "2024-11-01T22:00:01Z"
+}

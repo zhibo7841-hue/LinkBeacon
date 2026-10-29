@@ -15,6 +15,14 @@ object RdapEndpointPolicy {
         "https://${u.host.lowercase(Locale.ROOT)}${path.trimEnd('/')}/"
     }.getOrNull()
     fun query(base: String, domain: RdapDomain): String = requireNotNull(base(base)) + "domain/" + domain.ascii
+    fun ipQuery(base: String, ip: RegistrationIp): String = requireNotNull(base(base)) + "ip/" + ip.text
+    fun requestAllowed(raw: String): Boolean {
+        if(base(raw)!=null) return true
+        // IPv6 colons are permitted only in a parsed numeric /ip/ target, not arbitrary service paths.
+        val prefix=raw.substringBeforeLast("/ip/", "")
+        val ip=RegistrationIp.parse(raw.substringAfterLast("/ip/", "")) ?: return false
+        return base(prefix)?.let {ipQuery(it,ip)==raw}==true
+    }
     fun redirect(current: String, location: String, allowed: Set<String>): String? = runCatching {
         val u = URI(current).resolve(location)
         if (u.scheme != "https" || u.rawQuery != null || u.rawFragment != null || u.rawUserInfo != null || u.port !in listOf(-1,443)) return null
@@ -69,15 +77,15 @@ class RdapResponseParser(private val normalizer: RdapDomainNormalizer) {
         if (normalizer.normalize(returned)?.ascii != query.ascii) throw RdapFailure(RdapStatus.INVALID_RESPONSE)
         fun date(action: String): String? = root["events"].array().asSequence().mapNotNull {it.obj()}
             .filter {it.str("eventAction") == action}.mapNotNull {it.str("eventDate")}
-            .mapNotNull {runCatching {java.time.OffsetDateTime.parse(it).toInstant().toString()}.getOrNull()}.firstOrNull()
-        val registrar = root["entities"].array().mapNotNull {it.obj()}.firstOrNull {"registrar" in it["roles"].array()}
-        val properties = registrar?.get("vcardArray").array().getOrNull(1).array()
-        val registrarName = properties.map {it.array()}.firstOrNull {it.getOrNull(0) == "fn" && it.getOrNull(2) == "text"}
-            ?.getOrNull(3)?.let {it as? String}?.let(::plain)
+            .mapNotNull {runCatching {java.time.OffsetDateTime.parse(it).toInstant().toString()}.getOrNull()}.distinct().singleOrNull()
+        val registrarName=root["entities"].array().mapNotNull {it.obj()}.filter {"registrar" in it["roles"].array()}
+            .mapNotNull {entity -> entity["vcardArray"].array().getOrNull(1).array().map {it.array()}
+                .firstOrNull {it.getOrNull(0)=="fn" && it.getOrNull(2)=="text"}?.getOrNull(3) as? String}
+            .mapNotNull(::plain).distinct().singleOrNull()
         val signed = root["secureDNS"].obj()?.get("delegationSigned") as? Boolean
         return RdapRegistration(
             registrarName,date("registration"),date("last changed"),date("expiration"),
-            root["status"].array().mapNotNull {it as? String}.take(64).mapNotNull(::plain),
+            root["status"].array().mapNotNull {it as? String}.take(64).mapNotNull(::plain).distinct(),
             root["nameservers"].array().mapNotNull {it.obj()?.str("ldhName") ?: it.obj()?.str("unicodeName")}
                 .take(64).mapNotNull {normalizer.normalize(it)?.ascii}.distinct(),
             when(signed) {true -> RdapDnssec.SIGNED; false -> RdapDnssec.UNSIGNED; null -> RdapDnssec.NOT_PROVIDED},
@@ -85,6 +93,12 @@ class RdapResponseParser(private val normalizer: RdapDomainNormalizer) {
             root["notices"].array().take(8).flatMap {notice -> notice.obj()?.let {
                 listOfNotNull(it.str("title")) + it["description"].array().mapNotNull {s->s as? String}.take(4)
             }.orEmpty()}.mapNotNull(::plain),
+            root["entities"].array().mapNotNull {it.obj()}.filter {"registrant" in it["roles"].array()}
+                .mapNotNull {entity ->
+                    val props=entity["vcardArray"].array().getOrNull(1).array().map {it.array()}
+                    if(props.none {it.getOrNull(0)=="kind" && it.getOrNull(3)=="org"}) null
+                    else props.firstOrNull {it.getOrNull(0)=="fn" && it.getOrNull(2)=="text"}?.getOrNull(3) as? String
+                }.distinct().singleOrNull()?.let(::plain),date("last update of RDAP database"),
         )
     }
     private fun plain(s: String): String? {

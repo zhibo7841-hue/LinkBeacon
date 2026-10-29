@@ -180,11 +180,11 @@ class RdapAcceptance180Test {
         val records=history.records.value.toList();val writes=history.writes;val profiles=fixture.profiles.value.toList()
         val zh=args.getString("rdapLocale")=="zh";locale(if(zh) "zh-Hans" else "en")
         compose.onNode(hasText(compose.activity.getString(R.string.shell_tools)) and isSelectable()).performClick()
-        compose.onNodeWithText(if(zh) "域名注册查询" else "Domain Registration").performScrollTo().performClick()
+        compose.onNodeWithText("RDAP / WHOIS").performScrollTo().performClick()
         compose.onNodeWithTag("rdap_input").performTextReplacement(name)
         val pressed=System.currentTimeMillis()
         compose.onNodeWithTag("rdap_query").performClick();assertEquals(0,rdap.starts)
-        compose.onNodeWithTag("rdap_confirm").assertExists().performClick()
+        compose.onNodeWithTag("rdap_confirm").assertDoesNotExist()
         compose.waitUntil(30_000) {owner().uiState.value.result!=null && !owner().uiState.value.running}
         val r=requireNotNull(owner().uiState.value.result);val e=r.evidence;val data=r.registration
         val out=JSONObject().put("domain",name).put("api",android.os.Build.VERSION.SDK_INT)
