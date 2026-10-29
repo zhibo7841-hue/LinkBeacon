@@ -120,16 +120,18 @@ class WifiExplanationScreenTest {
 
     @Test fun currentAndScannedSignalsWidthsAndTimesStayIndependent() {
         render(state())
-        shown("-79 dBm · Weak")
+        compose.onNodeWithContentDescription(text(WifiR.string.wifi_rssi_accessibility, 79), true).performScrollTo().assertIsDisplayed()
         val current = compose.onNodeWithTag("wifi_current_card", useUnmergedTree = true)
         current.assert(hasAnyDescendant(hasText("BSSID: 10:20:30:40:50:61")))
         current.assert(!hasAnyDescendant(hasText("Observed width", substring = true)))
         current.performClick()
         shown(text(WifiR.string.wifi_link_speed_qualifier, 1201))
-        shown("-45 dBm · Excellent")
+        compose.onNodeWithContentDescription(text(WifiR.string.wifi_rssi_accessibility, 45), true).performScrollTo().assertIsDisplayed()
+        expandFirstAp()
         shown(text(WifiR.string.wifi_observed_width) + ": 80+80 MHz")
         shown(text(WifiR.string.wifi_updated_seconds, 10L))
         shown("BSSID: 10:20:30:40:50:62")
+        expandSecondAp()
         shown(text(WifiR.string.wifi_updated_minutes, 1L))
         assertEquals(0, refreshes)
     }
@@ -178,6 +180,7 @@ class WifiExplanationScreenTest {
                 input.snapshot.copy(currentConnection = null))) {
                 render(input.copy(snapshot = snapshot), chinese)
                 shown("BSSID: 10:20:30:40:50:61")
+                expandFirstAp()
                 shown(text(WifiR.string.wifi_observed_width) + ": 80+80 MHz")
                 compose.onNodeWithText(text(WifiR.string.wifi_matched_connection), useUnmergedTree = true).assertDoesNotExist()
                 toggleView(WifiAnalyzerView.CHANNELS)
@@ -196,9 +199,11 @@ class WifiExplanationScreenTest {
         shown(text(WifiR.string.wifi_waiting))
         shown(text(WifiR.string.wifi_retained_results))
         compose.onNodeWithTag("wifi_refresh").performScrollTo().assertIsNotEnabled()
+        expandSecondAp()
         shown(text(WifiR.string.wifi_updated_minutes, 1L))
         render(baseline.copy(snapshot = baseline.snapshot.copy(scanBatch = fresh)))
         shown(text(WifiR.string.wifi_fresh))
+        expandSecondAp()
         shown(text(WifiR.string.wifi_updated_minutes, 1L))
         compose.onNodeWithText("Updated just now").assertDoesNotExist()
     }
@@ -214,6 +219,7 @@ class WifiExplanationScreenTest {
         shown(text(WifiR.string.wifi_connection_unavailable))
         shown(text(WifiR.string.wifi_ssid_unavailable))
         shown("BSSID: " + text(WifiR.string.wifi_unknown))
+        expandFirstAp()
         shown(text(WifiR.string.wifi_time_unavailable))
         compose.onNodeWithText(text(WifiR.string.wifi_hidden)).assertDoesNotExist()
     }
@@ -234,8 +240,9 @@ class WifiExplanationScreenTest {
     @Test fun controlsSearchKnowledgeAndViewsDoNotProbeOrWrite() {
         render(state(connection = false))
         shown("BSSID: 10:20:30:40:50:61")
-        compose.onAllNodesWithTag("wifi_explanations_toggle").onFirst().performScrollTo().performClick()
-        shown(text(WifiR.string.wifi_signal_limits))
+        expandFirstAp()
+        compose.onNodeWithTag("wifi_explanations_toggle").assertDoesNotExist()
+        compose.onNodeWithText(text(WifiR.string.wifi_signal_limits)).assertDoesNotExist()
         compose.onNodeWithTag("wifi_search").performScrollTo().performTextInput("50:62")
         shown("BSSID: 10:20:30:40:50:62")
         compose.onNodeWithText("BSSID: 10:20:30:40:50:61", useUnmergedTree = true).assertDoesNotExist()
@@ -276,12 +283,90 @@ class WifiExplanationScreenTest {
             shown(longName)
             assertTextFits(longName)
             assertTextFits("BSSID: 10:20:30:40:50:61")
-            val spoken = text(WifiR.string.wifi_signal_accessibility, text(WifiR.string.wifi_excellent), 45)
+            val spoken = text(WifiR.string.wifi_rssi_accessibility, 45)
             compose.onNodeWithContentDescription(spoken, useUnmergedTree = true).assertExists()
+            expandFirstAp()
             shown(text(WifiR.string.wifi_observed_width) + ": 80+80 MHz")
             assertTextFits(text(WifiR.string.wifi_observed_width) + ": 80+80 MHz")
             screenshot((if (chinese) "zh" else "en") + (if (dark) "-dark" else "-light"))
         }
+    }
+
+    private fun expandSecondAp() {
+        shown("BSSID: 10:20:30:40:50:62")
+        compose.onNode(hasTestTag("wifi_ap") and hasAnyDescendant(hasText("BSSID: 10:20:30:40:50:62")), true).performClick()
+    }
+
+    @Test fun compactCurrentAndNearbyDefaultsBilingual() {
+        for (chinese in listOf(false, true)) {
+            render(state(), chinese)
+            shown("BSSID: 10:20:30:40:50:61")
+            compose.onNodeWithText(text(WifiR.string.wifi_weak), true).assertDoesNotExist()
+            compose.onNodeWithTag("wifi_explanations_toggle").assertDoesNotExist()
+            screenshot("current-default-${if(chinese) "zh" else "en"}")
+            shown("BSSID: 10:20:30:40:50:62")
+            compose.onNodeWithText(text(WifiR.string.wifi_updated_minutes, 1L)).assertDoesNotExist()
+            compose.onNodeWithText(text(WifiR.string.wifi_excellent), true).assertDoesNotExist()
+            screenshot("nearby-default-${if(chinese) "zh" else "en"}")
+            expandFirstAp()
+            shown(text(WifiR.string.wifi_observed_width) + ": 80+80 MHz")
+            screenshot("nearby-expanded-${if(chinese) "zh" else "en"}")
+        }
+    }
+
+    @Test fun metricRowsUseEqualTypographyAndCenteredIconWithWrapping() {
+        for (chinese in listOf(false, true)) for (narrow in listOf(false, true)) {
+            render(state(), chinese, narrow = narrow)
+            shown("BSSID: 10:20:30:40:50:62")
+            val rows = compose.onAllNodesWithTag("wifi_radio_metrics", true).fetchSemanticsNodes()
+            assertTrue(rows.isNotEmpty())
+            for (row in rows) {
+                fun metric(tag: String) = compose.onNode(hasTestTag(tag) and hasAnyAncestor(
+                    SemanticsMatcher("same metric row") { it.id == row.id }), true)
+                fun layout(tag: String): TextLayoutResult {
+                    val results = mutableListOf<TextLayoutResult>()
+                    metric(tag).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
+                    val result = results.single()
+                    val node = metric(tag)
+                    val bounds = node.getUnclippedBoundsInRoot()
+                    val density = node.fetchSemanticsNode().layoutInfo.density.density
+                    val width = (bounds.right - bounds.left).value * density
+                    val height = (bounds.bottom - bounds.top).value * density
+                    assertFalse("clipped $tag", result.didOverflowHeight || result.multiParagraph.didExceedMaxLines)
+                    for (line in 0 until result.lineCount) {
+                        assertTrue("clipped line $tag", result.getLineLeft(line) >= -0.5f &&
+                            result.getLineRight(line) <= width + 0.5f && result.getLineBottom(line) <= height + 0.5f)
+                    }
+                    result.layoutInput.text.text.indices.forEach { offset ->
+                        val glyph = result.getBoundingBox(offset)
+                        assertTrue("clipped glyph $tag", glyph.left >= -0.5f && glyph.right <= width + 0.5f && glyph.bottom <= height + 0.5f)
+                    }
+                    return result
+                }
+                val rssi = layout("wifi_metric_rssi")
+                val rssiBounds = metric("wifi_metric_rssi").fetchSemanticsNode().boundsInRoot
+                val icon = metric("wifi_metric_icon").fetchSemanticsNode().boundsInRoot
+                assertEquals(rssiBounds.center.y, icon.center.y, 1.0f)
+                for (tag in listOf("wifi_metric_band", "wifi_metric_channel")) {
+                    val item = layout(tag)
+                    assertEquals(rssi.layoutInput.style.fontSize, item.layoutInput.style.fontSize)
+                    assertEquals(rssi.layoutInput.style.lineHeight, item.layoutInput.style.lineHeight)
+                    val bounds = metric(tag).fetchSemanticsNode().boundsInRoot
+                    if (kotlin.math.abs(bounds.center.y - rssiBounds.center.y) < rssiBounds.height / 2) {
+                        assertEquals(rssiBounds.top + rssi.getLineBaseline(0), bounds.top + item.getLineBaseline(0), 1.0f)
+                    } else {
+                        assertTrue("wrapped metric overlaps previous row", bounds.top >= rssiBounds.bottom)
+                    }
+                }
+            }
+            screenshot("metrics-${if(chinese) "zh" else "en"}-${if(narrow) "narrow" else "full"}")
+        }
+    }
+
+    private fun expandFirstAp() {
+        compose.onNode(hasScrollToIndexAction(), true).performScrollToNode(hasTestTag("wifi_ap"))
+        val first = compose.onAllNodesWithTag("wifi_ap", true).onFirst()
+        first.performClick()
     }
 
     private fun assertTextFits(value: String) {
@@ -294,7 +379,7 @@ class WifiExplanationScreenTest {
     private fun screenshot(name: String) {
         compose.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val directory = File(instrumentation.targetContext.getExternalFilesDir(null), "task138").apply { mkdirs() }
+        val directory = File(instrumentation.targetContext.getExternalFilesDir(null), InstrumentationRegistry.getArguments().getString("capturePrefix") ?: "task138").apply { mkdirs() }
         val scale = compose.activity.resources.configuration.fontScale
         val bitmap = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
         File(directory, "fixture-" + name + "-" + scale + ".png").outputStream().use {

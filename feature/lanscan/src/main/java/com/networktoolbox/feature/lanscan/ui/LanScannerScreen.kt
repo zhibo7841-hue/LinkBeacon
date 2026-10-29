@@ -514,7 +514,6 @@ private fun DeviceList(
                 LanDeviceCard(
                     presentation = deviceItem.card,
                     modifier = Modifier.testTag("lan_row_${deviceItem.card.ipAddress}"),
-                    showMac = true,
                 )
             }
         }

@@ -67,6 +67,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
@@ -879,17 +880,20 @@ class LanScannerViewModel @Inject constructor(
             val emitFailure: (UiText) -> Unit = { message ->
                 emitDeviceDetailEvent(DeviceDetailEvent.WakeOnLanConfigurationSaveFailed(message))
             }
-            val mac = MacAddress.parse(rawMacAddress)
-            if (mac == null) {
-                emitFailure(UiText(R.string.lan_error_invalid_mac))
-                return@launch
+            // Blank means remove the whole optional config; the port is irrelevant then.
+            val config = if (rawMacAddress.isBlank()) null else {
+                val mac = MacAddress.parse(rawMacAddress)
+                if (mac == null) {
+                    emitFailure(UiText(R.string.lan_error_invalid_mac))
+                    return@launch
+                }
+                val port = rawPort.trim().toIntOrNull()
+                if (port == null || port !in WakeOnLanConfig.MIN_UDP_PORT..WakeOnLanConfig.MAX_UDP_PORT) {
+                    emitFailure(UiText(R.string.lan_error_invalid_port))
+                    return@launch
+                }
+                WakeOnLanConfig(macAddress = mac, udpPort = port)
             }
-            val port = rawPort.trim().toIntOrNull()
-            if (port == null || port !in WakeOnLanConfig.MIN_UDP_PORT..WakeOnLanConfig.MAX_UDP_PORT) {
-                emitFailure(UiText(R.string.lan_error_invalid_port))
-                return@launch
-            }
-            val config = WakeOnLanConfig(macAddress = mac, udpPort = port)
             runWakeOnLanOperation(onFailure = emitFailure) {
                 val parsed = LanDeviceDetailRouteKey.parse(routeKey) ?: return@runWakeOnLanOperation
                 val context = currentNetworkContext()
@@ -903,7 +907,7 @@ class LanScannerViewModel @Inject constructor(
                         val existing = savedDeviceRepository.findMatching(candidate)
                         if (existing != null) {
                             savedDeviceRepository.setWakeOnLanConfig(existing.id, config)
-                        } else {
+                        } else if (config != null) {
                             val profile = LanFavoriteIdentity.createSavedProfile(
                                 device = target.device,
                                 context = target.context,
@@ -942,7 +946,10 @@ class LanScannerViewModel @Inject constructor(
                 val scope = LanNetworkScope.from(context)
                     ?: return@runWakeOnLanOperation emitFailure(UiText(R.string.lan_error_no_lan))
                 val profile = when (val target = resolveDeviceDetailActionTarget(parsed, context, scope)) {
-                    is DeviceDetailActionTarget.SavedProfile -> target.profile
+                    // Read persisted state under the same mutex as Save; a late UI Flow
+                    // emission must not send using a configuration that was already cleared.
+                    is DeviceDetailActionTarget.SavedProfile -> savedDeviceRepository.observeProfiles()
+                        .first().firstOrNull { it.id == target.profile.id }
                     is DeviceDetailActionTarget.Observed -> {
                         val candidate = LanFavoriteIdentity.candidate(target.device, target.context)
                             ?: return@runWakeOnLanOperation emitFailure(UiText(R.string.lan_error_device_gone))
@@ -951,7 +958,7 @@ class LanScannerViewModel @Inject constructor(
 
                     null -> null
                 }
-                if (profile == null) {
+                if (profile?.wolConfig == null) {
                     return@runWakeOnLanOperation emitFailure(UiText(R.string.lan_error_configure_mac))
                 }
                 when (val result = sendWakeOnLan(profile)) {

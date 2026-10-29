@@ -16,10 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
-import androidx.compose.material.icons.outlined.SignalWifi0Bar
 import androidx.compose.material.icons.outlined.Wifi
-import androidx.compose.material.icons.outlined.Wifi1Bar
-import androidx.compose.material.icons.outlined.Wifi2Bar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,7 +28,6 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -127,11 +123,6 @@ fun WifiAnalyzerScreen(
                 }.forEach { fact ->
                     ScanNotice(fact, onGrantPermission, onOpenLocationSettings, onOpenWifiSettings)
                 }
-                scanFacts.filter { it.code == Code.OBSERVATION_TIME }.forEach {
-                    Text(stringResource(R.string.wifi_batch_observation_time, explanationText(it)),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
                 if (state.ready && presentation.batch == null && scanFacts.none { it.placement == Placement.STATUS }) {
                     Text(stringResource(R.string.wifi_no_results_yet))
                 }
@@ -200,10 +191,8 @@ private fun CurrentConnectionCard(
         shape = NetworkToolboxComponentShapes.Card,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
-        Column(Modifier.padding(NetworkToolboxSpacing.MD), verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS)) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(stringResource(R.string.wifi_current), style = MaterialTheme.typography.labelMedium)
-            Text(stringResource(R.string.wifi_source_connection), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(when {
                     connection != null -> WifiIdentity.ssid(connection.ssid) ?: stringResource(R.string.wifi_ssid_unavailable)
@@ -217,18 +206,17 @@ private fun CurrentConnectionCard(
                 if (!ready && initialName != null) Text(stringResource(R.string.wifi_loading_connection))
             } else {
                 Fact(R.string.wifi_bssid, WifiIdentity.bssid(connection.bssid) ?: stringResource(R.string.wifi_unknown))
-                SignalFromFacts(facts)
-                RadioSummary(connection.band, connection.channel)
-                if (connection.wifiStandard != WifiStandard.UNKNOWN) Fact(R.string.wifi_standard, standardLabel(connection.wifiStandard))
-                Fact(R.string.wifi_security, securityLabel(connection.securityTypes))
+                RadioMetrics(facts, connection.band, connection.channel)
                 facts.filter { it.placement == Placement.FIELD_QUALIFIER &&
-                    it.code in setOf(Code.CONNECTION_TIME_NOT_COLLECTED, Code.CONNECTION_NOT_DEFAULT, Code.VPN_IS_DEFAULT)
+                    it.code in setOf(Code.CONNECTION_NOT_DEFAULT, Code.VPN_IS_DEFAULT)
                 }.forEach { Qualifier(it) }
                 if (expanded) {
+                    Text(stringResource(R.string.wifi_source_connection), style = MaterialTheme.typography.bodySmall)
+                    if (connection.wifiStandard != WifiStandard.UNKNOWN) Fact(R.string.wifi_standard, standardLabel(connection.wifiStandard))
+                    Fact(R.string.wifi_security, securityLabel(connection.securityTypes))
                     connection.frequencyMhz?.let { Fact(R.string.wifi_frequency, stringResource(R.string.wifi_mhz, it)) }
                     facts.filter { it.code == Code.LINK_SPEED_NOT_THROUGHPUT }.forEach { Qualifier(it) }
                 }
-                ExplanationDisclosure(facts)
             }
         }
     }
@@ -269,7 +257,7 @@ private fun AccessPointCard(
         shape = NetworkToolboxComponentShapes.Card,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
-        Column(Modifier.padding(NetworkToolboxSpacing.MD), verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS)) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(WifiIdentity.ssid(ap.ssid) ?: stringResource(if (ap.isHidden) R.string.wifi_hidden else R.string.wifi_ssid_unavailable),
                     Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -279,22 +267,20 @@ private fun AccessPointCard(
             if (hasCurrentConnection && ap.isConnectedAp) Text(stringResource(R.string.wifi_matched_connection),
                 style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
             Fact(R.string.wifi_bssid, WifiIdentity.bssid(ap.bssid) ?: stringResource(R.string.wifi_unknown))
-            SignalFromFacts(facts)
-            RadioSummary(ap.band, ap.channel)
-            Fact(R.string.wifi_security, securityLabel(ap.securityTypes))
-            Fact(R.string.wifi_observed_width, facts.firstOrNull { it.code == Code.SCANNED_CHANNEL_WIDTH }
-                ?.let { explanationText(it) } ?: stringResource(R.string.wifi_unknown))
-            Text(stringResource(R.string.wifi_source_scan), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            facts.filter { it.code == Code.OBSERVATION_TIME }.forEach { Qualifier(it) }
+            RadioMetrics(facts, ap.band, ap.channel)
             if (expanded) {
+                facts.filter { it.code == Code.OBSERVATION_TIME }.forEach { Qualifier(it) }
+                Fact(R.string.wifi_security, securityLabel(ap.securityTypes))
+                Fact(R.string.wifi_observed_width, facts.firstOrNull { it.code == Code.SCANNED_CHANNEL_WIDTH }
+                    ?.let { explanationText(it) } ?: stringResource(R.string.wifi_unknown))
+                Text(stringResource(R.string.wifi_source_scan), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
                 ap.frequencyMhz?.let { Fact(R.string.wifi_frequency, stringResource(R.string.wifi_mhz, it)) }
                 ap.centerFrequency0Mhz?.let { Fact(R.string.wifi_center_frequency_0, stringResource(R.string.wifi_mhz, it)) }
                 ap.centerFrequency1Mhz?.let { Fact(R.string.wifi_center_frequency_1, stringResource(R.string.wifi_mhz, it)) }
                 if (ap.wifiStandard != WifiStandard.UNKNOWN) Fact(R.string.wifi_standard, standardLabel(ap.wifiStandard))
                 if (WifiRadioMapper.isDfs(ap.band, ap.channel)) Text(stringResource(R.string.wifi_dfs))
             }
-            ExplanationDisclosure(facts)
         }
     }
 }
@@ -305,7 +291,6 @@ private fun ChannelOverview(presentation: WifiAnalyzerPresentation) {
     val channelFacts = presentation.byScope.filterKeys { it is Scope.Channel }.values
     Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
         Text(stringResource(R.string.wifi_channels), style = MaterialTheme.typography.titleMedium)
-        Text(stringResource(R.string.wifi_ap_explanation), style = MaterialTheme.typography.bodySmall)
         scan.filter { it.code == Code.CHANNEL_OVERVIEW_SCOPE }.forEach { Qualifier(it) }
         if (presentation.batch == null) return@Column
         if (channelFacts.isEmpty()) Text(stringResource(R.string.wifi_no_channel_observations))
@@ -330,56 +315,40 @@ private fun ChannelOverview(presentation: WifiAnalyzerPresentation) {
                         if (matched.isNotEmpty()) Icon(Icons.Outlined.Wifi, null, Modifier.size(20.dp))
                     }
                 }
-                // Generic limits use the first channel's reviewed explanation, not a new counting rule.
-                ExplanationDisclosure(rows.first())
             }
         }
     }
 }
 
-@Composable private fun SignalFromFacts(facts: List<WifiExplanation>) {
+/** One shared, wrapping metrics row for current connection and scanned APs. */
+@Composable private fun RadioMetrics(facts: List<WifiExplanation>, band: WifiBand, channel: Int?) {
     val signal = facts.firstOrNull { it.code == Code.SIGNAL_OBSERVATION }?.arguments as? Args.Signal
-    SignalSummary(signal?.level ?: WifiSignalLevel.UNKNOWN, signal?.rssiDbm)
-}
-
-@Composable private fun SignalSummary(level: WifiSignalLevel, rssiDbm: Int?) {
-    val spoken = if (rssiDbm == null) stringResource(R.string.wifi_signal_accessibility_unknown)
-        else stringResource(R.string.wifi_signal_accessibility, signalLabel(level), -rssiDbm)
-    Row(Modifier.fillMaxWidth().testTag("wifi_signal_" + level.name).clearAndSetSemantics { contentDescription = spoken },
-        verticalAlignment = Alignment.CenterVertically) {
-        Icon(when (level) {
-            WifiSignalLevel.EXCELLENT -> Icons.Outlined.Wifi
-            WifiSignalLevel.GOOD -> Icons.Outlined.Wifi2Bar
-            WifiSignalLevel.FAIR -> Icons.Outlined.Wifi1Bar
-            WifiSignalLevel.WEAK, WifiSignalLevel.UNKNOWN -> Icons.Outlined.SignalWifi0Bar
-        }, null, Modifier.size(20.dp))
-        Text((rssiDbm?.let { stringResource(R.string.wifi_dbm, it) } ?: stringResource(R.string.wifi_unknown)) +
-            " · " + signalLabel(level), style = MaterialTheme.typography.bodyMedium)
-    }
-}
-
-@Composable private fun RadioSummary(band: WifiBand, channel: Int?) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
-        Text(bandLabel(band), style = MaterialTheme.typography.bodySmall)
+    val rssi = signal?.rssiDbm
+    val level = signal?.level ?: WifiSignalLevel.UNKNOWN
+    val spoken = if (rssi == null) stringResource(R.string.wifi_signal_accessibility_unknown)
+        else stringResource(R.string.wifi_rssi_accessibility, -rssi)
+    val textStyle = MaterialTheme.typography.bodyMedium
+    FlowRow(Modifier.fillMaxWidth().testTag("wifi_radio_metrics"),
+        horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
+        verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS)) {
+        Row(Modifier.align(Alignment.CenterVertically).testTag("wifi_signal_" + level.name)
+            .clearAndSetSemantics { contentDescription = spoken },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS)) {
+            Icon(Icons.Outlined.Wifi, null, Modifier.size(20.dp).testTag("wifi_metric_icon"))
+            Text(rssi?.let { stringResource(R.string.wifi_dbm, it) } ?: stringResource(R.string.wifi_unknown),
+                Modifier.testTag("wifi_metric_rssi"), style = textStyle)
+        }
+        Text(bandLabel(band), Modifier.align(Alignment.CenterVertically).testTag("wifi_metric_band"), style = textStyle)
         Text(channel?.takeIf { it > 0 }?.let { stringResource(R.string.wifi_channel_number, it) }
             ?: stringResource(R.string.wifi_field_unavailable, stringResource(R.string.wifi_channel)),
-            style = MaterialTheme.typography.bodySmall)
+            Modifier.align(Alignment.CenterVertically).testTag("wifi_metric_channel"), style = textStyle)
     }
 }
 
 @Composable private fun Qualifier(fact: WifiExplanation) {
     Text(explanationText(fact), style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant)
-}
-
-@Composable private fun ExplanationDisclosure(facts: List<WifiExplanation>) {
-    val knowledge = facts.filter { it.placement == Placement.EXPANDABLE }
-    if (knowledge.isEmpty()) return
-    var expanded by rememberSaveable(knowledge.first().scope) { mutableStateOf(false) }
-    TextButton(onClick = { expanded = !expanded }, modifier = Modifier.testTag("wifi_explanations_toggle")) {
-        Text(stringResource(if (expanded) R.string.wifi_hide_explanations else R.string.wifi_explanations))
-    }
-    if (expanded) knowledge.forEach { Qualifier(it) }
 }
 
 @Composable private fun ExpandIcon(expanded: Boolean) {
@@ -397,14 +366,6 @@ private fun ChannelOverview(presentation: WifiAnalyzerPresentation) {
     WifiBandFilter.BAND_2_4_GHZ -> R.string.wifi_2_4
     WifiBandFilter.BAND_5_GHZ -> R.string.wifi_5
     WifiBandFilter.BAND_6_GHZ -> R.string.wifi_6
-})
-
-@Composable private fun signalLabel(level: WifiSignalLevel): String = stringResource(when (level) {
-    WifiSignalLevel.EXCELLENT -> R.string.wifi_excellent
-    WifiSignalLevel.GOOD -> R.string.wifi_good
-    WifiSignalLevel.FAIR -> R.string.wifi_fair
-    WifiSignalLevel.WEAK -> R.string.wifi_weak
-    WifiSignalLevel.UNKNOWN -> R.string.wifi_unknown
 })
 
 private fun standardLabel(value: WifiStandard): String = when (value) {

@@ -94,7 +94,7 @@
     <string name="wol_send">发送唤醒包</string>
     <string name="wol_sent">唤醒包已发送</string>
     <string name="wol_mac_placeholder">00:11:22:33:44:55</string>
-    <string name="wol_mac_helper">支持冒号、连字符或 12 位十六进制格式。</string>
+    <string name="wol_mac_helper">支持冒号、连字符或 12 位十六进制格式。留空保存可清除唤醒配置。</string>
     <string name="wol_mac_invalid">请输入有效的单播 MAC 地址。</string>
     <string name="wol_port_invalid">UDP 端口必须在 1 到 65535 之间。</string>
     <string name="wol_dialog_title_configure">配置 Wake-on-LAN</string>
@@ -164,4 +164,5 @@
     <string name="lan_recognition_ssh">SSH 初始标识（软件自报）</string>
     <string name="lan_category_possible_computer">可能是计算机</string>
     <string name="lan_category_network_reported">网络设备（设备自报）</string>
+    <string name="lan_category_unknown">类别未知</string>
 </resources>

@@ -116,6 +116,21 @@ object LanRecognitionPresentation {
             }) })
     }
 
+    /** List-only reduction. Full typed service fields and limitations stay in the detail projection. */
+    fun listServices(presentation: LanRecognitionDevicePresentation?): String =
+        presentation?.rows.orEmpty().mapNotNull { row ->
+            (row.hint.arguments as? LanRecognitionArguments.Service)?.type
+                ?.takeIf { compactServiceToken.matches(it) }
+        }.distinct().take(2).joinToString(", ")
+
+    fun listLimitations(presentation: LanRecognitionDevicePresentation?): List<UiText> =
+        presentation?.limitations.orEmpty().filterNot {
+            it.resource == R.string.lan_recognition_invalid || it.resource == R.string.lan_recognition_duplicate_txt
+        }
+
+    // No raw URNs, sentences or long identifiers. Do not guess a service from a URN suffix.
+    private val compactServiceToken = Regex("[A-Za-z0-9_][A-Za-z0-9_.-]{0,23}")
+
     fun category(result: CategoryResult): UiText? = when {
         result.certainty == CategoryCertainty.POSSIBLE && result.category == DeviceCategory.COMPUTER -> UiText(R.string.lan_category_possible_computer)
         result.certainty == CategoryCertainty.CONFIRMED && result.category == DeviceCategory.NETWORK_INFRASTRUCTURE -> UiText(R.string.lan_category_network_reported)

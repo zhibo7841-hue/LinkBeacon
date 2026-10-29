@@ -94,7 +94,7 @@
     <string name="wol_send">Send wake packet</string>
     <string name="wol_sent">Wake packet sent</string>
     <string name="wol_mac_placeholder">00:11:22:33:44:55</string>
-    <string name="wol_mac_helper">Use colons, hyphens, or 12 hexadecimal digits.</string>
+    <string name="wol_mac_helper">Use colon, hyphen, or 12 hexadecimal digits. Leave blank to remove wake settings.</string>
     <string name="wol_mac_invalid">Enter a valid unicast MAC address.</string>
     <string name="wol_port_invalid">Enter a UDP port from 1 to 65535.</string>
     <string name="wol_dialog_title_configure">Configure Wake-on-LAN</string>
@@ -164,4 +164,5 @@
     <string name="lan_recognition_ssh">SSH initial identification (self-reported software)</string>
     <string name="lan_category_possible_computer">Possible computer</string>
     <string name="lan_category_network_reported">Network infrastructure (self-reported)</string>
+    <string name="lan_category_unknown">Unknown type</string>
 </resources>

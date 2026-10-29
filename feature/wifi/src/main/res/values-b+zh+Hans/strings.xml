@@ -115,4 +115,5 @@
     <string name="wifi_no_channel_observations">现存结果中没有已知主信道的观测。</string>
     <string name="wifi_explanations">说明与限制</string>
     <string name="wifi_hide_explanations">收起说明</string>
+    <string name="wifi_rssi_accessibility">信号：负%1$s dBm</string>
 </resources>

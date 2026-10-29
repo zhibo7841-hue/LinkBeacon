@@ -143,9 +143,9 @@ class LanRecognitionScreenTest {
     private fun text(id: Int, vararg args: Any) = labels.getString(id, *args)
     private fun shown(value: String): SemanticsNodeInteraction {
         if (compose.onAllNodes(hasScrollToIndexAction()).fetchSemanticsNodes().isNotEmpty()) {
-            compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(value))
+            compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(value, substring = true))
         }
-        return compose.onAllNodesWithText(value, useUnmergedTree = true).onFirst().performScrollTo().assertIsDisplayed()
+        return compose.onAllNodesWithText(value, substring = true, useUnmergedTree = true).onFirst().performScrollTo().assertIsDisplayed()
     }
     private fun fits(value: String) {
         val layouts = mutableListOf<TextLayoutResult>()
@@ -174,7 +174,7 @@ class LanRecognitionScreenTest {
         for (scanning in listOf(false, true)) for (chinese in listOf(false, true)) for (page in listOf("scanner", "devices")) {
             render(page, chinese, scanning = scanning)
             screenshot("$page-before-fit-${if (chinese) "zh" else "en"}")
-            fits(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT"))
+            compose.onNodeWithText(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT")).assertDoesNotExist()
             shown("Study-书房-ABCDEFGHIJKLMNOP-0123456789")
             compose.onNodeWithText("DO_NOT_RENDER", substring = true).assertDoesNotExist()
             screenshot("$page-${if (chinese) "zh" else "en"}")
@@ -188,6 +188,7 @@ class LanRecognitionScreenTest {
             compose.onNodeWithTag("lan_recognition_details").assertDoesNotExist()
             compose.onNodeWithText(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT")).assertDoesNotExist()
             if (page == "stopped-detail") {
+                shown(text(LanR.string.lan_recognition_more)).performClick()
                 shown(text(LanR.string.lan_recognition_snapshot_field, text(LanR.string.lan_hostname),
                     text(LanR.string.lan_recognition_ptr)))
             }
@@ -234,7 +235,7 @@ class LanRecognitionScreenTest {
         val firstRoute = current.detailKey
         compose.runOnIdle { current = detail("ESP32", 42, ip = "192.168.50.41") }
         assertNotEquals(firstRoute, current.detailKey)
-        shown(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT"))
+        compose.onNodeWithText(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT")).assertDoesNotExist()
         compose.onNodeWithText(text(LanR.string.lan_recognition_explanation)).assertDoesNotExist()
         compose.onNodeWithTag("lan_recognition_explain").performScrollTo().performClick()
         shown(text(LanR.string.lan_recognition_explanation))
@@ -242,7 +243,7 @@ class LanRecognitionScreenTest {
         compose.runOnIdle { current = detail("ESP32", 42, ip = "192.168.50.41",
             network = fixture.network.value.copy(gateway = "192.168.50.254")) }
         assertNotEquals(secondRoute, current.detailKey)
-        shown(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT"))
+        compose.onNodeWithText(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT")).assertDoesNotExist()
         compose.onNodeWithText(text(LanR.string.lan_recognition_explanation)).assertDoesNotExist()
     }
 
@@ -266,10 +267,11 @@ class LanRecognitionScreenTest {
             }
         }
         compose.waitForIdle()
-        shown(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT"))
+        shown("My sensor")
         val node = shown(target.ipAddress).fetchSemanticsNode().id
         compose.runOnIdle { target = device("ESP8266").copy(hostName = "esp8266-new.local") }
-        shown(text(LanR.string.lan_recognition_platform, "ESP8266", "mDNS TXT"))
+        shown("My sensor")
+        compose.onNodeWithText(text(LanR.string.lan_recognition_platform, "ESP8266", "mDNS TXT")).assertDoesNotExist()
         assertEquals(node, shown(target.ipAddress).fetchSemanticsNode().id)
         compose.onNode(hasSetTextAction()).assertTextContains("My sensor")
         shown(target.ipAddress).performClick()
@@ -280,10 +282,10 @@ class LanRecognitionScreenTest {
         for (chinese in listOf(false, true)) {
             render("detail", chinese, conflict = true)
             shown(text(LanR.string.lan_recognition_conflict, "ESP32 / ESP8266"))
+            compose.onNodeWithTag("lan_recognition_explain").performScrollTo().performClick()
             shown(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT"))
             screenshot("detail-current-${if (chinese) "zh" else "en"}")
             shown(text(LanR.string.lan_recognition_platform, "ESP8266", "mDNS TXT"))
-            compose.onNodeWithTag("lan_recognition_explain").performScrollTo().performClick()
             shown(text(LanR.string.lan_recognition_clues))
             shown(text(LanR.string.lan_recognition_name_clue, "ESP32", "esp32-study.local", text(LanR.string.lan_recognition_ptr)))
             screenshot("detail-clues-${if (chinese) "zh" else "en"}")
@@ -320,16 +322,16 @@ class LanRecognitionScreenTest {
         for (width in listOf(320, 360)) for (scale in listOf(1.3f, 2f))
             for (chinese in listOf(false, true, null)) for (dark in listOf(false, true)) {
                 render("detail", chinese, dark, width, scale, target = device(long = true), scanning = true)
+                compose.onNodeWithTag("lan_recognition_explain").performScrollTo().performClick()
                 fits(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT"))
                 fits(text(LanR.string.lan_recognition_reported_field, text(LanR.string.lan_recognition_board),
                     "Board-长参数-ABCDEFGHIJKLMNOPQRSTUVWXYZ-0123456789", "mDNS TXT"))
                 val toggle = compose.onNodeWithTag("lan_recognition_explain").performScrollTo().assertHasClickAction()
                 val bounds = toggle.getUnclippedBoundsInRoot()
                 assertTrue("Toggle below 48dp: $bounds", (bounds.bottom - bounds.top).value + 0.5f >= 48f)
-                toggle.performClick()
                 fits(text(LanR.string.lan_recognition_explanation))
                 render("devices", chinese, dark, width, scale, target = device(long = true), scanning = true)
-                fits(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT"))
+                compose.onNodeWithText(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT")).assertDoesNotExist()
                 shown("Study-书房-ABCDEFGHIJKLMNOP-0123456789")
                 if (width == 320 && scale == 2f) screenshot("devices-scanning-${chinese ?: "system"}-$dark")
             }
@@ -337,6 +339,7 @@ class LanRecognitionScreenTest {
 
     @Test fun followSystemUsesResourceLanguageWithoutReinterpretingPlatform() {
         render("detail", chinese = null, target = device("ESP8266"))
+        compose.onNodeWithTag("lan_recognition_explain").performScrollTo().performClick()
         shown(text(LanR.string.lan_recognition_platform, "ESP8266", "mDNS TXT"))
     }
 
@@ -351,7 +354,13 @@ class LanRecognitionScreenTest {
             render(page, chinese, target = device("ESP8266"), snapshotTarget = device("ESP32"))
             compose.onNodeWithText(text(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT")).assertDoesNotExist()
             render(page, chinese, target = device("ESP8266"))
-            shown(text(LanR.string.lan_recognition_platform, "ESP8266", "mDNS TXT"))
+            if (page == "detail") {
+                compose.onNodeWithTag("lan_recognition_explain").performScrollTo().performClick()
+                shown(text(LanR.string.lan_recognition_platform, "ESP8266", "mDNS TXT"))
+            } else {
+                shown("192.168.50.40")
+                compose.onNodeWithText(text(LanR.string.lan_recognition_platform, "ESP8266", "mDNS TXT")).assertDoesNotExist()
+            }
         }
     }
 
@@ -363,7 +372,10 @@ class LanRecognitionScreenTest {
         compose.onNodeWithText(compose.activity.getString(LanR.string.lan_scan_start_action)).performScrollTo().performClick()
         compose.waitForIdle()
         val platform = compose.activity.getString(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT")
-        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(platform))
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(device().ipAddress, substring = true))
+        compose.onNodeWithText(device().ipAddress, substring = true).performClick()
+        compose.onNodeWithTag("lan_recognition_explain").performScrollTo().performClick()
+        compose.onNodeWithText(platform).performScrollTo().assertIsDisplayed()
         val snapshot = history.records.value.toList()
         compose.runOnIdle { fixture.network.value = fixture.network.value.copy(gateway = "192.168.50.254") }
         compose.waitForIdle()
@@ -382,16 +394,16 @@ class LanRecognitionScreenTest {
         compose.onNodeWithText(compose.activity.getString(LanR.string.lan_scan_start_action)).performScrollTo().performClick()
         compose.waitForIdle()
         val platform = compose.activity.getString(LanR.string.lan_recognition_platform, "ESP32", "mDNS TXT")
-        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(platform))
-        compose.onNodeWithText(platform).performClick()
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(device().ipAddress, substring = true))
+        compose.onNodeWithText(device().ipAddress, substring = true).performClick()
         val historySnapshot = history.records.value.toList()
         compose.onNodeWithContentDescription(compose.activity.getString(LanR.string.device_detail_edit_name_description)).performClick()
         compose.onNodeWithTag("device_profile_name").performTextReplacement("Edited fixture name")
         compose.onNodeWithTag("device_profile_save").performScrollTo().performClick()
         compose.waitForIdle()
         compose.onAllNodesWithText("Edited fixture name").onFirst().assertIsDisplayed()
-        compose.onNodeWithText(platform).performScrollTo().assertExists()
         compose.onNodeWithTag("lan_recognition_explain").performScrollTo().performClick()
+        compose.onNodeWithText(platform).performScrollTo().assertExists()
         val explanation = compose.activity.getString(LanR.string.lan_recognition_explanation)
         compose.onNodeWithText(explanation).performScrollTo().assertIsDisplayed()
         compose.activityRule.scenario.recreate()
@@ -407,15 +419,16 @@ class LanRecognitionScreenTest {
         compose.runOnIdle { compose.activity.onBackPressedDispatcher.onBackPressed() }
         compose.onNodeWithContentDescription(compose.activity.getString(LanR.string.lan_search)).performClick()
         compose.onNode(hasSetTextAction()).performTextInput("Edited fixture name")
-        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(platform))
-        compose.onNodeWithText(platform).assertExists()
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(device().ipAddress, substring = true))
+        compose.onNode(hasText("Edited fixture name") and !hasSetTextAction()).assertIsDisplayed()
+        compose.onNodeWithText(platform).assertDoesNotExist()
         assertEquals(1, fixture.scanStarts)
     }
 
     private fun screenshot(name: String) {
         compose.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val directory = File(instrumentation.targetContext.getExternalFilesDir(null), "task158").apply { mkdirs() }
+        val directory = File(instrumentation.targetContext.getExternalFilesDir(null), InstrumentationRegistry.getArguments().getString("capturePrefix") ?: "task158").apply { mkdirs() }
         val bitmap = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
         File(directory, "fixture-$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
         bitmap.recycle()

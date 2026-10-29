@@ -39,6 +39,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -106,7 +107,7 @@ fun DeviceDetailScreen(
                 ?: WakeOnLanConfig.DEFAULT_UDP_PORT.toString(),
         )
     }
-    LaunchedEffect(detail?.detailKey, detail?.wakeOnLan?.config) {
+    LaunchedEffect(detail?.detailKey, detail?.wakeOnLan?.config, showWakeOnLanDialog) {
         if (!showWakeOnLanDialog) {
             draftWakeOnLanMac = detail?.wakeOnLan?.config?.macAddress?.toString().orEmpty()
             draftWakeOnLanPort = detail?.wakeOnLan?.config?.udpPort?.toString()
@@ -195,6 +196,14 @@ fun DeviceDetailScreen(
                     }
                 }
             }
+            detail.ipAddress?.takeIf(String::isNotBlank)?.let { address ->
+                Text(address, style = MaterialTheme.typography.bodyLarge)
+            }
+            if (detail.effectiveDeviceType == null) detail.recognition?.result?.deviceCategory?.let {
+                com.networktoolbox.feature.lanscan.presentation.LanRecognitionPresentation.category(it)?.let { category ->
+                    Text(category.resolve(), style = MaterialTheme.typography.bodyMedium)
+                }
+            }
             detail.role?.let { role ->
                 Text(
                     role.resolve(),
@@ -219,42 +228,6 @@ fun DeviceDetailScreen(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
-        }
-
-        DeviceDetailSection(title = stringResource(R.string.lan_basic)) {
-            detail.ipAddress?.takeIf(String::isNotBlank)?.let {
-                ToolResultRow(detail.addressLabel.resolve(), it)
-            }
-            detail.macAddress?.takeIf(String::isNotBlank)?.let { ToolResultRow("MAC", it) }
-            detail.vendor?.takeIf(String::isNotBlank)?.let {
-                ToolResultRow(identityFieldLabel(detail, "vendor", R.string.lan_vendor, R.string.lan_recognition_upnp), it)
-            }
-            detail.model?.takeIf(String::isNotBlank)?.let {
-                ToolResultRow(identityFieldLabel(detail, "model", R.string.lan_model, R.string.lan_recognition_upnp), it)
-            }
-        }
-
-        if (detail.hostname != null || detail.mdnsNames.isNotEmpty() || detail.upnpNames.isNotEmpty()) {
-            DeviceDetailSection(title = stringResource(R.string.lan_identity)) {
-                detail.hostname?.takeIf(String::isNotBlank)?.let {
-                    val label = if ("hostname" in detail.savedIdentityFields) {
-                        stringResource(R.string.lan_recognition_saved_field, stringResource(R.string.lan_hostname))
-                    } else stringResource(if (detail.isStoppedSnapshot) R.string.lan_recognition_snapshot_field
-                        else R.string.lan_recognition_current_field, stringResource(R.string.lan_hostname),
-                        detail.hostnameSource?.resolve() ?: stringResource(R.string.lan_recognition_not_recorded))
-                    ToolResultRow(label, it)
-                }
-                if (detail.mdnsNames.isNotEmpty()) {
-                    ToolResultRow(identityFieldLabel(detail, "mdns", R.string.lan_recognition_name, R.string.lan_recognition_mdns), detail.mdnsNames.joinToString("\n"))
-                }
-                if (detail.upnpNames.isNotEmpty()) {
-                    ToolResultRow(identityFieldLabel(detail, "upnp", R.string.lan_recognition_name, R.string.lan_recognition_upnp), detail.upnpNames.joinToString("\n"))
-                }
-            }
-        }
-
-        detail.recognition?.let { recognition ->
-            LanRecognitionDetails(recognition, recognitionExpanded, { recognitionExpanded = !recognitionExpanded })
         }
 
         DeviceDetailSection(
@@ -288,30 +261,6 @@ fun DeviceDetailScreen(
                 stringResource(R.string.device_profile_local_only),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
-            )
-        }
-
-        DeviceDetailSection(title = stringResource(R.string.lan_relationship)) {
-            detail.role?.let { ToolResultRow(stringResource(R.string.lan_role), it.resolve()) }
-            detail.networkScope?.let { ToolResultRow(stringResource(R.string.lan_range), it.resolve()) }
-        }
-
-        DeviceDetailSection(title = stringResource(R.string.lan_observation)) {
-            ToolResultRow(
-                stringResource(R.string.device_scan_status),
-                if (detail.isStoppedSnapshot) stringResource(R.string.lan_scan_stopped_title) else when (detail.observationStatus) {
-                    DeviceObservationStatus.FOUND -> stringResource(R.string.lan_found)
-                    DeviceObservationStatus.NOT_FOUND -> stringResource(R.string.lan_not_found)
-                    DeviceObservationStatus.NOT_SCANNED -> stringResource(R.string.lan_not_scanned)
-                },
-            )
-            ToolResultRow(
-                stringResource(R.string.device_first_seen),
-                formatOptionalTimestamp(detail.firstSeenAt),
-            )
-            ToolResultRow(
-                stringResource(R.string.lan_last_seen),
-                formatOptionalTimestamp(detail.lastSeenAt),
             )
         }
 
@@ -413,7 +362,71 @@ fun DeviceDetailScreen(
             }
         }
 
+        DeviceDetailSection(title = stringResource(R.string.lan_basic)) {
+            detail.ipAddress?.takeIf(String::isNotBlank)?.let {
+                ToolResultRow(detail.addressLabel.resolve(), it)
+            }
+            detail.macAddress?.takeIf(String::isNotBlank)?.let { ToolResultRow("MAC", it) }
+            detail.vendor?.takeIf(String::isNotBlank)?.let {
+                ToolResultRow(identityFieldLabel(detail, "vendor", R.string.lan_vendor, R.string.lan_recognition_upnp), it)
+            }
+            detail.model?.takeIf(String::isNotBlank)?.let {
+                ToolResultRow(identityFieldLabel(detail, "model", R.string.lan_model, R.string.lan_recognition_upnp), it)
+            }
+        }
+
+        DeviceDetailSection(title = stringResource(R.string.lan_observation)) {
+            ToolResultRow(
+                stringResource(R.string.device_scan_status),
+                if (detail.isStoppedSnapshot) stringResource(R.string.lan_scan_stopped_title) else when (detail.observationStatus) {
+                    DeviceObservationStatus.FOUND -> stringResource(R.string.lan_found)
+                    DeviceObservationStatus.NOT_FOUND -> stringResource(R.string.lan_not_found)
+                    DeviceObservationStatus.NOT_SCANNED -> stringResource(R.string.lan_not_scanned)
+                },
+            )
+            ToolResultRow(
+                stringResource(R.string.device_first_seen),
+                formatOptionalTimestamp(detail.firstSeenAt),
+            )
+            ToolResultRow(
+                stringResource(R.string.lan_last_seen),
+                formatOptionalTimestamp(detail.lastSeenAt),
+            )
+        }
+
+        if (detail.recognition == null && (detail.hostname != null || detail.mdnsNames.isNotEmpty() || detail.upnpNames.isNotEmpty())) {
+            TextButton(onClick = { recognitionExpanded = !recognitionExpanded }) {
+                Text(stringResource(if (recognitionExpanded) R.string.lan_recognition_less else R.string.lan_recognition_more))
+            }
+        }
+        detail.recognition?.let { recognition ->
+            LanRecognitionDetails(recognition, recognitionExpanded, { recognitionExpanded = !recognitionExpanded })
+        }
+
+        if (recognitionExpanded) {
+            if (detail.hostname != null || detail.mdnsNames.isNotEmpty() || detail.upnpNames.isNotEmpty()) {
+                DeviceDetailSection(title = stringResource(R.string.lan_identity)) {
+                    detail.hostname?.takeIf(String::isNotBlank)?.let {
+                        val label = if ("hostname" in detail.savedIdentityFields) {
+                            stringResource(R.string.lan_recognition_saved_field, stringResource(R.string.lan_hostname))
+                        } else stringResource(if (detail.isStoppedSnapshot) R.string.lan_recognition_snapshot_field
+                            else R.string.lan_recognition_current_field, stringResource(R.string.lan_hostname),
+                            detail.hostnameSource?.resolve() ?: stringResource(R.string.lan_recognition_not_recorded))
+                        ToolResultRow(label, it)
+                    }
+                    if (detail.mdnsNames.isNotEmpty()) {
+                        ToolResultRow(identityFieldLabel(detail, "mdns", R.string.lan_recognition_name, R.string.lan_recognition_mdns), detail.mdnsNames.joinToString("\n"))
+                    }
+                    if (detail.upnpNames.isNotEmpty()) {
+                        ToolResultRow(identityFieldLabel(detail, "upnp", R.string.lan_recognition_name, R.string.lan_recognition_upnp), detail.upnpNames.joinToString("\n"))
+                    }
+                }
+            }
+
+        }
+
         if (showWakeOnLanDialog) {
+            val clearConfiguration = draftWakeOnLanMac.isBlank()
             val macValidation = MacAddress.parse(draftWakeOnLanMac)
             val port = draftWakeOnLanPort.trim().toIntOrNull()
             val portValid = port in WakeOnLanConfig.MIN_UDP_PORT..WakeOnLanConfig.MAX_UDP_PORT
@@ -433,7 +446,7 @@ fun DeviceDetailScreen(
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
                         OutlinedTextField(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().testTag("wol_mac_input"),
                             value = draftWakeOnLanMac,
                             onValueChange = { draftWakeOnLanMac = it },
                             label = {
@@ -455,18 +468,19 @@ fun DeviceDetailScreen(
                             singleLine = true,
                         )
                         OutlinedTextField(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().testTag("wol_port_input"),
+                            enabled = !clearConfiguration,
                             value = draftWakeOnLanPort,
                             onValueChange = { draftWakeOnLanPort = it },
                             label = {
                                 Text(stringResource(com.networktoolbox.feature.lanscan.R.string.wol_udp_port_label))
                             },
                             supportingText = {
-                                if (draftWakeOnLanPort.isNotBlank() && !portValid) {
+                                if (!clearConfiguration && draftWakeOnLanPort.isNotBlank() && !portValid) {
                                     Text(stringResource(com.networktoolbox.feature.lanscan.R.string.wol_port_invalid))
                                 }
                             },
-                            isError = draftWakeOnLanPort.isNotBlank() && !portValid,
+                            isError = !clearConfiguration && draftWakeOnLanPort.isNotBlank() && !portValid,
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         )
@@ -474,7 +488,8 @@ fun DeviceDetailScreen(
                 },
                 confirmButton = {
                     TextButton(
-                        enabled = macValidation != null && portValid,
+                        modifier = Modifier.testTag("wol_save"),
+                        enabled = clearConfiguration || (macValidation != null && portValid),
                         onClick = {
                             onSaveWakeOnLan(draftWakeOnLanMac, draftWakeOnLanPort)
                             showWakeOnLanDialog = false

@@ -39,12 +39,12 @@ fun LanRecognitionDetails(presentation: LanRecognitionDevicePresentation, expand
         )
         groups.forEach { (category, title) ->
             val rows = presentation.rows.filter { it.hint.category == category }
-            if (rows.isNotEmpty() && (category != LanRecognitionCategory.WEAK_NAME_CLUE || expanded)) {
+            if (rows.isNotEmpty() && (category == LanRecognitionCategory.INSUFFICIENT_OR_CONFLICTING || expanded)) {
                 Text(stringResource(title), style = MaterialTheme.typography.titleSmall)
                 rows.forEach { row ->
                     Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS)) {
                         Text(row.text.resolve(), style = MaterialTheme.typography.bodyMedium)
-                        row.hint.evidence.forEach { evidence ->
+                        if (expanded) row.hint.evidence.forEach { evidence ->
                             val time = evidence.observedAt?.let {
                                 DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale).format(Date(it))
                             } ?: stringResource(R.string.lan_recognition_time_unknown)

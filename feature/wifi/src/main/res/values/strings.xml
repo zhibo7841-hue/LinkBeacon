@@ -115,4 +115,5 @@
     <string name="wifi_no_channel_observations">No known primary-channel observations in the available results.</string>
     <string name="wifi_explanations">Explanations and limitations</string>
     <string name="wifi_hide_explanations">Hide explanations</string>
+    <string name="wifi_rssi_accessibility">Signal: minus %1$s dBm</string>
 </resources>

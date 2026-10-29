@@ -102,7 +102,6 @@ fun WebsiteDiagnosticsScreen(
                 enabled = !uiState.isRunning,
                 modifier = Modifier.fillMaxWidth().testTag("website_start"),
             ) { Text(stringResource(R.string.web_site_start)) }
-            Text(stringResource(R.string.web_privacy_note))
         }
 
         when (val state = uiState.runState) {

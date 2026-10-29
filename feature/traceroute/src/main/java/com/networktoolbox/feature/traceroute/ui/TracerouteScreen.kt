@@ -86,13 +86,6 @@ fun TracerouteScreen(
                     onStart = onStart,
                 )
             }
-            item {
-                Text(
-                    stringResource(R.string.trace_privacy),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
         }
 
         when (val status = uiState.status) {
