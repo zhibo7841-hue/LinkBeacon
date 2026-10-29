@@ -58,7 +58,7 @@ class ToolCatalogTest {
 
         assertPresentationEquals(
             mapOf(
-                DashboardToolId.DOMAIN_REGISTRATION to "查询 RDAP 域名注册信息",
+                DashboardToolId.DOMAIN_REGISTRATION to "域名与IP注册",
                 DashboardToolId.PING to "测试目标连通性",
                 DashboardToolId.DNS to "查询域名解析",
                 DashboardToolId.TCP to "检查 TCP 服务端口",

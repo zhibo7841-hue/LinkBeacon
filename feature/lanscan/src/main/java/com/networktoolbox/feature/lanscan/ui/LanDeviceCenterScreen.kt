@@ -123,6 +123,7 @@ fun LanDeviceCenterScreen(
         ToolScreenLazyLayout(
             modifier = Modifier.fillMaxSize(),
             listState = listState,
+            horizontalPadding = 20.dp,
         ) {
             item {
                 NetworkToolboxTopLevelHeader(

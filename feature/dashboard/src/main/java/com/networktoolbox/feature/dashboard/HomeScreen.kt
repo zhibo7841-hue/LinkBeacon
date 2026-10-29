@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.dp
 import com.networktoolbox.core.designsystem.NetworkCard
 import com.networktoolbox.core.designsystem.NetworkStatusChip
 import com.networktoolbox.core.designsystem.NetworkToolAccent
-import com.networktoolbox.core.designsystem.NetworkToolboxMenuButton
+import com.networktoolbox.core.designsystem.NetworkToolboxTopLevelHeader
 import com.networktoolbox.core.designsystem.NetworkToolboxSpacing
 import com.networktoolbox.core.designsystem.NetworkToolboxTextStyles
 import com.networktoolbox.core.designsystem.NetworkToolboxStatusVisuals
@@ -109,7 +109,11 @@ fun HomeScreen(
                 .padding(horizontal = 20.dp, vertical = NetworkToolboxSpacing.LG),
             verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.LG),
         ) {
-            NetworkToolboxMenuButton(onClick = onOpenMenu)
+            NetworkToolboxTopLevelHeader(
+                title = stringResource(R.string.home_page_title),
+                description = null,
+                onOpenMenu = onOpenMenu,
+            )
 
             NetworkSummaryCard(
                 context = uiState.networkContext,
@@ -290,41 +294,15 @@ internal fun NetworkSummaryCard(
 
 @Composable
 private fun NetworkHeroMetrics(metrics: List<NetworkSummaryMetric>) {
-    val configuration = LocalConfiguration.current
-    val useTwoColumns = NetworkStatusPresentation.shouldUseTwoColumnHeroMetrics(
-        screenWidthDp = configuration.screenWidthDp,
-        fontScale = LocalDensity.current.fontScale,
-    )
-
-    Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
-        if (useTwoColumns) {
-            metrics.chunked(2).forEach { rowMetrics ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
-                ) {
+    androidx.compose.foundation.layout.BoxWithConstraints {
+        val columns = NetworkStatusPresentation.heroMetricColumns(maxWidth.value.toInt(), LocalDensity.current.fontScale)
+        Column(verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
+            metrics.chunked(columns).forEach { rowMetrics ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM)) {
                     rowMetrics.forEach { metric ->
-                        SummaryMetric(
-                            label = metric.label.resolve(),
-                            value = metric.value.resolve(),
-                            modifier = Modifier.weight(1f),
-                            technical = metric.technical,
-                        )
+                        SummaryMetric(metric.label.resolve(), metric.value.resolve(),
+                            Modifier.weight(1f), technical = metric.technical)
                     }
-                }
-            }
-        } else {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
-            ) {
-                metrics.forEach { metric ->
-                    SummaryMetric(
-                        label = metric.label.resolve(),
-                        value = metric.value.resolve(),
-                        modifier = Modifier.weight(1f),
-                        technical = metric.technical,
-                    )
                 }
             }
         }

@@ -266,6 +266,14 @@ object NetworkStatusPresentation {
         )
     }
 
+    /** Technical IPv4 values need readable width after font scaling and card insets. */
+    fun heroMetricColumns(availableWidthDp: Int, fontScale: Float): Int =
+        when (availableWidthDp / fontScale.coerceAtLeast(1f)) {
+            in 0f..299f -> 1
+            in 299f..599f -> 2
+            else -> 4
+        }
+
     fun shouldUseTwoColumnHeroMetrics(screenWidthDp: Int, fontScale: Float): Boolean =
         screenWidthDp < 520 || fontScale >= 1.15f
 
