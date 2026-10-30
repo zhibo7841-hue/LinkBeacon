@@ -118,6 +118,31 @@ class LanProgressiveScreenTest {
         return layouts.any { clipped(it, (bounds.right - bounds.left).value * density,
             (bounds.bottom - bounds.top).value * density) }
     }
+    private fun fitsCompactName(text: String) {
+        val layouts = mutableListOf<TextLayoutResult>()
+        val node = shown(text)
+        node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        val bounds = node.getUnclippedBoundsInRoot()
+        val density = node.fetchSemanticsNode().layoutInfo.density.density
+        val widthPx = (bounds.right - bounds.left).value * density
+        val heightPx = (bounds.bottom - bounds.top).value * density
+        assertTrue("Compact name must retain its full semantic value", layouts.isNotEmpty())
+        layouts.forEach { layout ->
+            assertEquals(text, layout.layoutInput.text.text)
+            assertEquals(1, layout.layoutInput.maxLines)
+            assertEquals(TextOverflow.Ellipsis, layout.layoutInput.overflow)
+            // Only the compact primary name permits deliberate end ellipsis.
+            // The existing strict guard remains unchanged for addresses/controls.
+            if (layout.isLineEllipsized(0)) {
+                assertEquals(1, layout.lineCount)
+                assertTrue(layout.getLineLeft(0) >= -0.5f)
+                assertTrue(layout.getLineRight(0) <= widthPx + 0.5f)
+                assertTrue(layout.getLineBottom(0) <= heightPx + 0.5f)
+            } else {
+                assertFalse("Compact name is clipped", clipped(layout, widthPx, heightPx))
+            }
+        }
+    }
     private fun clipped(layout: TextLayoutResult, widthPx: Float, heightPx: Float): Boolean = layout.didOverflowHeight ||
         layout.multiParagraph.didExceedMaxLines || (0 until layout.lineCount).any { line ->
             layout.getLineLeft(line) < -0.5f || layout.getLineRight(line) > widthPx + 0.5f ||
@@ -235,7 +260,7 @@ class LanProgressiveScreenTest {
         for (lang in listOf("en", "zh-Hans", null)) for (size in listOf(320, 360))
             for (font in listOf(1.3f, 2f)) for (night in listOf(false, true)) {
                 compose.runOnIdle { locale = lang; width = size; scale = font; dark = night }
-                fits(target.hostName!!); fits(target.ipAddress)
+                fitsCompactName(target.hostName!!); fits(target.ipAddress)
                 val stop = compose.onNodeWithText(labels.getString(LanR.string.lan_scan_stop_action))
                     .performScrollTo().assertIsDisplayed().assertHasClickAction()
                 // Material buttons can draw at 40dp while exposing a 48dp touch target.

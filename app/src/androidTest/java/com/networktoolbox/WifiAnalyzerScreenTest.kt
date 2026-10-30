@@ -149,13 +149,14 @@ class WifiAnalyzerScreenTest {
         compose.onNodeWithText(compose.activity.getString(
             com.networktoolbox.feature.wifi.R.string.wifi_cached)).assertIsDisplayed()
         compose.onNodeWithText(compose.activity.getString(com.networktoolbox.feature.wifi.R.string.wifi_batch_observation_time,
-            compose.activity.getString(com.networktoolbox.feature.wifi.R.string.wifi_updated_minutes, 36))).performScrollTo().assertIsDisplayed()
+            compose.activity.getString(com.networktoolbox.feature.wifi.R.string.wifi_updated_minutes, 36))).assertDoesNotExist()
+        compose.onNodeWithText(compose.activity.getString(
+            com.networktoolbox.feature.wifi.R.string.wifi_fresh)).assertDoesNotExist()
     }
 
     @Test fun signalAndExpandRetainSpokenSemantics() {
         render(WifiAnalyzerUiState(snapshot = snapshot(WifiScanFreshness.CACHED)))
-        val spoken = compose.activity.getString(com.networktoolbox.feature.wifi.R.string.wifi_signal_accessibility,
-            compose.activity.getString(com.networktoolbox.feature.wifi.R.string.wifi_good), 45)
+        val spoken = compose.activity.getString(com.networktoolbox.feature.wifi.R.string.wifi_rssi_accessibility, 45)
         compose.onAllNodesWithContentDescription(spoken, useUnmergedTree = true).onFirst().assertExists()
         compose.onAllNodesWithContentDescription(compose.activity.getString(
             com.networktoolbox.feature.wifi.R.string.wifi_expand), useUnmergedTree = true).onFirst().assertExists()
@@ -208,6 +209,8 @@ class WifiAnalyzerScreenTest {
         types.zip(labels).forEach { (security, label) ->
             render(WifiAnalyzerUiState(snapshot = baseline.copy(scanBatch = baseline.scanBatch!!.copy(
                 observations = listOf(ap("Security", "aa:bb:cc:dd:ee:01", false).copy(securityTypes = security))))))
+            compose.onNodeWithText(label, substring = true).assertDoesNotExist()
+            compose.onAllNodesWithTag("wifi_ap").onFirst().performScrollTo().performClick()
             compose.onNodeWithText(label, substring = true).performScrollTo().assertIsDisplayed()
         }
     }

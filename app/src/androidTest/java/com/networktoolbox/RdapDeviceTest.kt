@@ -174,7 +174,7 @@ class RdapDeviceTest {
                 addressClasses=setOf(RdapAddressClass.BENCHMARK)))}
         for(zh in listOf(false,true)) {
             open(zh);request();confirmIfNeeded()
-            compose.onNodeWithText(if(zh) "服务解析到了不允许的地址，查询已停止。" else "The service resolved to a disallowed address; query stopped.").assertExists()
+            compose.onNodeWithText(compose.activity.getString(com.networktoolbox.feature.rdap.R.string.rdap_unsafe)).assertExists()
             compose.onNodeWithText("DNS_ADDRESS_POLICY").assertDoesNotExist()
             compose.onNodeWithTag("rdap_details").performScrollTo().performClick()
             compose.onNodeWithText("DNS_ADDRESS_POLICY").assertExists()
