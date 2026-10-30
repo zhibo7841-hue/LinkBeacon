@@ -943,12 +943,16 @@ merge Draft PR #1, or the Stage D signed-artifact release gate.
 Task 134 provides the [technical design and task split](V0.10_STAGE_B_DESIGN.md).
 It is preparation only: proposed dependencies, discovery types, endpoint/privacy
 policy and export redaction require maintainer confirmation before their
-respective implementation tasks. The approved functional scope below is unchanged.
+respective implementation tasks. The scope below incorporates the explicit
+Task 192 deferral; all other approved functional scope is unchanged.
 
 1. **Device recognition — common terminals and smart home:** prioritize effective
-   automatic names for computers, phones and tablets, retaining ESP32/ESP8266
-   and smart-home recognition within the approved B1 scope. Follow the Task 146
-   C0 direction clarification below; new-source defaults remain unapproved.
+   automatic names for computers, phones and tablets, general device recognition
+   and actually observed smart-device clues. Dedicated ESP32/ESP8266 and ESPHome
+   recognition enhancements are deferred under Task 192, outside v0.10.0 Must Have;
+   see [the retained future candidate](#deferred-recognition-candidate--task-192).
+   Follow the Task 146 C0 direction clarification below; new-source defaults
+   remain subject to their existing approval gates.
    Improve bounded PTR, mDNS and SSDP/UPnP observations and cautious service hints.
    Explain identity sources and unknown states, preserve user-assigned
    names/types. Do not promise full recognition or infer device model
@@ -1024,6 +1028,27 @@ demonstrably safe, accurate and compatible, pause that feature and
 request explicit deferral/scope adjustment rather than inventing
 capability or silently weakening user-visible commitments.
 
+### Deferred recognition candidate — Task 192
+
+Maintainer-approved Option B — **2026-10-29**: dedicated ESP32/ESP8266 and
+ESPHome smart-device recognition enhancements are **deferred beyond v0.10.0**
+and are no longer a Must Have or a missing-delivery blocker for this version.
+Retain this work as a future candidate with **target version TBD**; it does not
+automatically enter the next version and requires renewed maintainer confirmation
+before scheduling. The reason is to control v0.10.0 scope and prioritize existing
+feature quality, overall compatibility and version acceptance.
+
+The deferral is limited to that dedicated enhancement. Existing LAN scanning and
+host discovery, general recognition and its Confirmed/Possible/Unknown assessment,
+NBSTAT hostnames, SSH service identification, UPnP and other actually observed
+clues remain. Preserve existing partial ESP-related evidence, device details,
+Favorites, Notes, WoL, identity protection and recognition provenance; partial
+clues are not completion of unimplemented dedicated ESPHome capability.
+Other approved v0.10.0 features and other smart-device protocol commitments are
+not broadly deferred or removed. Privacy review, compatibility acceptance, signed
+upgrade and final-artifact gates remain required; this scope decision does not
+approve Stage D, an RC or release. See [the Task 192 decision](DECISIONS.md#decision-defer-dedicated-esp32esp8266-and-esphome-recognition).
+
 ### Stage C — optional gated research, not current Must Have
 
 The maintainer approved investigating these topics, **not automatic
@@ -1088,6 +1113,12 @@ Earlier [candidate research](research/LINKBEACON_NEXT_VERSION_CANDIDATES.md)
 is an as-of-research record, not a second authoritative roadmap.
 
 ### Stage B1 direction clarification — 2026-10-24 / Task 146
+
+Scope follow-up — Task 192 / 2026-10-29: the historical smart-home direction
+below is subject to the [dedicated ESP deferral](#deferred-recognition-candidate--task-192).
+General recognition and existing evidence remain; dedicated ESPHome service-catalog
+expansion is a future candidate, not a remaining v0.10.0 Must Have. The original
+architecture and protocol-specific approval gates below are otherwise unchanged.
 
 Within the approved device-recognition enhancement, prioritize effective automatic
 names for common computers, phones and tablets alongside the existing smart-home

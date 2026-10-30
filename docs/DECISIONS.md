@@ -1,5 +1,31 @@
 # Decision Log
 
+## Decision: Defer dedicated ESP32/ESP8266 and ESPHome recognition
+
+- Date: 2026-10-29 / Task 192.
+- Status: **Accepted scope adjustment**, explicitly selected as Option B by the maintainer.
+- Decision: defer dedicated ESP32/ESP8266 and ESPHome smart-device recognition
+  enhancements beyond v0.10.0. They are no longer a Must Have or a missing-delivery
+  blocker for that version. This supersedes only that dedicated obligation in
+  the 2026-10-22 scope and Task 146 direction, not general device recognition.
+- Reason: control v0.10.0 scope and prioritize existing feature quality,
+  overall compatibility and version acceptance.
+- Preserve: existing LAN scanning/host discovery, general recognition and its
+  three-level assessment, NBSTAT hostnames, SSH service identification, UPnP and
+  other actual device clues, device details/Favorites/Notes/WoL, identity protection
+  and recognition evidence. Keep already implemented partial ESP-related clues;
+  do not claim unimplemented dedicated ESPHome capability is complete or remove
+  any protocol, model or test because of this deferral.
+- Follow-up: retain the [future candidate](PRODUCT_PLAN.md#deferred-recognition-candidate--task-192)
+  with **target version TBD**. Renewed maintainer confirmation is required before
+  scheduling; it does not automatically enter the next version's mainline.
+- Boundary: no blanket deferral/removal of other smart-device protocols and no
+  change to the remaining approved v0.10.0 scope. Only the SCOPE-B1 obligation for
+  this dedicated work is resolved by deferral. Privacy/Data Safety, compatibility,
+  signed upgrade and final-artifact acceptance remain open under their existing
+  gates. Documentation only; no Runtime, RC, version, signing or Play change,
+  and no commit/push/integration/release is authorized by this task.
+
 ## Decision: Compact Wi-Fi facts and removable Wake-on-LAN configuration
 
 - Date: 2026-10-28 / Task 188, explicitly confirmed by the maintainer.
@@ -201,6 +227,8 @@
   and tablets within the approved device-recognition scope. Smart-home/ESPHome
   work remains included but does not substitute for ordinary-terminal evidence.
   Discovery, name, category, brand and model/OS are separately qualified facts.
+  Historical scope follow-up: the Task 192 decision above supersedes the dedicated
+  ESP32/ESP8266/ESPHome obligation; general recognition and existing clues remain.
 - Architecture: adopt independent bounded pipeline C, with **C0 designed first**.
   Admitted hosts can appear by IP before names; a separate bounded per-host queue
   progressively supplies evidence without occupying discovery workers. Preserve
@@ -268,6 +296,10 @@
   the accepted scope; proposed Stage B technical choices are not new accepted decisions.
 - Maintainer approval: approve v0.10.0 as the next coordinated tester-feedback and network-diagnostic improvement release. This supersedes the earlier **historical** “v0.10.0 not approved” checkpoint statements. v0.9.1 remains released, signed and frozen; no present Play track, AAB, pricing, enrollment or Production setting changes.
 - Main delivery: **Stages A and B are planned Must Have goals**. Stage A covers Quick Tools/Tools responsive, equally aligned cards; recognized/unknown LAN identity filtering with accurate counts and preserved scan boundaries; user-directed local TXT and Markdown export of live/stored automatic-diagnosis reports; clear evidence-based troubleshooting explanations; focused History reliability review/fixes supported by evidence. Stage B covers conservative ESP32/ESP8266/smart-home discovery based on observed PTR/mDNS/SSDP/UPnP evidence; Wi-Fi signal and observed-channel explanation; an explicit bounded RDAP-first WHOIS/domain-registration query tool; and redacted, bilingual local export/copy/PDF sharing for Website/TLS live and saved snapshots.
+- Subsequent scope adjustment: Task 192 / 2026-10-29 explicitly defers only the
+  dedicated ESP32/ESP8266/ESPHome enhancement in this historical scope. The current
+  future-candidate record and preserved capabilities are defined by the decision
+  above; other Must Have goals and release gates are unchanged.
 - Acceptance gate for A/B: do not claim device/vendor certainty, precise RF channel load, best channel, full domain-data coverage or definitive network fault diagnosis. If a Must Have cannot be made safe, privacy-compliant and verifiably usable, stop for explicit maintainer deferral/change decision rather than silently shipping a weakened feature.
 - **Stage C is conditional research only, not automatically committed or authorized runtime scope**: controlled LAN iPerf3 throughput; explicitly user-selected trusted Tailnet/VPN connectivity, not unrestricted VPN scanning; and one future complete additional locale chosen separately. Any inclusion in v0.10.0 requires a specific demonstrated feasibility/QA/privacy gate and explicit scope-acceptance decision. Public cloud Speed Test and broad 100.64.0.0/10 scans are not approved by this decision.
 - URL screenshot feedback: approve readable structured website-diagnostic evidence snapshots/export, **not** a WebView, website renderer or generic screenshot tool.
