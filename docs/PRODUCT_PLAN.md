@@ -161,9 +161,11 @@ category coverage require separate acceptance. See
 
 ## Roadmap
 
-**Current next approved planned release (2026-10-22): v0.10.0 —
-Comprehensive Tester Feedback Optimization.** Stages A/B are planned delivery,
-Stage C is optional and separately gated, Stage D is mandatory validation.
+**Current release preparation (2026-10-30 / Task 197): v0.10.0 —
+Comprehensive Tester Feedback Optimization.** Maintainer overall version acceptance
+and Task 196 signed-RC technical acceptance are complete. Privacy/Data Safety
+closure and separately authorized release operations remain pending. Not Released.
+Stage C remains optional and separately gated; Task 192 scope deferral is unchanged.
 The v0.9.1 stable baseline and Google Play Alpha test are unaffected; see the
 v0.10.0 section below and [DECISIONS.md](DECISIONS.md).
 
@@ -889,9 +891,11 @@ route and GitHub Released status are unchanged; v0.10.0 was not yet approved at 
 
 ## v0.10.0 — Comprehensive Tester Feedback Optimization
 
-**Status: Development in progress (2026-10-22). Stage A: Development Complete;
-Stage B: technical design/preparation only, Runtime not implemented;
-Stage C: not implemented; Stage D: pending. Not RC Ready / Not Released.**
+**Status: Maintainer overall version acceptance confirmed; release preparation
+(2026-10-30 / Task 197). Approved Stage A/B delivery is accepted, subject to the
+existing Task 192 dedicated ESP deferral. Stage C is not included. Stage D
+technical RC acceptance passed; privacy/Data Safety closure remains pending.
+Not Released; acceptance does not authorize publication.**
 Approved as a coordinated quality-focused
 response to the October 2026 closed-test feedback and v0.9.1 source audit.
 This current approval supersedes older historical notes saying v0.10.0 was
@@ -938,12 +942,12 @@ merge Draft PR #1, or the Stage D signed-artifact release gate.
    defects with tests. Performance risk without measurements is not
    itself proof of a bug; migrations require separate evidence/review.
 
-### Stage B — Network analysis enhancements (planned Must Have)
+### Stage B — Network analysis enhancements (accepted delivery within approved scope)
 
 Task 134 provides the [technical design and task split](V0.10_STAGE_B_DESIGN.md).
-It is preparation only: proposed dependencies, discovery types, endpoint/privacy
-policy and export redaction require maintainer confirmation before their
-respective implementation tasks. The scope below incorporates the explicit
+That document records the historical preparation checkpoint; subsequent approved
+implementation tasks and Task 197 overall acceptance supersede its old runtime
+status. Protocol-specific approval and privacy/release boundaries still apply. The scope below incorporates the explicit
 Task 192 deferral; all other approved functional scope is unchanged.
 
 1. **Device recognition — common terminals and smart home:** prioritize effective
@@ -1005,7 +1009,8 @@ Task 192 deferral; all other approved functional scope is unchanged.
    Task 185 extends official WHOIS TLD discovery and structured domain/IP
    records, including ARIN multiple matches, with compact bilingual results
    and explicit raw-response copy. This remains the existing registration tool;
-   final maintainer acceptance is pending, not implied by Task 184 transport QA.
+   overall maintainer acceptance is now confirmed by Task 197; the earlier
+   Task 184 transport QA alone did not imply that acceptance.
    Android 13/16 are Not Tested. No ASN/GeoIP/ownership
    inference, new page, result History or background lookup. Explain hidden/missing,
    rate-limited and unsupported fields and distinguish domain
@@ -1100,6 +1105,41 @@ version acceptance follow the [current testing policy](#development-testing-and-
   production-access requirements independently. Do not alter
   current price, signing, group, promo campaign, release artifact
   or Play Console settings as part of this planning decision.
+
+### Accepted version milestone — Task 197 / 2026-10-30
+
+- The maintainer explicitly confirms overall v0.10.0 acceptance. This closes the
+  version-acceptance prerequisite, not the separate authorization for Git or
+  release actions, and does not change the original functional scope.
+- Task 195's Android 12 language-switch ANR was reproduced and minimally fixed
+  by disposing the language dialog before locale-triggered Activity recreation.
+  Follow-up: 36 instrumentation passes, 2 explicit skips; 16 real language
+  transitions and 96 valid focus samples. Earlier QA evidence remains historical.
+- Task 196 exact release APK: `com.networktoolbox`, `0.10.0`, versionCode `12`,
+  minSdk `31`, targetSdk `36`; SHA-256
+  `478ED02CFB216C56C999B4848D5BAA4712C19F9F50A77F423F95EF23E949C509`.
+  Original signing identity is retained. JVM gates (3,158 variant results), lint
+  and release build passed. No new runtime changes are introduced by Task 197.
+- Representative technical RC evidence: Sony XQ-AT72 / Android 12. Under explicit
+  subsequent maintainer authorization, the actual Play-origin v0.9.1 installation
+  was upgraded via ADB without uninstall/data clearing; History, Favorite,
+  name/type/Notes, WoL, language and old-report reading were retained. This was
+  not an isolated-device or Play-delivered RC update. Minimal RC regression
+  supplements Task 195 QA; it is not a new exhaustive exact-RC multi-device run.
+- Android 13/16 are **Not Tested for Task 195/196 RC acceptance**. Do not infer
+  additional tested versions from overall maintainer confirmation or relabel
+  earlier development checks as exact-artifact acceptance.
+- `DISCLOSURE-010` remains open. Task 193 is an evidence audit; Task 194 bilingual
+  policy and Data Safety materials are unapproved local drafts, not deployed
+  policy or confirmed Console answers. Technical acceptance is not compliance
+  approval. Dedicated ESP work remains deferred, not falsely marked tested.
+- v0.10.0 AAB preparation/Upload Key signing, release notes and channel-specific
+  publication checks remain subsequent work. Preserve the accepted APK bytes;
+  any runtime change requires a new candidate and relevant validation.
+- No commit, push, merge/rebase, Tag, GitHub Release, Play upload/publication or
+  privacy deployment is authorized here. Existing v0.9.1 release artifacts and
+  channel state remain unchanged. Local evidence: `build/task195/`,
+  `build/task196/`, and `build/task197/TASK197_RELEASE_PREPARATION_REPORT.md`.
 
 ### Out of scope and governance
 

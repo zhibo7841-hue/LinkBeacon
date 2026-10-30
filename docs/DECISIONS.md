@@ -1,5 +1,40 @@
 # Decision Log
 
+## Decision: v0.10.0 version acceptance and release preparation
+
+- Date: 2026-10-30 / Task 197.
+- Status: **Maintainer overall version acceptance confirmed; technical RC accepted;
+  release preparation only, not published.**
+- Evidence: Task 195 closes the reproduced Android 12 language-dialog/recreation
+  ANR with the minimal disposal-before-locale change and targeted regression.
+  Task 196 builds `com.networktoolbox` / `0.10.0` / code `12` using the existing
+  App Signing Key. Accepted APK SHA-256:
+  `478ED02CFB216C56C999B4848D5BAA4712C19F9F50A77F423F95EF23E949C509`.
+- Actual upgrade: the maintainer separately authorized Sony XQ-AT72 / Android 12
+  instead of an isolated environment. The existing Play-origin v0.9.1 installation
+  was upgraded through ADB without uninstall/data clear. Requested History,
+  Favorite, profile, WoL, language and saved-report data survived cold starts.
+  This is not Play-store delivery testing. Task 195 QA plus Task 196 minimal
+  exact-RC checks are the recorded evidence, not a newly repeated full RC matrix.
+- Evidence boundary: Android 13/16 remain Not Tested for this final RC; the
+  maintainer's overall confirmation does not identify additional OS test results.
+- Scope: approved A/B delivery is accepted with the Task 192 dedicated
+  ESP32/ESP8266/ESPHome deferral intact; Stage C is not added. No historical
+  decision or previous release is deleted or retroactively rewritten.
+- Remaining gate: `DISCLOSURE-010` and actual Data Safety/policy decisions remain
+  open. Task 193 evidence and Task 194 local bilingual drafts do not constitute
+  policy deployment, submitted Console answers or compliance acceptance.
+- Consequence: update the [current product status](PRODUCT_PLAN.md#accepted-version-milestone--task-197--2026-10-30),
+  preserve the exact RC, and prepare controlled commit groups and channel steps.
+  A Play AAB requires its own build/structure/signature validation with the
+  independent Upload Key after separate authorization; the accepted APK is not
+  an AAB and must not be re-signed with that key.
+- Authorization boundary: no commit/push/merge/rebase, Tag, Release, Play upload
+  or policy deployment in Task 197. Existing signing keys, released artifacts,
+  store assets and prior local changes remain protected. Local review evidence:
+  `build/task197/TASK197_RELEASE_PREPARATION_REPORT.md`.
+
+
 ## Decision: Defer dedicated ESP32/ESP8266 and ESPHome recognition
 
 - Date: 2026-10-29 / Task 192.
