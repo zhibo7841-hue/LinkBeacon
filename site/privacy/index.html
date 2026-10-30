@@ -22,7 +22,7 @@
         <h1 id="policy-title">Privacy Policy</h1>
         <div class="metadata">
           <p>Effective date: <time datetime="2026-10-11">October 11, 2026</time></p>
-          <p>Last updated: <time datetime="2026-10-14">October 14, 2026</time></p>
+          <p>Last updated: <time datetime="2026-10-30">October 30, 2026</time></p>
           <p>Application: LinkBeacon · Android 12 or later</p>
           <p>Developer: LanYun Studio</p>
           <p>Privacy and support: <a href="mailto:lydd8086@gmail.com">lydd8086@gmail.com</a></p>
@@ -38,7 +38,7 @@
         </section>
         <section id="services">
           <h2>3. Services and data access</h2>
-          <p>The app provides network information, Ping, DNS Lookup, TCP Port Check and Port Scan, IPv4 Traceroute, an IPv4 subnet calculator, local IPv4 device discovery, Device Center, Wake-on-LAN, Wi-Fi Analyzer, SSL/TLS checks, Website Diagnostics and automatic network diagnosis. It uses network observations and user-entered targets to explain results and possible causes. It does not automatically repair networks or guarantee a definitive cause.</p>
+          <p>The app provides network information, Ping, DNS Lookup, TCP Port Check and Port Scan, IPv4 Traceroute, an IPv4 subnet calculator, local IPv4 device discovery, Device Center, Wake-on-LAN, Wi-Fi Analyzer, SSL/TLS checks, Website Diagnostics, automatic network diagnosis and RDAP/WHOIS registration queries. It uses network observations and user-entered targets to explain results and possible causes. It does not automatically repair networks or guarantee a definitive cause.</p>
         </section>
         <section id="permissions">
           <h2>4. Android permissions</h2>
@@ -64,19 +64,22 @@
           <p>Tests send the packets or requests necessary for the operation you start. DNS queries use the resolver path provided by Android. Private DNS, VPNs, proxies and system settings can affect the actual network path; displayed configured DNS addresses do not prove which server answered a particular query. Ping, TCP checks, Port Scan and Traceroute send probes to the chosen targets. SSL/TLS checks connect to a host/port and inspect handshake and public certificate information.</p>
           <p>What a target, resolver or intervening network can observe depends on the protocol, encryption and routing. A resolver may receive query names, and the destination website may receive the requested URL. Intervening networks may see connection metadata such as network addresses, ports and timing; this does not mean that they can read names or request content protected by encryption. A VPN or proxy can also change which addresses or content a particular party sees.</p>
           <p>Website Diagnostics sends HTTP/HTTPS requests to the entered URL and supported redirects. The URL path and query are sent even if the displayed query is redacted. Fragments are removed before execution, and URLs with embedded username/password credentials are rejected. These probes do not add an authorization header or maintain a cookie store. Their HTTP User-Agent identifies LinkBeacon and the app version.</p>
+          <p>RDAP sends the normalized registrable domain or public IPv4/IPv6 address you choose to services selected through IANA RDAP bootstrap data, using HTTPS. Refreshing those directories contacts IANA without sending the queried domain or IP. WHOIS uses separate server selection: domain queries use bundled WHOIS server mappings based on IANA root-zone records or first query IANA with the top-level domain; public-IP queries first contact IANA and may follow limited referrals to Regional Internet Registries (RIRs). Actual WHOIS queries and responses use plaintext TCP 43. The contacted services can observe the transmitted query and connection information. An HTTP proxy tunnel does not itself encrypt WHOIS. Registration queries do not send your LAN device inventory or diagnostic History.</p>
           <p>Automatic diagnosis selects necessary public targets after you start it, including auxiliary TCP probes to <code>223.5.5.5:443</code> and <code>1.1.1.1:443</code>, and <code>example.com</code> DNS/domain checks. It does not send an assembled report or device inventory to those targets.</p>
-          <p>LAN discovery uses reachability/TCP, mDNS and SSDP/UPnP requests, and reverse DNS where applicable. Reverse DNS can reach a resolver outside the LAN. Wake-on-LAN includes the selected MAC address in a local wake packet. Locally bound discovery and wake traffic may use a physical network rather than a VPN tunnel.</p>
+          <p>LAN discovery uses reachability/TCP, mDNS and SSDP/UPnP requests, reverse DNS where applicable, and bounded NBSTAT node-status queries or SSH initial-identification reads. These NBSTAT/SSH checks do not log in or run commands. Reverse DNS can reach a resolver outside the LAN. Wake-on-LAN includes the selected MAC address in a local wake packet. Locally bound discovery and wake traffic may use a physical network rather than a VPN tunnel.</p>
           <p>LinkBeacon does not automatically upload diagnostic histories or saved device profiles to a LanYun Studio server. This is not a claim of zero off-device traffic. Independent targets, DNS, VPN/proxy and chosen document/share providers may handle and retain data under their own policies.</p>
         </section>
         <section id="storage">
           <h2>8. Local History and saved devices</h2>
           <p>Supported completed checks and diagnostic reports are saved in an app-private Room database. History can include targets, IP addresses, DNS records, timing, errors, network facts and report explanations. Saved Devices are separate and can contain available addresses, identifiers, discovered names, custom names, device types, notes, favorite status, Wake-on-LAN settings and first/last-seen timestamps.</p>
+          <p>Registration results and raw responses are displayed in memory and are not automatically saved to History or result files. Public IANA directory data and refresh timestamps may be cached locally.</p>
           <p>Older saved diagnostic reports may include Wi-Fi names. Newer reduced snapshots omit that field, but upgrades do not erase older rows automatically. Device-network scopes can include a hash of Wi-Fi/network facts; a hash is not a guarantee of anonymity. Language preferences are saved locally or managed by Android's per-app language system. The app does not offer cloud synchronization.</p>
         </section>
         <section id="sharing">
           <h2>9. Exporting and sharing</h2>
-          <p>Copy, PDF save and Android Share happen when you request them. Reports may contain IP addresses, domains, DNS configuration and other network details. Review them before sharing. Scoped file-provider access lets the selected sharing flow read a report. A document provider can point to a cloud location, and a recipient app can upload or keep a copy. Clipboard handling depends on Android and other authorized software.</p>
-          <p>Website History omits URL query and fragment, but can retain the path, hosts, selected response headers and network context. A path can itself contain sensitive information. This limited redaction does not fully anonymize reports, profiles or URLs; copying, saving or sharing does not automatically remove those details.</p>
+          <p>At your request, supported reports are generated locally for copying, saving as TXT, Markdown or PDF, or Android Share. Reports may contain IP addresses, domains, DNS configuration and other network details. Review them before sharing. Scoped file-provider access lets the selected sharing flow read a report. A document provider can point to a cloud location, and a recipient app can upload or keep a copy. Clipboard handling depends on Android and other authorized software.</p>
+          <p>Website History omits URL query and fragment, but can retain the path, hosts, selected response headers and network context. A path can itself contain sensitive information. Stored History and full automatic-diagnosis exports are not fully anonymized. Website/TLS report exports use a separate reduced view that redacts numeric connection/DNS addresses, URL paths, queries and fragments, local network identifiers and certificate identity fields. Public target domain names, times and observed results remain; redaction does not guarantee anonymity.</p>
+          <p>Copying registration results can include raw server responses and contact information. Review the content before copying it.</p>
         </section>
         <section id="providers">
           <h2>10. Components, logs and this policy website</h2>
@@ -86,7 +89,7 @@
         </section>
         <section id="retention">
           <h2>11. Retention</h2>
-          <p>App-owned History and saved-device profiles do not automatically expire by date. History remains until deleted or the app's local storage is removed. Saved profiles are retained while they contain user-managed settings; removing a favorite does not necessarily remove the profile. See the separate deletion controls below. Wi-Fi observations are transient, not a saved access-point timeline. Shared PDFs may remain in app cache until a later share cleanup, system cache removal or app removal; no fixed expiry is promised. Android controls local log retention.</p>
+          <p>App-owned History and saved-device profiles do not automatically expire by date. History remains until deleted or the app's local storage is removed. Saved profiles can remain after a favorite or Wake-on-LAN configuration is removed. Clearing Wake-on-LAN removes only that configuration, not device identity or observation records. See the separate deletion controls below. Wi-Fi observations are transient, not a saved access-point timeline. Temporary shared report files, including TXT, Markdown and PDF, may remain in app cache until a later applicable share cleanup, system cache removal or app removal; no fixed deletion time is promised. Android controls local log retention.</p>
           <p>We retain support correspondence only for as long as necessary to fulfill the support purpose and applicable legal obligations. You may request deletion through the public support email in this policy. This is not an automatic deletion service or a promise to delete within a fixed number of days. Deleting app-local History does not delete support correspondence. We cannot directly control or guarantee deletion of copies retained independently by email providers or other recipients.</p>
           <p>The app disables standard automatic backup opt-in, but some Android manufacturers may still support device-to-device transfer. This policy does not guarantee that system migration never transfers app data. Copies held by you, recipients or external servers follow their respective retention practices.</p>
         </section>
@@ -102,11 +105,11 @@
             </ol>
             <p>If LanYun Studio does not hold any records corresponding to your request, we will tell you; in that case there is no developer-held data to delete.</p>
             <p>This process covers support correspondence and attachments held or controlled by LanYun Studio. Support data is retained only for the support purpose and applicable legal obligations. If legal obligations or other legitimate reasons require us to retain some correspondence or attachments, we will explain the affected data and applicable retention limitation to the requester. We do not promise automatic deletion or a fixed completion deadline.</p>
-            <p>We cannot remotely clear information stored only on your device. Nor do we guarantee deletion of copies independently retained by email providers or other recipients, PDFs you exported, clipboard copies, or logs held by external servers. The local deletion controls and their limits are explained below.</p>
+            <p>We cannot remotely clear information stored only on your device. Nor do we guarantee deletion of copies independently retained by email providers or other recipients, files you exported, clipboard copies, or logs held by external servers. The local deletion controls and their limits are explained below.</p>
           </div>
           <p>In History, use an item's delete action to remove that record, or select Clear history and confirm to remove all test History. These controls do not remove Saved Devices.</p>
           <p>Saved Devices are managed separately in Device Center. You can edit a device's custom name, type and notes, and remove it from favorites. Removing a favorite alone may leave other saved profile fields, including Wake-on-LAN settings. LinkBeacon currently does not provide a dedicated Delete Saved Device control. To remove all app-owned saved-device data, use Android's Clear Storage for LinkBeacon or uninstall it; this also removes app-owned History and settings.</p>
-          <p>These actions do not delete exported PDFs, clipboard copies, recipient data, support emails or destination-server logs. Local deletion is not certified secure erasure. The app has no account system or developer-hosted user database, so it has no online account-deletion service and cannot delete information held by independent targets or recipients.</p>
+          <p>These actions do not delete exported files, clipboard copies, recipient data, support emails or destination-server logs. Local deletion is not certified secure erasure. The app has no account system or developer-hosted user database, so it has no online account-deletion service and cannot delete information held by independent targets or recipients.</p>
         </section>
         <section id="security">
           <h2>13. Information protection</h2>
@@ -120,7 +123,7 @@
         <section id="updates">
           <h2>15. Policy updates</h2>
           <p>When this policy changes, we will explain the changes on these English and Simplified Chinese policy pages and record the actual update date. The original effective date will remain recorded separately. Material changes to data practices require the necessary policy disclosures and Google Play Data Safety review before those changes are implemented. Please review this page for current data-handling information. The two language versions describe the same practices.</p>
-          <p>This update clarifies how LinkBeacon maintains a unified privacy policy and refines descriptions of current permissions, third-party components and saved-device deletion controls. This policy revision does not change the app's actual data-handling practices.</p>
+          <p>This revision describes registration queries and local-identification checks available in v0.10.0, expands the report-export information and clarifies retention when Wake-on-LAN settings are cleared. Earlier app versions may not provide all of these features.</p>
         </section>
         <section id="questions">
           <h2>16. Privacy questions</h2>
