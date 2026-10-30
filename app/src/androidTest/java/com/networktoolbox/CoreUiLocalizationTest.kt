@@ -146,7 +146,10 @@ class CoreUiLocalizationTest {
             }
             click("Devices")
             node("Saved devices").assertExists()
-            node("Not scanned yet").assertExists()
+            // Saved rows follow the network summary and may start below the viewport.
+            compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("主力机"))
+            // Compact saved-device rows combine the address and observation status.
+            compose.onAllNodesWithText("Not scanned yet", substring = true).onFirst().assertExists()
             screenshot("$theme-devices")
             click("主力机")
             node("Device details").assertExists()

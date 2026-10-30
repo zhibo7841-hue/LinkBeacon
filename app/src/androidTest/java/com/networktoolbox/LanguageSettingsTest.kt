@@ -46,9 +46,11 @@ class LanguageSettingsTest {
     private fun clickText(value: String) = compose.onAllNodesWithText(value).firstDisplayed().performClick()
     private fun menu() = compose.onNodeWithContentDescription(text(com.networktoolbox.core.designsystem.R.string.shell_open_menu)).performClick()
     private fun back() = compose.onNodeWithContentDescription(text(R.string.settings_back)).performClick()
+    private fun selectLanguage(label: String) =
+        compose.onNode(hasText(label) and hasAnyAncestor(isDialog())).performClick()
     private fun choose(label: String) {
         clickText(text(R.string.settings_language))
-        clickText(label)
+        selectLanguage(label)
     }
     private fun changeAndVerify(action: () -> Unit) {
         lateinit var old: MainActivity
@@ -123,6 +125,82 @@ class LanguageSettingsTest {
         }
         compose.waitForIdle()
         compose.onAllNodesWithText(text(R.string.language_system)).firstDisplayed().assertExists()
+    }
+
+    @Test fun languageDialogIsDetachedBeforeLocaleRecreationStarts() {
+        compose.activityRule.scenario.onActivity {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("zh-Hans"))
+        }
+        compose.waitForIdle()
+        menu(); clickText(text(R.string.shell_settings))
+        clickText(text(R.string.settings_language))
+        lateinit var old: MainActivity
+        compose.activityRule.scenario.onActivity { old = it }
+        fun dialogRoots() = android.view.inspector.WindowInspector.getGlobalWindowViews().filter {
+            it.isAttachedToWindow && it !== old.window.decorView &&
+                (it.layoutParams as? android.view.WindowManager.LayoutParams)?.type ==
+                android.view.WindowManager.LayoutParams.TYPE_APPLICATION
+        }
+        compose.runOnIdle { assertTrue("The real dialog must be attached before selection", dialogRoots().isNotEmpty()) }
+        val rootsAtPause = mutableListOf<Int>()
+        val callbacks = object : android.app.Application.ActivityLifecycleCallbacks {
+            override fun onActivityPrePaused(activity: android.app.Activity) {
+                if (activity === old) rootsAtPause.add(dialogRoots().size)
+            }
+            override fun onActivityCreated(activity: android.app.Activity, state: android.os.Bundle?) = Unit
+            override fun onActivityStarted(activity: android.app.Activity) = Unit
+            override fun onActivityResumed(activity: android.app.Activity) = Unit
+            override fun onActivityPaused(activity: android.app.Activity) = Unit
+            override fun onActivityStopped(activity: android.app.Activity) = Unit
+            override fun onActivitySaveInstanceState(activity: android.app.Activity, state: android.os.Bundle) = Unit
+            override fun onActivityDestroyed(activity: android.app.Activity) = Unit
+        }
+        old.application.registerActivityLifecycleCallbacks(callbacks)
+        try {
+            changeAndVerify { selectLanguage("English") }
+            lateinit var recreated: MainActivity
+            compose.activityRule.scenario.onActivity {
+                assertEquals("Locale recreation must start after the dialog window is detached", listOf(0), rootsAtPause)
+                recreated = it
+            }
+            compose.waitUntil(10_000) { recreated.hasWindowFocus() }
+            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                .sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+            compose.waitForIdle()
+            assertEquals(0, fixture.scanStarts)
+            assertEquals(0, fixture.diagnosticStarts)
+            assertEquals(0, fixture.wakeSends)
+            assertEquals(0, history.writes)
+        } finally {
+            old.application.unregisterActivityLifecycleCallbacks(callbacks)
+        }
+    }
+
+    @Test fun dismissAndReselectLanguageDoNotRecreateOrStartWork() {
+        val selectedLabel = when (AppLanguage.fromLanguageTags(original)) {
+            AppLanguage.SYSTEM -> text(R.string.language_system)
+            AppLanguage.ENGLISH -> "English"
+            AppLanguage.SIMPLIFIED_CHINESE -> "简体中文"
+            null -> error("Unsupported test locale: $original")
+        }
+        menu(); clickText(text(R.string.shell_settings))
+        lateinit var old: MainActivity
+        compose.activityRule.scenario.onActivity { old = it }
+        clickText(text(R.string.settings_language)); clickText(text(R.string.settings_cancel))
+        compose.waitForIdle()
+        compose.waitUntil(10_000) { old.hasWindowFocus() }
+        choose(selectedLabel)
+        compose.waitForIdle()
+        compose.onNode(isDialog()).assertDoesNotExist()
+        compose.activityRule.scenario.onActivity {
+            assertSame(old, it)
+            assertEquals(original, AppCompatDelegate.getApplicationLocales().toLanguageTags())
+        }
+        compose.waitUntil(10_000) { old.hasWindowFocus() }
+        assertEquals(0, fixture.scanStarts)
+        assertEquals(0, fixture.diagnosticStarts)
+        assertEquals(0, fixture.wakeSends)
+        assertEquals(0, history.writes)
     }
 
     @Test fun runningScanSurvivesSettingsAndActualLanguageChange() {

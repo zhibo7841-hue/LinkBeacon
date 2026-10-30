@@ -211,7 +211,7 @@ class RoomFavoriteDeviceRepositoryTest {
     }
 
     @Test
-    fun `clearing wol config removes an otherwise orphaned profile`() = runBlocking {
+    fun `clearing wol config preserves identity and observations of a wol only profile`() = runBlocking {
         val repository = RoomFavoriteDeviceRepository(FakeFavoriteDeviceDao())
         val id = repository.save(
             favorite().copy(
@@ -221,9 +221,12 @@ class RoomFavoriteDeviceRepositoryTest {
             ),
         )
 
+        val before = repository.observeProfiles().first().single()
         repository.setWakeOnLanConfig(id, null)
-
-        assertTrue(repository.observeProfiles().first().isEmpty())
+        val after = repository.observeProfiles().first().single()
+        assertEquals(before.copy(wolConfig = null, updatedAt = after.updatedAt), after)
+        assertEquals(id, after.id)
+        assertNull(after.wolConfig)
     }
 
     @Test

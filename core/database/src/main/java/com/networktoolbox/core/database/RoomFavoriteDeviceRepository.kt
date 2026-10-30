@@ -137,17 +137,13 @@ class RoomFavoriteDeviceRepository @Inject constructor(
     }
 
     override suspend fun setWakeOnLanConfig(id: Long, config: WakeOnLanConfig?) {
-        val existing = favoriteDeviceDao.findById(id) ?: return
-        if (config == null && !existing.hasManagedStateBesidesWakeOnLan()) {
-            favoriteDeviceDao.deleteById(id)
-        } else {
-            favoriteDeviceDao.updateWakeOnLan(
-                id = id,
-                wolMacAddress = config?.macAddress?.toString(),
-                wolUdpPort = config?.udpPort,
-                updatedAt = System.currentTimeMillis(),
-            )
-        }
+        // Clearing WoL is not deleting the device identity or its observation history.
+        favoriteDeviceDao.updateWakeOnLan(
+            id = id,
+            wolMacAddress = config?.macAddress?.toString(),
+            wolUdpPort = config?.udpPort,
+            updatedAt = System.currentTimeMillis(),
+        )
     }
 
     override suspend fun updateLastObserved(id: Long, observation: FavoriteDeviceObservation) {
@@ -206,6 +202,3 @@ private fun FavoriteDeviceEntity.hasManagedStateBesidesUserDeviceType(): Boolean
 
 private fun FavoriteDeviceEntity.hasManagedStateBesidesNotes(): Boolean =
     isFavorite != 0 || !customName.isNullOrBlank() || wolMacAddress != null || userDeviceType != null
-
-private fun FavoriteDeviceEntity.hasManagedStateBesidesWakeOnLan(): Boolean =
-    isFavorite != 0 || !customName.isNullOrBlank() || userDeviceType != null || notes != null

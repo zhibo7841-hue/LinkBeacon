@@ -1,11 +1,340 @@
 # Decision Log
 
+## Decision: v0.10.0 version acceptance and release preparation
+
+- Date: 2026-10-30 / Task 197.
+- Status: **Maintainer overall version acceptance confirmed; technical RC accepted;
+  release preparation only, not published.**
+- Evidence: Task 195 closes the reproduced Android 12 language-dialog/recreation
+  ANR with the minimal disposal-before-locale change and targeted regression.
+  Task 196 builds `com.networktoolbox` / `0.10.0` / code `12` using the existing
+  App Signing Key. Accepted APK SHA-256:
+  `478ED02CFB216C56C999B4848D5BAA4712C19F9F50A77F423F95EF23E949C509`.
+- Actual upgrade: the maintainer separately authorized Sony XQ-AT72 / Android 12
+  instead of an isolated environment. The existing Play-origin v0.9.1 installation
+  was upgraded through ADB without uninstall/data clear. Requested History,
+  Favorite, profile, WoL, language and saved-report data survived cold starts.
+  This is not Play-store delivery testing. Task 195 QA plus Task 196 minimal
+  exact-RC checks are the recorded evidence, not a newly repeated full RC matrix.
+- Evidence boundary: Android 13/16 remain Not Tested for this final RC; the
+  maintainer's overall confirmation does not identify additional OS test results.
+- Scope: approved A/B delivery is accepted with the Task 192 dedicated
+  ESP32/ESP8266/ESPHome deferral intact; Stage C is not added. No historical
+  decision or previous release is deleted or retroactively rewritten.
+- Remaining gate: `DISCLOSURE-010` and actual Data Safety/policy decisions remain
+  open. Task 193 evidence and Task 194 local bilingual drafts do not constitute
+  policy deployment, submitted Console answers or compliance acceptance.
+- Consequence: update the [current product status](PRODUCT_PLAN.md#accepted-version-milestone--task-197--2026-10-30),
+  preserve the exact RC, and prepare controlled commit groups and channel steps.
+  A Play AAB requires its own build/structure/signature validation with the
+  independent Upload Key after separate authorization; the accepted APK is not
+  an AAB and must not be re-signed with that key.
+- Authorization boundary: no commit/push/merge/rebase, Tag, Release, Play upload
+  or policy deployment in Task 197. Existing signing keys, released artifacts,
+  store assets and prior local changes remain protected. Local review evidence:
+  `build/task197/TASK197_RELEASE_PREPARATION_REPORT.md`.
+
+
+## Decision: Defer dedicated ESP32/ESP8266 and ESPHome recognition
+
+- Date: 2026-10-29 / Task 192.
+- Status: **Accepted scope adjustment**, explicitly selected as Option B by the maintainer.
+- Decision: defer dedicated ESP32/ESP8266 and ESPHome smart-device recognition
+  enhancements beyond v0.10.0. They are no longer a Must Have or a missing-delivery
+  blocker for that version. This supersedes only that dedicated obligation in
+  the 2026-10-22 scope and Task 146 direction, not general device recognition.
+- Reason: control v0.10.0 scope and prioritize existing feature quality,
+  overall compatibility and version acceptance.
+- Preserve: existing LAN scanning/host discovery, general recognition and its
+  three-level assessment, NBSTAT hostnames, SSH service identification, UPnP and
+  other actual device clues, device details/Favorites/Notes/WoL, identity protection
+  and recognition evidence. Keep already implemented partial ESP-related clues;
+  do not claim unimplemented dedicated ESPHome capability is complete or remove
+  any protocol, model or test because of this deferral.
+- Follow-up: retain the [future candidate](PRODUCT_PLAN.md#deferred-recognition-candidate--task-192)
+  with **target version TBD**. Renewed maintainer confirmation is required before
+  scheduling; it does not automatically enter the next version's mainline.
+- Boundary: no blanket deferral/removal of other smart-device protocols and no
+  change to the remaining approved v0.10.0 scope. Only the SCOPE-B1 obligation for
+  this dedicated work is resolved by deferral. Privacy/Data Safety, compatibility,
+  signed upgrade and final-artifact acceptance remain open under their existing
+  gates. Documentation only; no Runtime, RC, version, signing or Play change,
+  and no commit/push/integration/release is authorized by this task.
+
+## Decision: Compact Wi-Fi facts and removable Wake-on-LAN configuration
+
+- Date: 2026-10-28 / Task 188, explicitly confirmed by the maintainer.
+- Default current/nearby Wi-Fi cards show SSID, BSSID, measured RSSI/dBm,
+  band/channel and a genuine current-connection match where available. No
+  subjective RSSI grades, repeated per-AP ages, permanent teaching text or
+  explanation controls. Expand existing real technical parameters and provenance.
+  Preserve important permission/cache/failure/staleness/uncertainty states and
+  independent current-connection versus scanned-AP evidence, including width.
+- Device Detail places WoL immediately after network checks and before basic
+  information. Remove the redundant standalone network-relationship card only;
+  retain identity, scope, association, scan session and recognition evidence.
+- Blank/whitespace WoL MAC means clear the entire optional MAC/UDP configuration,
+  not an empty valid MAC. Nonempty input retains strict validation. Clearing
+  does not delete a WoL-only saved profile or change its observed MAC, identity,
+  custom name/type/notes/favorite or First/Last Seen. Subsequent ordinary scan
+  observations may update Last Seen by the existing rules, never restore WoL.
+  A newly configured MAC uses the existing default port. No extra confirmation.
+- This supersedes conflicting older presentation/clear-retention descriptions,
+  not the scanner, identity algorithm, schema, permissions or release roadmap.
+  Task 188 leaves local review changes only: no commit/push/RC or publication.
+
+
+## Decision: Direct registration query and compact selectable presentation
+
+- Date: 2026-10-28 / Task 186, explicitly approved by the maintainer.
+- Clicking Query starts the selected protocol directly. This supersedes the
+  Task 178/183/184 blocking first-action confirmation and pre-query converted
+  target hint. Existing Privacy & Data stays available. Protocol-specific
+  external-service/plaintext WHOIS disclosure is in on-demand query details;
+  no replacement modal or permanent warning. Data recipients, transport and
+  retention do not change.
+- Results use the actual query target as their heading, with original input
+  only when different. Native text selection and region-level copy replace
+  per-field copy icons. Dates/statuses may be localized without changing the
+  underlying value; original timestamps/codes and complete responses remain
+  available. More fields, service notices/terms and query/raw details expand
+  independently. Separate matching network records remain separate.
+- Home, Tools and Devices reuse the existing small top-level header with
+  matching alignment and a Home title; Devices retains Search and navigation.
+- This is a UI/presentation change only. Query/referral logic, network budgets,
+  History/profiles, versions/signing, policies/Play and release scope are
+  unchanged. Final maintainer acceptance remains pending; no commit or remote
+  operation is authorized.
+
+## Decision: Complete registration fields and bounded official WHOIS discovery
+
+- Date: 2026-10-28 / Task 185, explicitly authorized for implementation;
+  **the registration module remains pending maintainer final acceptance**.
+- Keep one manual RDAP/WHOIS page and the existing input, network-route,
+  cancellation and request budgets. A versioned IANA root-db snapshot includes
+  `.asia`; other confirmed TLDs may query the IANA TLD WHOIS object and then
+  its validated `whois` service, within the same whole-query budget. A registry
+  response does not authorize arbitrary domain referrals or protocol fallback.
+- ARIN alone receives `+ n <public IP>` to request detailed matching network
+  records. Preserve separate network objects and source/summary provenance;
+  sort containing ranges by specificity without asserting end-user ownership.
+- Show actual main fields, qualify partial/unparsed/upstream results, retain
+  per-source raw text and user-initiated copy in memory. No History/profile,
+  policy publication, version, signing, Play or release change. Android 12 is
+  this task's representative device; existing Task 182 governance is unchanged.
+
+
+## Decision: Public-IP WHOIS referrals and system-route/Fake-IP compatibility
+
+- Date: 2026-10-27 / Task 184; **accepted for implementation** by the maintainer.
+- Both existing protocol choices accept a domain or public IPv4/IPv6. Keep the
+  compact input-side selector, offline ICANN PSL/ICU conversion and explicit
+  user action. Switching preserves input, clears obsolete results and never
+  queries. Existing once-per-protocol privacy disclosure remains.
+- Public-IP WHOIS starts at `whois.iana.org:43`. Follow only actual `refer`, `ReferralServer`, or initial-IANA-only `whois` values naming the five official RIR WHOIS services. No
+  octet-to-registry table, arbitrary server, automatic retry or RDAP fallback.
+  At most three server exchanges share 15 seconds and 128 KiB, with 64 KiB per
+  response, 3-second connect and 5-second read limits. Preserve per-step source,
+  target, result and bounded raw text; an IANA upstream allocation is not a
+  final regional registration record or proof of the end user's identity.
+- An IANA-selected RDAP or reviewed WHOIS service hostname may resolve to
+  198.18.0.0/15 on a Fake-IP network. Treat that as a transport mapping, retain
+  current Android Network routing and system proxy/PAC selection, and preserve
+  original-hostname HTTPS/TLS validation. Never substitute a mapped address
+  for server identity or accept it as a user-entered public IP. Other local/
+  reserved direct service destinations remain rejected.
+- System HTTP proxy routes use bounded CONNECT; proxy exclusions/PAC DIRECT
+  decisions come from the system selector. No custom proxy credentials, TLS
+  bypass, global DNS override, router changes or hidden direct-route fallback.
+  A proxy/network may deny TCP 43, and authenticated/SOCKS proxies are not
+  supported. Report actual errors, not 'no records'.
+- Task 184 supersedes only Task 183's initial domain-only WHOIS and direct-only
+  transport limits. Historical evidence remains unchanged. Current verification
+  is recorded in `V0.10_STAGE_B3_IMPLEMENTATION.md`: Android 12 normal-Wi-Fi
+  WHOIS IPv4/IPv6 and the four OpenClash paths pass. Android 13/16 are Not Tested.
+  Task 182 testing/release governance, History/profiles, the 38 protected files,
+  store assets, versions/signing and Play boundaries remain unchanged. No
+  commit, push, merge, rebase, tag, release or signed RC is authorized.
+
+## Decision: Complete the existing registration lookup with manual WHOIS and public-IP RDAP
+
+- Date: 2026-10-27
+- Status: **Accepted for implementation**, expressly confirmed by the maintainer
+  in Task 183; this is an enhancement of the existing B3 tool.
+- One page: RDAP remains the default; the input-side dropdown contains RDAP
+  and WHOIS only. Switching retains input, clears obsolete protocol results
+  and does not query. Neither protocol automatically falls back to the other.
+- Targets: ICU IDNA retains raw input, normalized full hostname and actual
+  registration query. Reviewed ICANN Public Suffix rules (including wildcard
+  and exception rules) determine registry-level domains; PRIVATE hosting
+  suffixes must not make hosted subdomains look independently registered.
+  Unknown suffixes are rejected rather than guessed using DNS or two labels.
+- RDAP public IPv4/IPv6 uses reviewed IANA directories and longest-prefix
+  matching. Private/special-use inputs are rejected before external access.
+  Registration country/region is not device geolocation; no ASN/GeoIP is added.
+- WHOIS first version is domain-only plaintext TCP 43 to reviewed registry
+  endpoints, with one necessary pre-query privacy disclosure. No arbitrary
+  user server, referral follow-up, retry or server rotation. Time, bytes,
+  cancellation, active-network binding and resource cleanup remain bounded.
+  Raw text has no RDAP-equivalent status semantics and is not logged.
+- Scope and release boundary: preserve HTTPS RDAP security, in-memory results,
+  existing History/profiles and other approved v0.10 features. No Room change,
+  online policy/Data Safety edit, version/signing/RC change or new testing/
+  release route is authorized. Task 182 testing/acceptance governance applies;
+  Task 183 does not authorize Commit, Push, Merge, Tag or Release.
+
+## Decision: Default automation device and maintainer version acceptance
+
+- Date: 2026-10-26
+- Status: **Accepted**, explicitly confirmed by the maintainer in Task 182.
+- Default automated physical device: **Sony Xperia 1 II / Android 12**.
+  Routine small tasks run only relevant automated checks; use this device when
+  physical-device automation is needed, without automatically repeating full
+  multi-device regression for every small task.
+- Version acceptance: after a complete version is finished, the maintainer
+  performs acceptance on other devices. Development automation is not that
+  acceptance and must not be reported as maintainer confirmation.
+- Publication/integration gate: **no Push, Merge, Tag or Release before explicit
+  maintainer confirmation of version acceptance**. Passing tests or finishing
+  an implementation task does not approve these actions.
+- Evidence: untested Android versions are **Not Tested**. Preserve the dates
+  and scope of historical tests; do not turn another device's pass into a pass
+  for an untested version.
+- Boundary: synchronize [the product testing policy](PRODUCT_PLAN.md#development-testing-and-version-acceptance).
+  This current governance rule does not rewrite historical pushes/releases,
+  alter feature scope or remove the final signed-artifact representative RC
+  gate. It authorizes no Runtime, version/signing, commit or remote operation.
+
+## Decision: Uniform three-level device-category assessment
+
+- Date: 2026-10-25
+- Status: **Accepted product principle**, expressly confirmed by the maintainer
+  in Task 171; implementation is confined to consolidation of Task 168–170 QA.
+- Decision: use Confirmed / Possible / Unknown for every device category. The
+  same contract supports consistent presentation and maintainable evidence rules
+  without treating the number of guesses as identification coverage.
+- Confirmed: directly attributable category evidence, including explicit device
+  self-report, is sufficient for the stated category only. It is not identity or
+  security authentication, a physical form-factor guarantee, or proof of OS/model.
+- Possible: meaningful actual indirect evidence is required. A valid NBSTAT
+  workstation observation can support a computer candidate; keywords, open
+  services, inventory truth or repeated weak clues cannot manufacture confirmation.
+- Separation: name, category, evidence level/source and service/role stay distinct.
+  SSH is not Linux/server hardware, SMB is not NAS hardware, and gateway IP is
+  not physical router proof. Name conflicts do not override independent valid
+  category evidence; unresolved category conflicts remain Unknown with sources.
+- Conflict policy: no last-result-wins. Consistent sources retain their provenance;
+  contradictory explicit categories remain Unknown. In the current conservative
+  QA mapping, incompatible weak/strong category claims also remain Unknown with
+  both reasons, rather than silently discarding the weaker claim. Duplicate weak
+  evidence never increases level. User settings remain highest priority.
+- Lifecycle: reuse C0 generation/network/target admission for progressive updates
+  and invalidation. Stopped or obsolete sessions cannot repopulate categories.
+  Inferences do not become durable identity keys or modify profiles, Notes,
+  Favorite, WoL, History snapshots, Room or First/Last Seen rules.
+- Delivery boundary: no new protocol, new WSD Probe or LAN scan in this task.
+  Offline fixtures test behavior, not real recognition rates. Prior live captures
+  retain their historical status; their replay is not a new discovery result.
+  Accepted principles do not automatically enable QA sources or enlarge v0.10.0.
+  Production integration remains a separate maintainer review.
+
+## Decision: Minimal default UI and bounded progressive device recognition
+
+- Date: 2026-10-24
+- Status: **Accepted principles and architecture direction**, confirmed by the
+  maintainer in Task 146. Technical parameters and protocol defaults remain
+  proposals pending review; this task authorizes no Runtime implementation.
+- App-wide UI: show core network parameters and valid results directly; focus
+  defaults on necessary data, actions and state. Offer general explanations and
+  detailed troubleshooting on demand. Keep concise source, uncertainty, cache
+  and error qualifiers with the affected facts, preserving key evidence while
+  consolidating repeated notices and keeping interaction paths direct. This
+  applies across LinkBeacon, not only LAN Scanner, and complements the Task 135
+  professional-evidence-first principle without rewriting historical decisions.
+- Maintainer clarification (2026-10-26 / Task 182): keep the default interface
+  concise; do not add redundant tutorials, suggestion cards, repeated reminders
+  or pop-ups. Add prompts only when necessary for permissions, errors, security,
+  privacy or data-loss risks, or when explicitly requested by the maintainer.
+  Preserve key network data, error states and necessary evidence. Optional
+  explanations remain available on demand; this clarification does not remove
+  existing analysis functions or authorize a Runtime/UI rewrite.
+- B1 priority: improve effective automatic names for common computers, phones
+  and tablets within the approved device-recognition scope. Smart-home/ESPHome
+  work remains included but does not substitute for ordinary-terminal evidence.
+  Discovery, name, category, brand and model/OS are separately qualified facts.
+  Historical scope follow-up: the Task 192 decision above supersedes the dedicated
+  ESP32/ESP8266/ESPHome obligation; general recognition and existing clues remain.
+- Architecture: adopt independent bounded pipeline C, with **C0 designed first**.
+  Admitted hosts can appear by IP before names; a separate bounded per-host queue
+  progressively supplies evidence without occupying discovery workers. Preserve
+  current shared mDNS/SSDP start timing, windows and catalog in the initial C0
+  design. A single session owner must merge discovery and enrichment safely.
+- Validation: current-network compliant DNS PTR, reverse mDNS PTR and conditional
+  NBSTAT receive separate controlled experiments, one new source at a time.
+  Their default activation is not approved by this decision. Measure real name
+  coverage, delay, request/resource costs and cancellation rather than claiming
+  hardware identity or universal coverage from a protocol's existence.
+- Compatibility: preserve online evidence, identity matching, Custom Name, user
+  Device Type, Notes, Favorite, WoL, History freeze/schema and discovery-owned
+  Last Seen. Preserve existing lawful StrongMatch metadata updates, rather than
+  redefining all observation work as zero-write. Do not add online hosts from
+  names or advertisements. C1 shared-window changes and ESPHome expansion keep
+  independent authorization and safety gates.
+- Consequence: synchronize the [product baseline](PRODUCT_PLAN.md) and produce
+  [the local-source C0 design](V0.10_STAGE_B1_PROGRESSIVE_DISCOVERY_DESIGN.md).
+  B1.1 commits, Stage A/B2 dependencies, v0.9.1, Runtime, permissions, signing,
+  versions, Play and release artifacts remain unchanged. No automatic C0, B1.2,
+  B1.3, B3/B4 or release action follows this documentation decision.
+
+## Decision: Professional evidence first with on-demand explanation
+
+- Date: 2026-10-22
+- Status: **Accepted product principle**, explicitly confirmed by the maintainer
+  in Task 135. The detailed Wi-Fi design is a review specification; proposed
+  implementation types, helper placement and UI mechanics are not Runtime approval.
+- Audience: network enthusiasts, HomeLab users, network learners and professional
+  network maintenance / operations personnel. The experience supports direct
+  technical verification, exploration and learning at different levels of experience.
+- UX: prioritize inspectable technical evidence and efficient operation, retain
+  network terminology and actual measurements, and make key facts readily available.
+  Offer technical explanations and troubleshooting suggestions on demand, with
+  clear labels, units, accessibility and appropriately qualified conclusions.
+- Status is not tutorial content: permission restrictions, request failure,
+  freshness/cache, unavailable values and source limitations stay visible with
+  the affected facts. Educational material and extended details can be expanded.
+- Presentation precedence: direct access to technical evidence takes priority
+  where earlier summary-first UI guidance would obscure it. Historical decisions
+  and delivered behavior remain documented. No existing network analysis function
+  is removed and v0.10.0's accepted scope is unchanged.
+- Public wording clarification (Task 135-R, 2026-10-23): use professional,
+  constructive and welcoming language, preserving learning support, accessibility,
+  privacy and accurate technical limitations. This is a wording revision, not a
+  feature-scope or technical-acceptance change.
+- Wi-Fi direction: a professional-data-first single page retaining current
+  connection, Networks / Channels, band/search and existing observation/refresh
+  lifecycles. Separate WifiInfo connection evidence from ScanResult observations;
+  no invented connection Channel Width, new quality score, automatic scan or
+  Best Channel verdict. See [PRODUCT_PLAN.md](PRODUCT_PLAN.md) and the
+  [Task 135 Wi-Fi review specification](V0.10_STAGE_B_WIFI_DESIGN.md).
+- Task boundary: documentation only; no B2.1/B2.2 implementation, B1/B3/B4 or
+  Stage C work, PR merge, push, version/signing/Play/release change. Stage A
+  remains Development Complete / Not RC Ready / Not Released.
+
 ## Decision: LinkBeacon v0.10.0 comprehensive tester feedback optimization
 
 - Date: 2026-10-22
-- Status: **Accepted planning scope / development not yet implemented or released**.
+- Status: **Accepted scope.** Task 134 progress checkpoint (2026-10-22): Stage A
+  **Development Complete**; Stage B technical design/preparation only, not Runtime
+  implementation. **Not RC Ready / Not Released.** See the canonical
+  [product progress](PRODUCT_PLAN.md#v0100--comprehensive-tester-feedback-optimization)
+  and [Stage A audit](V0.10_STAGE_A_AUDIT.md). This updates execution status, not
+  the accepted scope; proposed Stage B technical choices are not new accepted decisions.
 - Maintainer approval: approve v0.10.0 as the next coordinated tester-feedback and network-diagnostic improvement release. This supersedes the earlier **historical** “v0.10.0 not approved” checkpoint statements. v0.9.1 remains released, signed and frozen; no present Play track, AAB, pricing, enrollment or Production setting changes.
 - Main delivery: **Stages A and B are planned Must Have goals**. Stage A covers Quick Tools/Tools responsive, equally aligned cards; recognized/unknown LAN identity filtering with accurate counts and preserved scan boundaries; user-directed local TXT and Markdown export of live/stored automatic-diagnosis reports; clear evidence-based troubleshooting explanations; focused History reliability review/fixes supported by evidence. Stage B covers conservative ESP32/ESP8266/smart-home discovery based on observed PTR/mDNS/SSDP/UPnP evidence; Wi-Fi signal and observed-channel explanation; an explicit bounded RDAP-first WHOIS/domain-registration query tool; and redacted, bilingual local export/copy/PDF sharing for Website/TLS live and saved snapshots.
+- Subsequent scope adjustment: Task 192 / 2026-10-29 explicitly defers only the
+  dedicated ESP32/ESP8266/ESPHome enhancement in this historical scope. The current
+  future-candidate record and preserved capabilities are defined by the decision
+  above; other Must Have goals and release gates are unchanged.
 - Acceptance gate for A/B: do not claim device/vendor certainty, precise RF channel load, best channel, full domain-data coverage or definitive network fault diagnosis. If a Must Have cannot be made safe, privacy-compliant and verifiably usable, stop for explicit maintainer deferral/change decision rather than silently shipping a weakened feature.
 - **Stage C is conditional research only, not automatically committed or authorized runtime scope**: controlled LAN iPerf3 throughput; explicitly user-selected trusted Tailnet/VPN connectivity, not unrestricted VPN scanning; and one future complete additional locale chosen separately. Any inclusion in v0.10.0 requires a specific demonstrated feasibility/QA/privacy gate and explicit scope-acceptance decision. Public cloud Speed Test and broad 100.64.0.0/10 scans are not approved by this decision.
 - URL screenshot feedback: approve readable structured website-diagnostic evidence snapshots/export, **not** a WebView, website renderer or generic screenshot tool.

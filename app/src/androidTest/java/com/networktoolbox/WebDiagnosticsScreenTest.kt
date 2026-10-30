@@ -73,7 +73,7 @@ class WebDiagnosticsScreenTest {
 
         compose.onNodeWithTag("website_target").assertIsDisplayed()
         compose.onNodeWithTag("website_start").assertIsDisplayed()
-        compose.onNodeWithText(compose.activity.getString(R.string.web_privacy_note)).assertIsDisplayed()
+        compose.onNodeWithText(compose.activity.getString(R.string.web_privacy_note)).assertDoesNotExist()
     }
 
     @Test fun websiteRunningShowsTypedPipelineAndCancellation() {

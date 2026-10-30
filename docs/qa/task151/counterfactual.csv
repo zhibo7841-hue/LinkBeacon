@@ -1,0 +1,2 @@
+scenario,flow,targets,lookup_ms,executed,success,visible_timeouts,deferred,deferred_reason,queued_peak,pending_peak,physical_peak,wait_max_ms,caller_elapsed_ms,retained_at_completion,final_physical,final_queued,final_pending
+stop-rescan-16000ms,candidate20,60,5,60,60,0,0,none,4,0,4,16017,16203,0,0,0,0

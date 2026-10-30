@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -72,6 +73,8 @@ import com.networktoolbox.feature.report.presentation.DiagnosticFindingPresentat
 import com.networktoolbox.feature.report.presentation.DiagnosticReportPresentation
 import com.networktoolbox.feature.report.presentation.DiagnosticReportPdfRenderer
 import com.networktoolbox.feature.report.presentation.DiagnosticReportTextFormatter
+import com.networktoolbox.feature.report.presentation.DiagnosticReportMarkdownFormatter
+import com.networktoolbox.feature.report.presentation.ReportTextFormat
 import com.networktoolbox.feature.report.presentation.DiagnosticStageSummary
 import com.networktoolbox.feature.report.presentation.DiagnosticStatusPresentation
 import com.networktoolbox.feature.report.presentation.ReportProgress
@@ -101,6 +104,8 @@ fun ReportScreen(
     onCopyReport: (String) -> Unit = {},
     onSavePdf: (ByteArray, String) -> Unit = { _, _ -> },
     onSharePdf: (ByteArray, String) -> Unit = { _, _ -> },
+    onSaveText: (String, ReportTextFormat, String) -> Unit = { _, _, _ -> },
+    onShareText: (String, ReportTextFormat, String) -> Unit = { _, _, _ -> },
 ) {
     val hasRestoredReport = restoredReport != null || restoredAutomaticResult != null
     val isRunning = context == ReportPresentationContext.LIVE_TOOL &&
@@ -140,6 +145,8 @@ fun ReportScreen(
                     onCopyReport = onCopyReport,
                     onSavePdf = onSavePdf,
                     onSharePdf = onSharePdf,
+                    onSaveText = onSaveText,
+                    onShareText = onShareText,
                 )
 
                 restoredReport != null -> ReportContent(
@@ -148,6 +155,8 @@ fun ReportScreen(
                     onCopyReport = onCopyReport,
                     onSavePdf = onSavePdf,
                     onSharePdf = onSharePdf,
+                    onSaveText = onSaveText,
+                    onShareText = onShareText,
                 )
 
                 uiState.status is ReportStatus.Running -> RunningContent(
@@ -161,6 +170,8 @@ fun ReportScreen(
                     onCopyReport = onCopyReport,
                     onSavePdf = onSavePdf,
                     onSharePdf = onSharePdf,
+                    onSaveText = onSaveText,
+                    onShareText = onShareText,
                 )
 
                 uiState.status is ReportStatus.NetworkChanged -> NetworkChangedContent(
@@ -179,6 +190,8 @@ fun ReportScreen(
                     onCopyReport = onCopyReport,
                     onSavePdf = onSavePdf,
                     onSharePdf = onSharePdf,
+                    onSaveText = onSaveText,
+                    onShareText = onShareText,
                 )
 
                 uiState.status is ReportStatus.Cancelled -> CancelledContent(
@@ -280,7 +293,16 @@ private fun AutomaticReportContent(
     onCopyReport: (String) -> Unit,
     onSavePdf: (ByteArray, String) -> Unit,
     onSharePdf: (ByteArray, String) -> Unit,
+    onSaveText: (String, ReportTextFormat, String) -> Unit,
+    onShareText: (String, ReportTextFormat, String) -> Unit,
 ) {
+    if (result.historyWriteOutcome == com.networktoolbox.core.common.history.HistoryWriteOutcome.FAILED) {
+        Text(
+            stringResource(R.string.report_history_save_failed),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
     UnifiedDiagnosticReportContent(
         presentation = DiagnosticPresentationMapper.forLive(result, ReportLocalizationContext.capture(LocalContext.current)),
         exportPresentation = { localization -> DiagnosticPresentationMapper.forLive(result, localization) },
@@ -289,6 +311,8 @@ private fun AutomaticReportContent(
         onCopyReport = onCopyReport,
         onSavePdf = onSavePdf,
         onSharePdf = onSharePdf,
+        onSaveText = onSaveText,
+        onShareText = onShareText,
     )
 }
 
@@ -305,6 +329,8 @@ private fun UnifiedDiagnosticReportContent(
     onCopyReport: (String) -> Unit,
     onSavePdf: (ByteArray, String) -> Unit,
     onSharePdf: (ByteArray, String) -> Unit,
+    onSaveText: (String, ReportTextFormat, String) -> Unit,
+    onShareText: (String, ReportTextFormat, String) -> Unit,
 ) {
     val stageSummaries = DiagnosticPresentationMapper.stageSummariesForPresentation(
         presentation.checks,
@@ -404,6 +430,8 @@ private fun UnifiedDiagnosticReportContent(
             onCopyReport = onCopyReport,
             onSavePdf = onSavePdf,
             onSharePdf = onSharePdf,
+            onSaveText = onSaveText,
+            onShareText = onShareText,
         )
     }
 }
@@ -520,7 +548,9 @@ private fun DiagnosticFindingCode.newVerificationMessage(): String = when (this)
     else -> stringResource(R.string.verification_new_item, verificationLabel())
 }
 
-private enum class ReportExportOperation { COPY_TEXT, SAVE_PDF, SHARE_PDF }
+private enum class ReportExportOperation {
+    COPY_TEXT, SAVE_PDF, SHARE_PDF, SAVE_TXT, SHARE_TXT, SAVE_MARKDOWN, SHARE_MARKDOWN,
+}
 
 @Composable
 private fun ReportExportActions(
@@ -530,10 +560,13 @@ private fun ReportExportActions(
     onCopyReport: (String) -> Unit,
     onSavePdf: (ByteArray, String) -> Unit,
     onSharePdf: (ByteArray, String) -> Unit,
+    onSaveText: (String, ReportTextFormat, String) -> Unit,
+    onShareText: (String, ReportTextFormat, String) -> Unit,
 ) {
     var optionsVisible by rememberSaveable(stateKey) { mutableStateOf(false) }
     var copyFeedbackVisible by rememberSaveable(stateKey) { mutableStateOf(false) }
     var pdfErrorVisible by rememberSaveable(stateKey) { mutableStateOf(false) }
+    var textErrorVisible by rememberSaveable(stateKey) { mutableStateOf(false) }
     val appContext = LocalContext.current
 
     fun dispatch(operation: ReportExportOperation) {
@@ -546,6 +579,32 @@ private fun ReportExportActions(
             ReportExportOperation.COPY_TEXT -> {
                 onCopyReport(DiagnosticReportTextFormatter.formatReport(frozenPresentation, localization))
                 copyFeedbackVisible = true
+            }
+
+            ReportExportOperation.SAVE_TXT,
+            ReportExportOperation.SHARE_TXT,
+            ReportExportOperation.SAVE_MARKDOWN,
+            ReportExportOperation.SHARE_MARKDOWN,
+            -> runCatching {
+                val format = when (operation) {
+                    ReportExportOperation.SAVE_TXT, ReportExportOperation.SHARE_TXT -> ReportTextFormat.TXT
+                    else -> ReportTextFormat.MARKDOWN
+                }
+                val content = if (format == ReportTextFormat.TXT) {
+                    DiagnosticReportTextFormatter.formatReport(frozenPresentation, localization)
+                } else {
+                    DiagnosticReportMarkdownFormatter.formatReport(frozenPresentation, localization)
+                }
+                val fileName = format.fileName(presentation.timestamp)
+                if (operation == ReportExportOperation.SAVE_TXT ||
+                    operation == ReportExportOperation.SAVE_MARKDOWN
+                ) {
+                    onSaveText(content, format, fileName)
+                } else {
+                    onShareText(content, format, fileName)
+                }
+            }.onFailure {
+                textErrorVisible = true
             }
 
             ReportExportOperation.SAVE_PDF,
@@ -583,7 +642,10 @@ private fun ReportExportActions(
             onDismissRequest = { optionsVisible = false },
             title = { Text(stringResource(R.string.report_export)) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(
+                    modifier = Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     Text(
                         stringResource(R.string.report_export_privacy),
                     )
@@ -596,6 +658,26 @@ private fun ReportExportActions(
                         dispatch(ReportExportOperation.SHARE_PDF)
                     }) {
                         Text(stringResource(R.string.report_share_pdf))
+                    }
+                    TextButton(onClick = {
+                        dispatch(ReportExportOperation.SAVE_TXT)
+                    }) {
+                        Text(stringResource(R.string.report_save_txt))
+                    }
+                    TextButton(onClick = {
+                        dispatch(ReportExportOperation.SHARE_TXT)
+                    }) {
+                        Text(stringResource(R.string.report_share_txt))
+                    }
+                    TextButton(onClick = {
+                        dispatch(ReportExportOperation.SAVE_MARKDOWN)
+                    }) {
+                        Text(stringResource(R.string.report_save_markdown))
+                    }
+                    TextButton(onClick = {
+                        dispatch(ReportExportOperation.SHARE_MARKDOWN)
+                    }) {
+                        Text(stringResource(R.string.report_share_markdown))
                     }
                     TextButton(onClick = {
                         dispatch(ReportExportOperation.COPY_TEXT)
@@ -613,6 +695,13 @@ private fun ReportExportActions(
     if (pdfErrorVisible) {
         Text(
             text = stringResource(R.string.report_pdf_error),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
+    if (textErrorVisible) {
+        Text(
+            text = stringResource(R.string.report_text_error),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
         )
@@ -1123,6 +1212,8 @@ private fun ReportContent(
     onCopyReport: (String) -> Unit,
     onSavePdf: (ByteArray, String) -> Unit,
     onSharePdf: (ByteArray, String) -> Unit,
+    onSaveText: (String, ReportTextFormat, String) -> Unit,
+    onShareText: (String, ReportTextFormat, String) -> Unit,
 ) {
     UnifiedDiagnosticReportContent(
         presentation = DiagnosticPresentationMapper.forHistory(report, ReportLocalizationContext.capture(LocalContext.current)),
@@ -1131,6 +1222,8 @@ private fun ReportContent(
         onCopyReport = onCopyReport,
         onSavePdf = onSavePdf,
         onSharePdf = onSharePdf,
+        onSaveText = onSaveText,
+        onShareText = onShareText,
     )
 }
 

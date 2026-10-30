@@ -35,13 +35,30 @@ import kotlinx.coroutines.flow.flowOf
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [NetworkModule::class])
 object RecreationNetworkModule {
-    @Provides @Singleton fun wifiScanRepository(): WifiScanRepository = object : WifiScanRepository {
+    @Provides fun hostEnricher(): com.networktoolbox.feature.lanscan.domain.recognition.LanHostEnricher =
+        com.networktoolbox.feature.lanscan.domain.recognition.NoOpLanHostEnricher
+
+    // This module replaces all production network bindings for synthetic recreation tests.
+    // Actual Android lease tests instantiate AndroidNetworkLeaseProvider directly.
+    @Provides
+    fun provideNetworkLeaseProvider(): com.networktoolbox.core.network.lease.NetworkLeaseProvider =
+        com.networktoolbox.core.network.lease.NetworkLeaseProvider { _, _ ->
+            object : com.networktoolbox.core.network.lease.NetworkLease {
+                override val id = java.util.UUID.randomUUID().toString()
+                override val policyRevision = 1L
+                override var valid = true
+                override fun revalidate() = valid
+                override fun close() { valid = false }
+            }
+        }
+
+    @Provides @Singleton fun wifiScanRepository(f: RecreationFixture): WifiScanRepository = object : WifiScanRepository {
         override val snapshots = MutableStateFlow(WifiAnalyzerSnapshot(
             accessStatus = WifiScanAccessStatus.PLATFORM_RESTRICTED,
         ))
-        override suspend fun startObserving() = Unit
-        override suspend fun stopObserving() = Unit
-        override suspend fun requestRefresh() = Unit
+        override suspend fun startObserving() { f.wifiObserverStarts++ }
+        override suspend fun stopObserving() { f.wifiObserverStops++ }
+        override suspend fun requestRefresh() { f.wifiRefreshes++ }
     }
     @Provides @Singleton fun wifiAnalyzerUseCase(repository: WifiScanRepository) = WifiAnalyzerUseCase(repository)
     @Provides @Singleton fun fixture() = RecreationFixture()
@@ -55,10 +72,14 @@ object RecreationNetworkModule {
         RunLanScanUseCase(r, object : LanDiscoveryEngine {
             override suspend fun scan(request: LanScanRequest, currentNetworkContext: suspend () -> NetworkContext, onUpdate: (LanScanUpdate) -> Unit): LanScanSession {
                 f.scanStarts++
-                f.finishScan.await()
+                try { f.finishScan.await() }
+                catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    f.scanCancellations++
+                    throw cancelled
+                }
                 val range = (LanScanRangeCalculator().calculate(f.network.value) as LanScanRangeResult.Ready).range
                 return LanScanSession(LanScanStatus.COMPLETED, f.network.value, range,
-                    range.hostCount, range.hostCount, emptyList(), 1, 2)
+                    range.hostCount, range.hostCount, f.scanDevices, 1, 2)
             }
         }, h)
     @Provides fun reverse(): ReverseDnsEnricher = ReverseDnsEnricher { _, _ -> }
@@ -90,7 +111,7 @@ object RecreationNetworkModule {
     }
     @Provides fun tlsCheck(f: RecreationFixture): RunTlsCheck = RunTlsCheck { _, _, _ ->
         f.tlsStarts++
-        error("Unexpected SSL/TLS Check in recreation test")
+        f.exportTlsResult ?: error("Unexpected SSL/TLS Check in recreation test")
     }
     @Provides fun websiteDiagnostics(f: RecreationFixture): WebsiteDiagnosticUseCase = object : WebsiteDiagnosticUseCase {
         override suspend fun run(
@@ -98,7 +119,7 @@ object RecreationNetworkModule {
             onProgress: (WebsiteDiagnosticProgress) -> Unit,
         ): WebsiteDiagnosticSnapshot {
             f.websiteStarts++
-            error("Unexpected Website Diagnostics in recreation test")
+            return f.exportWebsiteResult ?: error("Unexpected Website Diagnostics in recreation test")
         }
     }
     @Provides fun analyzer(): DiagnosticAnalyzerV4 = DefaultDiagnosticAnalyzerV4()
@@ -119,6 +140,11 @@ object RecreationNetworkModule {
 }
 
 class RecreationFixture {
+    var exportTlsResult: com.networktoolbox.feature.webdiagnostics.domain.TlsCheckResult? = null
+    var exportWebsiteResult: WebsiteDiagnosticSnapshot? = null
+    var wifiObserverStarts = 0
+    var wifiObserverStops = 0
+    var wifiRefreshes = 0
     val network = MutableStateFlow(NetworkContext(
         connectionType = ConnectionType.WIFI, ipv4Address = "192.168.50.20",
         ipv4PrefixLength = 24, gateway = "192.168.50.1", wifiName = "RecreationFixture",
@@ -127,11 +153,14 @@ class RecreationFixture {
     ))
     var pingStarts = 0
     var scanStarts = 0
+    var scanCancellations = 0
+    var scanDevices: List<LanDevice> = emptyList()
     var wakeSends = 0
     var diagnosticStarts = 0
     var tlsStarts = 0
     var websiteStarts = 0
     var profileWrites = 0
+    var profileLookupEnabled = false
     val finishScan = CompletableDeferred<Unit>()
     val finishDiagnostic = CompletableDeferred<Unit>()
     val profiles = MutableStateFlow((1..25).map { index ->

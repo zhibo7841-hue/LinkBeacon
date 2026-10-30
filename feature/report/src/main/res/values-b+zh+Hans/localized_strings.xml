@@ -161,4 +161,10 @@
     <string name="report_tcp_network">网络不可达</string>
     <string name="report_tcp_route">无可用路由</string>
     <string name="report_tcp_internal">检测内部错误</string>
+    <string name="report_save_txt">保存 TXT</string>
+    <string name="report_share_txt">分享 TXT</string>
+    <string name="report_save_markdown">保存 Markdown (.md)</string>
+    <string name="report_share_markdown">分享 Markdown (.md)</string>
+    <string name="report_text_error">无法生成文本报告，请重试。</string>
+    <string name="report_history_save_failed">诊断已完成，但未能保存到本地历史。仍可导出当前报告。</string>
 </resources>

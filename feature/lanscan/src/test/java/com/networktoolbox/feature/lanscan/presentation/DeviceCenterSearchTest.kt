@@ -338,6 +338,82 @@ class DeviceCenterSearchTest {
         assertPresentationEquals(listOf(notedFavorite), result)
     }
 
+    @Test
+    fun identityFiltersUseObservedEvidenceNotJustSavedCustomNames() {
+        val unknownDevice = observed.device!!.copy(
+            hostName = null,
+            upnpDisplayNameCandidate = null,
+            mdnsDisplayNameCandidate = null,
+            upnpObservations = emptyList(),
+            mdnsObservations = emptyList(),
+        )
+        val unknownWithCustomName = observed.copy(
+            device = unknownDevice,
+            card = observed.card.copy(displayName = UiText("My Custom Label")),
+            favorite = observed.favorite!!.copy(customName = "My Custom Label"),
+        )
+        val items = listOf(observed, unknownWithCustomName, saved)
+
+        assertPresentationEquals(
+            listOf(observed),
+            DeviceCenterPresentation.filterDeviceItems(items, "", DeviceCenterFilter.IDENTIFIED),
+        )
+        assertPresentationEquals(
+            listOf(unknownWithCustomName),
+            DeviceCenterPresentation.filterDeviceItems(items, "", DeviceCenterFilter.UNKNOWN_IDENTITY),
+        )
+        assertFalse(DeviceCenterPresentation.hasObservedIdentity(unknownWithCustomName))
+        assertFalse(DeviceCenterPresentation.hasObservedIdentity(saved))
+    }
+
+    @Test
+    fun knownGatewayRoleIsIdentifiedWithoutNetworkHostname() {
+        val gatewayWithoutHostname = observed.copy(
+            device = observed.device!!.copy(
+                hostName = null,
+                upnpDisplayNameCandidate = null,
+                isGateway = true,
+            ),
+        )
+        assertTrue(DeviceCenterPresentation.hasObservedIdentity(gatewayWithoutHostname))
+    }
+
+    @Test
+    fun identityFilterCombinesWithSearchAndPreservesObservedOrder() {
+        val unknown = secondObserved.copy(
+            device = secondObserved.device!!.copy(
+                hostName = null,
+                upnpDisplayNameCandidate = null,
+            ),
+        )
+        assertPresentationEquals(
+            listOf(unknown),
+            DeviceCenterPresentation.filterDeviceItems(
+                listOf(observed, unknown, saved),
+                "10.0.1.122",
+                DeviceCenterFilter.UNKNOWN_IDENTITY,
+            ),
+        )
+    }
+
+    @Test
+    fun genericNamesAndIpFallbackAreUnknownEvenWithSavedVendorAndType() {
+        for (name in listOf("unknown", "device", "10.0.1.10", "localhost")) {
+            val value = observed.copy(device = observed.device!!.copy(hostName = name, upnpDisplayNameCandidate = name))
+            assertFalse(name, DeviceCenterPresentation.hasObservedIdentity(value))
+            assertPresentationEquals(listOf(value), DeviceCenterPresentation.filterDeviceItems(
+                listOf(value, saved), "", DeviceCenterFilter.UNKNOWN_IDENTITY,
+            ))
+        }
+    }
+
+    @Test
+    fun persistedUnseenProfileIsNeitherCurrentIdentifiedNorCurrentUnknown() {
+        assertTrue(DeviceCenterPresentation.filterDeviceItems(listOf(saved), "", DeviceCenterFilter.IDENTIFIED).isEmpty())
+        assertTrue(DeviceCenterPresentation.filterDeviceItems(listOf(saved), "", DeviceCenterFilter.UNKNOWN_IDENTITY).isEmpty())
+        assertPresentationEquals(listOf(saved), filter(DeviceCenterFilter.NOT_DISCOVERED))
+    }
+
     private fun filter(filter: DeviceCenterFilter): List<DeviceCenterDeviceItem> =
         DeviceCenterPresentation.filterDeviceItems(
             items = allItems,

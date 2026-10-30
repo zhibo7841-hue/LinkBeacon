@@ -1,7 +1,7 @@
 <resources>
     <string name="dns_title">DNS Lookup</string>
     <string name="dns_domain">Domain</string>
-    <string name="dns_example">e.g. www.baidu.com</string>
+    <string name="dns_example">www.example.com</string>
     <string name="dns_invalid_help">Invalid domain format. Check your input.</string>
     <string name="dns_loading">Querying DNS…</string>
     <string name="dns_query">Query</string>

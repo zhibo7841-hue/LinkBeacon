@@ -24,6 +24,7 @@ internal enum class DashboardToolId {
     REPORT,
     TLS_CHECK,
     WEBSITE_DIAGNOSTICS,
+    DOMAIN_REGISTRATION,
 }
 
 internal data class DashboardNavigationCallbacks(
@@ -38,6 +39,7 @@ internal data class DashboardNavigationCallbacks(
     val onOpenReport: () -> Unit,
     val onOpenTlsCheck: () -> Unit = {},
     val onOpenWebsiteDiagnostics: () -> Unit = {},
+    val onOpenRdap: () -> Unit = {},
 )
 
 internal data class DashboardToolDefinition(
@@ -58,6 +60,8 @@ internal data class DashboardToolSection(
 internal fun dashboardToolDefinitions(
     callbacks: DashboardNavigationCallbacks,
 ): List<DashboardToolDefinition> = listOf(
+    DashboardToolDefinition(DashboardToolId.DOMAIN_REGISTRATION,Icons.Outlined.Language,
+        R.string.home_rdap,R.string.home_rdap_help,NetworkToolAccent.CYAN,callbacks.onOpenRdap),
     DashboardToolDefinition(
         id = DashboardToolId.PING,
         icon = Icons.Outlined.WifiTethering,
@@ -178,6 +182,7 @@ internal fun dashboardToolSections(
             tools = listOf(
                 definitions.getValue(DashboardToolId.DNS),
                 definitions.getValue(DashboardToolId.TLS_CHECK),
+                definitions.getValue(DashboardToolId.DOMAIN_REGISTRATION),
             ),
         ),
         DashboardToolSection(

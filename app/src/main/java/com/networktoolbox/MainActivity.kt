@@ -2,6 +2,14 @@ package com.networktoolbox
 
 import com.networktoolbox.feature.report.presentation.DiagnosticHistoryLocalization
 import com.networktoolbox.feature.report.presentation.ReportLocalizationContext
+import com.networktoolbox.feature.webdiagnostics.export.WebExportSource
+import com.networktoolbox.feature.webdiagnostics.export.WebExportDocument
+import com.networktoolbox.feature.webdiagnostics.export.WebExportFormat
+import com.networktoolbox.feature.webdiagnostics.ui.WebExportActions
+import com.networktoolbox.feature.webdiagnostics.ui.WebExportAction
+import com.networktoolbox.feature.webdiagnostics.R as WebR
+import com.networktoolbox.feature.rdap.RdapViewModel
+import com.networktoolbox.feature.rdap.RdapScreen
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -86,6 +94,7 @@ import com.networktoolbox.feature.report.diagnostic.v2.ResolvedDiagnosticHistory
 import com.networktoolbox.feature.report.presentation.ReportStatus
 import com.networktoolbox.feature.report.presentation.ReportPresentationContext
 import com.networktoolbox.feature.report.presentation.ReportViewModel
+import com.networktoolbox.feature.report.presentation.ReportTextFormat
 import com.networktoolbox.feature.report.ui.ReportScreen
 import com.networktoolbox.feature.subnet.presentation.SubnetViewModel
 import com.networktoolbox.feature.subnet.ui.SubnetScreen
@@ -105,6 +114,10 @@ import com.networktoolbox.core.designsystem.NetworkToolboxTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collect
 
 @AndroidEntryPoint
@@ -129,7 +142,12 @@ class MainActivity : AppCompatActivity() {
     private val savedReportViewModel: SavedReportViewModel by viewModels()
     private val savedWebDiagnosticsHistoryViewModel: SavedWebDiagnosticsHistoryViewModel by viewModels()
     private val pdfExportViewModel: PdfExportViewModel by viewModels()
+    private val textExportViewModel: TextExportViewModel by viewModels()
     private var pdfLauncher: ActivityResultLauncher<String>? = null
+    private var textLauncher: ActivityResultLauncher<String>? = null
+    private val webExportViewModel: WebExportViewModel by viewModels()
+    private val rdapViewModel: RdapViewModel by viewModels()
+    private var webExportLauncher: ActivityResultLauncher<String>? = null
     private val wifiPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { grants ->
@@ -224,16 +242,179 @@ class MainActivity : AppCompatActivity() {
         }.also { pdfLauncher = it }
     }
 
+    /** Carry only the correlation ID and text type across Activity recreation. */
+    private fun registerTextRequest(id: String, format: ReportTextFormat): ActivityResultLauncher<String> {
+        textLauncher?.unregister()
+        return activityResultRegistry.register(
+            "diagnostic-text:$id",
+            ActivityResultContracts.CreateDocument(format.mimeType),
+        ) { uri ->
+            // The retained ViewModel owns the write, never the destroyed Activity.
+            val appContext = applicationContext
+            // Application resources need not carry AppCompat locales on API 31/32.
+            // Freeze localized feedback here; retain strings, not this Activity.
+            val savedMessage = getString(R.string.app_ui_text_saved, format.displayName)
+            val failedMessage = getString(R.string.app_ui_text_failed)
+            val expiredMessage = getString(R.string.app_ui_text_expired)
+            textExportViewModel.completeAsync(id, cancelled = uri == null, write = { bytes ->
+                val stream = appContext.contentResolver.openOutputStream(requireNotNull(uri))
+                    ?: error("Unable to open selected document")
+                stream.use { it.write(bytes) }
+            }, onComplete = { outcome ->
+                val message = when (outcome) {
+                    TextExportOutcome.SAVED -> savedMessage
+                    TextExportOutcome.FAILED -> failedMessage
+                    TextExportOutcome.EXPIRED -> expiredMessage
+                    TextExportOutcome.CANCELLED, TextExportOutcome.IGNORED -> null
+                }
+                message?.let { Toast.makeText(appContext, it, Toast.LENGTH_LONG).show() }
+            })
+        }.also { textLauncher = it }
+    }
+
+    override fun onStop() {
+        if (!isChangingConfigurations) rdapViewModel.stop()
+        super.onStop()
+    }
+
     override fun onDestroy() {
         // Non-lifecycle registry registration must not retain the old Activity.
         pdfLauncher?.unregister()
         pdfLauncher = null
+        textLauncher?.unregister()
+        textLauncher = null
+        webExportLauncher?.unregister()
+        webExportLauncher = null
         super.onDestroy()
+    }
+
+    private fun requestWebExport(document: WebExportDocument, action: WebExportAction) {
+        val format=when(action) {
+            WebExportAction.COPY, WebExportAction.SAVE_TXT -> WebExportFormat.TXT
+            WebExportAction.SAVE_MARKDOWN -> WebExportFormat.MARKDOWN
+            else -> WebExportFormat.PDF
+        }
+        val delivery=when(action) {
+            WebExportAction.COPY -> WebExportDelivery.COPY
+            WebExportAction.SHARE_PDF -> WebExportDelivery.SHARE
+            else -> WebExportDelivery.SAVE
+        }
+        webExportViewModel.prepare(document,format,delivery)
+    }
+
+    private fun registerWebExportRequest(request: WebExportRequest): ActivityResultLauncher<String> {
+        webExportLauncher?.unregister()
+        return activityResultRegistry.register("web-export:${request.id}",
+            ActivityResultContracts.CreateDocument(request.format.mimeType)) { uri ->
+            val app=applicationContext
+            val success=getString(WebR.string.web_export_saved)
+            val failure=getString(WebR.string.web_export_failed)
+            val expired=getString(WebR.string.web_export_expired)
+            webExportViewModel.completeAsync(request.id,uri==null,{content->
+                val stream=app.contentResolver.openOutputStream(requireNotNull(uri)) ?: error("No output stream")
+                stream.use {it.write(content)}
+            }) {outcome->
+                val text=when(outcome) {
+                    WebExportOutcome.SAVED -> success
+                    WebExportOutcome.FAILED -> failure
+                    WebExportOutcome.EXPIRED -> expired
+                    else -> null
+                }
+                text?.let {Toast.makeText(app,it,Toast.LENGTH_LONG).show()}
+            }
+        }.also {webExportLauncher=it}
+    }
+
+    private fun deliverWebExport(request: WebExportRequest) {
+        try {
+            when(request.delivery) {
+                WebExportDelivery.SAVE -> if(webExportViewModel.markLaunched(request.id)) {
+                    registerWebExportRequest(request).launch(request.fileName)
+                }
+                WebExportDelivery.COPY -> {
+                    val text=requireNotNull(webExportViewModel.copyText(request.id))
+                    getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("LinkBeacon",text))
+                    Toast.makeText(this,getString(WebR.string.web_export_copied),Toast.LENGTH_SHORT).show()
+                    webExportViewModel.finish(request.id)
+                }
+                WebExportDelivery.SHARE -> {
+                    val file=requireNotNull(webExportViewModel.sharedFile(request.id))
+                    val uri=FileProvider.getUriForFile(this,"${BuildConfig.APPLICATION_ID}.fileprovider",file)
+                    val intent=Intent(Intent.ACTION_SEND).apply {
+                        type=request.format.mimeType;putExtra(Intent.EXTRA_STREAM,uri)
+                        clipData=ClipData.newUri(contentResolver,request.fileName,uri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    val outcome=launchWebExportChooser(Intent.createChooser(intent,getString(WebR.string.web_export_share)),::startActivity)
+                    if(outcome!=WebShareOutcome.STARTED) Toast.makeText(this,
+                        getString(if(outcome==WebShareOutcome.NO_APP) WebR.string.web_export_no_app else WebR.string.web_export_failed),Toast.LENGTH_LONG).show()
+                    webExportViewModel.finish(request.id)
+                }
+            }
+        } catch(e:Exception) {
+            webExportViewModel.finish(request.id)
+            Toast.makeText(this,getString(if(e is ActivityNotFoundException) WebR.string.web_export_no_app else WebR.string.web_export_failed),Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun copyDiagnosticReport(text: String) {
         val clipboard = getSystemService(ClipboardManager::class.java) ?: return
         clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.app_ui_clipboard_label), text))
+    }
+
+    private fun saveDiagnosticReportText(text: String, format: ReportTextFormat, fileName: String) {
+        if (textExportViewModel.expired) {
+            textExportViewModel.requestId?.let(textExportViewModel::discard)
+            Toast.makeText(this, getString(R.string.app_ui_text_expired_retry), Toast.LENGTH_LONG).show()
+            return
+        }
+        val id = textExportViewModel.prepare(text.toByteArray(Charsets.UTF_8), format)
+        if (id == null) {
+            Toast.makeText(this, getString(R.string.app_ui_text_busy), Toast.LENGTH_SHORT).show()
+            return
+        }
+        runCatching {
+            requireValidTextFileName(fileName, format)
+            registerTextRequest(id, format).launch(fileName)
+        }.onFailure {
+            textExportViewModel.discard(id)
+            Toast.makeText(this, getString(R.string.app_ui_text_picker_failed), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun shareDiagnosticReportText(text: String, format: ReportTextFormat, fileName: String) {
+        lifecycleScope.launch {
+            try {
+                val appCache = applicationContext.cacheDir
+                val reportFile = withContext(Dispatchers.IO) {
+                    TextReportShareCache(appCache).write(text, format, fileName)
+                }
+                val contentUri = FileProvider.getUriForFile(
+                    this@MainActivity,
+                    "${BuildConfig.APPLICATION_ID}.fileprovider",
+                    reportFile,
+                )
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = format.mimeType
+                    putExtra(Intent.EXTRA_STREAM, contentUri)
+                    clipData = ClipData.newUri(contentResolver, fileName, contentUri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(intent, getString(R.string.app_ui_text_share)))
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Exception) {
+                Toast.makeText(
+                    this@MainActivity,
+                    getString(if (failure is ActivityNotFoundException) {
+                        R.string.app_ui_text_no_app
+                    } else {
+                        R.string.app_ui_text_share_failed
+                    }),
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+        }
     }
 
     private fun saveDiagnosticReportPdf(bytes: ByteArray, fileName: String) {
@@ -290,10 +471,28 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        webExportViewModel.uiState.value?.takeIf {it.phase==WebExportPhase.PICKER}?.let(::registerWebExportRequest)
         pdfExportViewModel.requestId?.let(::registerPdfRequest)
+        textExportViewModel.requestId?.let { id ->
+            val format = textExportViewModel.requestFormat
+            if (format != null) registerTextRequest(id, format)
+            else textExportViewModel.discard(id)
+        }
         enableEdgeToEdge()
         setContent {
             val dashboardUiState by dashboardViewModel.uiState.collectAsState()
+            val webExportRequest by webExportViewModel.uiState.collectAsState()
+            val rdapUiState by rdapViewModel.uiState.collectAsState()
+            LaunchedEffect(webExportRequest?.id,webExportRequest?.phase) {
+                webExportRequest?.let {request->when(request.phase) {
+                    WebExportPhase.READY -> deliverWebExport(request)
+                    WebExportPhase.FAILED,WebExportPhase.EXPIRED -> {
+                        Toast.makeText(this@MainActivity,getString(if(request.phase==WebExportPhase.EXPIRED) WebR.string.web_export_expired else WebR.string.web_export_failed),Toast.LENGTH_LONG).show()
+                        webExportViewModel.finish(request.id)
+                    }
+                    else -> Unit
+                } }
+            }
             val recentDiagnosisRecord by dashboardViewModel.recentDiagnosis.collectAsState()
             val dnsUiState by dnsViewModel.uiState.collectAsState()
             val historyUiState by historyViewModel.uiState.collectAsState()
@@ -305,6 +504,7 @@ class MainActivity : AppCompatActivity() {
             val savedWebHistoryState by savedWebDiagnosticsHistoryViewModel.uiState.collectAsState()
             val subnetUiState by subnetViewModel.uiState.collectAsState()
             val lanScannerUiState by lanScannerViewModel.uiState.collectAsState()
+            val lanRecognition by lanScannerViewModel.recognition.collectAsState()
             val savedDeviceProfiles by lanScannerViewModel.savedProfiles.collectAsState()
             val deviceProfileEditState by lanScannerViewModel.deviceProfileEditState.collectAsState()
             val deviceCenterSearchState by lanScannerViewModel.deviceCenterSearchState.collectAsState()
@@ -404,6 +604,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             fun openTool(screen: ToolScreen) {
+                if(screen!=ToolScreen.DOMAIN_REGISTRATION) rdapViewModel.stop()
+                webExportViewModel.leaveBeforeLaunch()
                 closeDrawer()
                 if (toolScreen == ToolScreen.LAN_SCAN && screen != ToolScreen.LAN_SCAN) {
                     lanScannerViewModel.stopScan()
@@ -469,6 +671,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             fun selectTopLevel(destination: TopLevelDestination) {
+                rdapViewModel.stop()
+                webExportViewModel.leaveBeforeLaunch()
                 closeDrawer()
                 if (reportUiState.status is ReportStatus.Running) {
                     reportViewModel.stopCheck()
@@ -485,6 +689,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             fun goBack() {
+                rdapViewModel.stop()
+                webExportViewModel.leaveBeforeLaunch()
                 if (toolScreen == ToolScreen.NONE) return
                 if (toolScreen == ToolScreen.DEVICE_PROFILE_EDIT) {
                     if (lanScannerViewModel.requestDeviceProfileEditClose()) {
@@ -521,6 +727,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             fun openDrawerDestination(destination: ToolScreen) {
+                rdapViewModel.stop()
                 closeDrawer()
                 if (destination != ToolScreen.SETTINGS) {
                     if (reportUiState.status is ReportStatus.Running) {
@@ -643,9 +850,11 @@ class MainActivity : AppCompatActivity() {
                                     onOpenReport = { openTool(ToolScreen.REPORT) },
                                     onOpenTlsCheck = { openTool(ToolScreen.TLS_CHECK) },
                                     onOpenWebsiteDiagnostics = { openTool(ToolScreen.WEBSITE_DIAGNOSTICS) },
+                                    onOpenRdap = { openTool(ToolScreen.DOMAIN_REGISTRATION) },
                                 )
                                 TopLevelDestination.DEVICES -> LanDeviceCenterScreen(
                                     uiState = lanScannerUiState,
+                                    recognition = lanRecognition,
                                     listState = deviceCenterListState,
                                     favorites = savedDeviceProfiles,
                                     searchState = deviceCenterSearchState,
@@ -724,6 +933,8 @@ class MainActivity : AppCompatActivity() {
                                 onStop = tracerouteViewModel::stop,
                                 onBack = ::goBack,
                             )
+                            ToolScreen.DOMAIN_REGISTRATION -> RdapScreen(rdapUiState,rdapViewModel::input,
+                                rdapViewModel::request,rdapViewModel::stop,::goBack,rdapViewModel::protocol,::copyDiagnosticReport)
                             ToolScreen.TLS_CHECK -> TlsCheckScreen(
                                 uiState = tlsCheckUiState,
                                 onTargetChanged = tlsCheckViewModel::onTargetChanged,
@@ -735,6 +946,10 @@ class MainActivity : AppCompatActivity() {
                                 onToggleSans = tlsCheckViewModel::toggleSans,
                                 onToggleChain = tlsCheckViewModel::toggleChain,
                                 onBack = ::goBack,
+                                exportActions = {
+                                    val completed=tlsCheckUiState.runState as? com.networktoolbox.feature.webdiagnostics.presentation.TlsCheckRunState.Completed
+                                    WebExportActions(completed?.let {WebExportSource.Tls(it.result,it.completedAtEpochMs)},webExportRequest!=null,::requestWebExport)
+                                },
                             )
                             ToolScreen.WEBSITE_DIAGNOSTICS -> WebsiteDiagnosticsScreen(
                                 uiState = websiteDiagnosticsUiState,
@@ -747,6 +962,10 @@ class MainActivity : AppCompatActivity() {
                                 onToggleRecommendations = websiteDiagnosticsViewModel::toggleRecommendations,
                                 onToggleCertificate = websiteDiagnosticsViewModel::toggleCertificate,
                                 onBack = ::goBack,
+                                exportActions = {
+                                    val completed=websiteDiagnosticsUiState.runState as? com.networktoolbox.feature.webdiagnostics.presentation.WebsiteDiagnosticsRunState.Completed
+                                    WebExportActions(completed?.let {WebExportSource.Website(it.snapshot)},webExportRequest!=null,::requestWebExport)
+                                },
                             )
                             ToolScreen.WEB_DIAGNOSTICS_HISTORY -> WebDiagnosticsHistoryScreen(
                                 restored = savedWebHistoryState.restored.takeIf {
@@ -755,6 +974,10 @@ class MainActivity : AppCompatActivity() {
                                 loading = navigationState.reportHistoryId != null &&
                                     (savedWebHistoryState.id != navigationState.reportHistoryId || savedWebHistoryState.loading),
                                 onBack = ::goBack,
+                                exportActions = {
+                                    val restored=savedWebHistoryState.restored?.takeIf {savedWebHistoryState.id==navigationState.reportHistoryId && !savedWebHistoryState.loading}
+                                    WebExportActions(restored?.let {WebExportSource.restored(it,navigationState.reportHistoryId)},webExportRequest!=null,::requestWebExport)
+                                },
                             )
                             ToolScreen.REPORT -> key(reportScrollKey) {
                                 ReportScreen(
@@ -781,6 +1004,8 @@ class MainActivity : AppCompatActivity() {
                                     onCopyReport = ::copyDiagnosticReport,
                                     onSavePdf = ::saveDiagnosticReportPdf,
                                     onSharePdf = ::shareDiagnosticReportPdf,
+                                    onSaveText = ::saveDiagnosticReportText,
+                                    onShareText = ::shareDiagnosticReportText,
                                 )
                             }
                             ToolScreen.HISTORY -> HistoryScreen(
@@ -799,6 +1024,7 @@ class MainActivity : AppCompatActivity() {
                             )
                             ToolScreen.LAN_SCAN -> LanScannerScreen(
                                 uiState = lanScannerUiState,
+                                recognition = lanRecognition,
                                 scrollState = lanScannerScrollState,
                                 savedProfiles = savedDeviceProfiles,
                                 onStartScan = lanScannerViewModel::startScan,
@@ -827,6 +1053,7 @@ class MainActivity : AppCompatActivity() {
                                 detail = lanScannerViewModel.resolveDeviceDetail(
                                     routeKey = navigationState.deviceDetailKey,
                                     favorites = savedDeviceProfiles,
+                                    recognitionSnapshot = lanRecognition,
                                 ),
                                 scrollState = deviceDetailScrollState,
                                 favoriteErrorMessage = favoriteActionError,

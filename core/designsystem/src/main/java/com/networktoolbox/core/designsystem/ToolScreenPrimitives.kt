@@ -61,6 +61,7 @@ fun ToolScreenLayout(
 fun ToolScreenLazyLayout(
     modifier: Modifier = Modifier,
     listState: LazyListState? = null,
+    horizontalPadding: androidx.compose.ui.unit.Dp = NetworkToolboxSpacing.XL,
     content: LazyListScope.() -> Unit,
 ) {
     val rememberedListState = listState ?: rememberLazyListState()
@@ -69,9 +70,9 @@ fun ToolScreenLazyLayout(
             modifier = Modifier.fillMaxSize(),
             state = rememberedListState,
             contentPadding = PaddingValues(
-                start = NetworkToolboxSpacing.XL,
+                start = horizontalPadding,
                 top = NetworkToolboxSpacing.LG,
-                end = NetworkToolboxSpacing.XL,
+                end = horizontalPadding,
                 bottom = NetworkToolboxSpacing.XXL,
             ),
             verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.MD),

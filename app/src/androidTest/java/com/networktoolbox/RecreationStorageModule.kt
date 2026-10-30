@@ -3,6 +3,9 @@ package com.networktoolbox
 import com.networktoolbox.core.common.favorites.NoOpSavedDeviceRepository
 import com.networktoolbox.core.common.favorites.SavedDeviceRepository
 import com.networktoolbox.core.common.favorites.DeviceType
+import com.networktoolbox.core.common.favorites.FavoriteDeviceCandidate
+import com.networktoolbox.core.common.favorites.FavoriteIdentityMatcher
+import com.networktoolbox.core.common.favorites.associatedProfileOrNull
 import com.networktoolbox.core.common.history.*
 import com.networktoolbox.core.database.DatabaseModule
 import dagger.Module
@@ -12,15 +15,26 @@ import dagger.hilt.testing.TestInstallIn
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 
-/** Tests never open, clear, or migrate the user's Room database. */
+/** Tests never open, clear, or migrate the user's Room database. Task188 opts into a separate QA-only DB. */
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [DatabaseModule::class])
 object RecreationStorageModule {
     @Provides @Singleton fun history(): RecreationHistory = RecreationHistory()
     @Provides fun repository(history: RecreationHistory): HistoryRepository = history
     @Provides fun recorder(history: RecreationHistory): HistoryRecorder = HistoryRecorder { history.save(it) }
-    @Provides fun profiles(f: RecreationFixture): SavedDeviceRepository = object : SavedDeviceRepository by NoOpSavedDeviceRepository {
+    @Provides @Singleton fun profiles(f: RecreationFixture,
+        @dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context): SavedDeviceRepository {
+        if (androidx.test.platform.app.InstrumentationRegistry.getArguments().getString("task188Room") == "true") {
+            check(context.packageName == "com.networktoolbox.wifiqa")
+            val db = androidx.room.Room.databaseBuilder(context,
+                com.networktoolbox.core.database.NetworkToolboxDatabase::class.java, "task188-wol.db").build()
+            return com.networktoolbox.core.database.RoomFavoriteDeviceRepository(db.favoriteDeviceDao())
+        }
+        return object : SavedDeviceRepository by NoOpSavedDeviceRepository {
         override fun observeProfiles() = f.profiles
+        override suspend fun findMatching(candidate: FavoriteDeviceCandidate) =
+            if (f.profileLookupEnabled) FavoriteIdentityMatcher.match(f.profiles.value, candidate).associatedProfileOrNull()
+            else null
         override suspend fun setEditableProfile(id: Long, customName: String?, deviceType: DeviceType?, notes: String?) {
             check(f.profiles.value.any { it.id == id })
             f.profileWrites++
@@ -29,6 +43,7 @@ object RecreationStorageModule {
                 else profile
             }
         }
+    }
     }
 }
 

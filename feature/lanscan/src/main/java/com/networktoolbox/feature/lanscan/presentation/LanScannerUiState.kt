@@ -41,6 +41,7 @@ sealed interface LanScannerUiState {
 
     data class Completed(
         val session: LanScanSession,
+        val supplement: LanSupplementPresentation? = null,
     ) : LanScannerUiState
 
     data class Cancelled(

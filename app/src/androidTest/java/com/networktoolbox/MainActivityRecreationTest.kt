@@ -103,7 +103,7 @@ class MainActivityRecreationTest {
     }
 
     @Test fun searchFilterAndScannerViewModelSurviveRecreation() {
-        compose.onNodeWithText("设备").performClick()
+        compose.onNode(hasText(text(R.string.shell_devices)) and isSelectable()).performClick()
         lateinit var before: LanScannerViewModel
         compose.activityRule.scenario.onActivity {
             before = ViewModelProvider(it)[LanScannerViewModel::class.java]
@@ -170,7 +170,7 @@ class MainActivityRecreationTest {
     }
 
     private fun openDevice(name: String = "Fixture device 1") {
-        compose.onNodeWithText("设备").performClick()
+        compose.onNode(hasText(text(R.string.shell_devices)) and isSelectable()).performClick()
         compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasText(name))
         compose.onNodeWithText(name).performClick()
     }
@@ -190,7 +190,7 @@ class MainActivityRecreationTest {
 
     @Test fun deviceDetailPingAndTcpKeepCallerAndEditedInputsAfterRecreation() {
         openDevice()
-        for ((label, value) in listOf("Ping" to "edited-ping.example", "端口检测" to "edited-tcp.example")) {
+        for ((label, value) in listOf("Ping" to "edited-ping.example", text(LanR.string.lan_port) to "edited-tcp.example")) {
             compose.onNodeWithText(label).performScrollTo().performClick()
             compose.activityRule.scenario.onActivity {
                 if (label == "Ping") ViewModelProvider(it)[PingViewModel::class.java].onTargetChanged(value)
@@ -198,10 +198,10 @@ class MainActivityRecreationTest {
             }
             recreateAndVerifyInstance()
             compose.onNodeWithText(value).assertExists()
-            compose.onNodeWithContentDescription("返回").performScrollTo().performClick()
+            compose.onNodeWithContentDescription(text(com.networktoolbox.core.designsystem.R.string.common_back)).performScrollTo().performClick()
             assertDeviceDetailName()
         }
-        compose.onNodeWithContentDescription("返回").performScrollTo().performClick()
+        compose.onNodeWithContentDescription(text(com.networktoolbox.core.designsystem.R.string.common_back)).performScrollTo().performClick()
         assertEquals(0, fixture.scanStarts)
         assertEquals(0, fixture.pingStarts)
         assertEquals(0, history.writes)
@@ -210,7 +210,7 @@ class MainActivityRecreationTest {
 
     @Test fun filteredListAnchorAndProfileDataSurviveDetailRecreation() {
         val before = fixture.profiles.value.toList()
-        compose.onNodeWithText("设备").performClick()
+        compose.onNode(hasText(text(R.string.shell_devices)) and isSelectable()).performClick()
         compose.activityRule.scenario.onActivity {
             ViewModelProvider(it)[LanScannerViewModel::class.java].apply {
                 openDeviceCenterSearch()
@@ -231,7 +231,7 @@ class MainActivityRecreationTest {
     }
 
     @Test fun runningScanReattachesWithoutSecondRunOrHistoryWrite() {
-        compose.onNodeWithText("设备").performClick()
+        compose.onNode(hasText(text(R.string.shell_devices)) and isSelectable()).performClick()
         compose.activityRule.scenario.onActivity {
             ViewModelProvider(it)[LanScannerViewModel::class.java].startCurrentNetworkScan()
         }
@@ -315,7 +315,7 @@ class MainActivityRecreationTest {
     @Test fun unconfirmedNameDraftSurvivesRecreationWithoutSaving() {
         openDevice()
         val original = fixture.profiles.value.toList()
-        compose.onNodeWithContentDescription(text(LanR.string.device_detail_edit_name_description))
+        compose.onAllNodesWithText(text(LanR.string.device_profile_edit_action)).onFirst()
             .performScrollTo().performClick()
         compose.onNodeWithTag("device_profile_name").performTextReplacement("unsaved draft")
         recreateAndVerifyInstance()
@@ -337,7 +337,7 @@ class MainActivityRecreationTest {
         openDevice()
         val original = fixture.profiles.value.single { it.id == 1L }
         val otherProfiles = fixture.profiles.value.filterNot { it.id == 1L }
-        compose.onNodeWithContentDescription(text(LanR.string.device_detail_edit_name_description))
+        compose.onAllNodesWithText(text(LanR.string.device_profile_edit_action)).onFirst()
             .performScrollTo().performClick()
         compose.onNodeWithTag("device_profile_name").performTextReplacement("Rack host")
         compose.onNodeWithTag("device_profile_type").performScrollTo().performClick()

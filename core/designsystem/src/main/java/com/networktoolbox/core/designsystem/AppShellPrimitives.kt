@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.testTag
 
 
 /** A compact app-shell menu action shared by the top-level destinations. */
@@ -47,12 +48,12 @@ fun NetworkToolboxTopLevelHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.MD),
     ) {
-        NetworkToolboxMenuButton(onClick = onOpenMenu)
+        NetworkToolboxMenuButton(onClick = onOpenMenu, modifier = Modifier.testTag("main_menu"))
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS),
         ) {
-            Text(title, style = MaterialTheme.typography.headlineSmall)
+            Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.testTag("main_title"))
             description?.let { text ->
                 Text(
                     text,

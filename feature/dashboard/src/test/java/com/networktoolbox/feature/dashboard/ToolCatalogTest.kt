@@ -23,13 +23,13 @@ class ToolCatalogTest {
                     DashboardToolId.TRACEROUTE,
                     DashboardToolId.PORT_SCAN,
                 ),
-                listOf(DashboardToolId.DNS, DashboardToolId.TLS_CHECK),
+                listOf(DashboardToolId.DNS, DashboardToolId.TLS_CHECK, DashboardToolId.DOMAIN_REGISTRATION),
                 listOf(DashboardToolId.SUBNET, DashboardToolId.LAN_SCAN, DashboardToolId.WIFI_ANALYZER),
                 listOf(DashboardToolId.REPORT, DashboardToolId.WEBSITE_DIAGNOSTICS),
             ),
             sections.map { section -> section.tools.map(DashboardToolDefinition::id) },
         )
-        assertPresentationEquals(11, sections.flatMap { it.tools }.distinctBy(DashboardToolDefinition::id).size)
+        assertPresentationEquals(12, sections.flatMap { it.tools }.distinctBy(DashboardToolDefinition::id).size)
     }
 
     @Test
@@ -58,6 +58,7 @@ class ToolCatalogTest {
 
         assertPresentationEquals(
             mapOf(
+                DashboardToolId.DOMAIN_REGISTRATION to "域名与IP注册",
                 DashboardToolId.PING to "测试目标连通性",
                 DashboardToolId.DNS to "查询域名解析",
                 DashboardToolId.TCP to "检查 TCP 服务端口",
@@ -86,6 +87,20 @@ class ToolCatalogTest {
         assertTrue(calls.containsAll(DashboardToolId.entries.toList()))
     }
 
+    @Test
+    fun twoColumnsStayOnNormalPhoneWidths() {
+        assertPresentationEquals(2, dashboardGridColumnCount(320f, 1.0f))
+        assertPresentationEquals(2, dashboardGridColumnCount(440f, 1.2f))
+    }
+
+    @Test
+    fun oneColumnPreventsClippingOnNarrowOrLargeFontScreens() {
+        assertPresentationEquals(1, dashboardGridColumnCount(319f, 1.0f))
+        assertPresentationEquals(1, dashboardGridColumnCount(320f, 1.2f))
+        assertPresentationEquals(1, dashboardGridColumnCount(320f, 1.3f))
+        assertPresentationEquals(1, dashboardGridColumnCount(600f, 1.6f))
+    }
+
     private fun callbacks(onClick: (DashboardToolId) -> Unit = {}): DashboardNavigationCallbacks =
         DashboardNavigationCallbacks(
             onOpenPing = { onClick(DashboardToolId.PING) },
@@ -99,5 +114,6 @@ class ToolCatalogTest {
             onOpenReport = { onClick(DashboardToolId.REPORT) },
             onOpenTlsCheck = { onClick(DashboardToolId.TLS_CHECK) },
             onOpenWebsiteDiagnostics = { onClick(DashboardToolId.WEBSITE_DIAGNOSTICS) },
+            onOpenRdap = { onClick(DashboardToolId.DOMAIN_REGISTRATION) },
         )
 }

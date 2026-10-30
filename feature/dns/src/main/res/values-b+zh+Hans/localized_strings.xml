@@ -1,7 +1,7 @@
 <resources>
     <string name="dns_title">DNS 查询</string>
     <string name="dns_domain">域名</string>
-    <string name="dns_example">例如 www.baidu.com</string>
+    <string name="dns_example">www.example.com</string>
     <string name="dns_invalid_help">域名格式不正确，请检查输入。</string>
     <string name="dns_loading">正在查询 DNS…</string>
     <string name="dns_query">查询</string>

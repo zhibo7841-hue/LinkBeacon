@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import com.networktoolbox.feature.lanscan.R
-import com.networktoolbox.core.designsystem.UiText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,9 +24,12 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextOverflow
+import com.networktoolbox.feature.lanscan.domain.recognition.*
+import com.networktoolbox.feature.lanscan.presentation.LanRecognitionPresentation
 import com.networktoolbox.core.designsystem.NetworkToolboxComponentShapes
 import com.networktoolbox.core.designsystem.NetworkToolboxSpacing
-import com.networktoolbox.core.designsystem.NetworkToolboxTextStyles
 import com.networktoolbox.core.designsystem.SecondaryActionButton
 import com.networktoolbox.core.common.favorites.FavoriteDevice
 import com.networktoolbox.feature.lanscan.domain.model.LanDevice
@@ -43,7 +45,6 @@ import com.networktoolbox.feature.lanscan.presentation.LanDeviceCardPresentation
 fun LanDeviceCard(
     device: LanDevice,
     modifier: Modifier = Modifier,
-    showMac: Boolean = false,
     isFavorite: Boolean = false,
     savedProfile: FavoriteDevice? = null,
     onClick: (() -> Unit)? = null,
@@ -59,7 +60,6 @@ fun LanDeviceCard(
             isFavorite = isFavorite,
         ),
         modifier = modifier,
-        showMac = showMac,
         showDeviceTypeIcon = false,
         onClick = onClick,
     )
@@ -69,7 +69,6 @@ fun LanDeviceCard(
 fun LanDeviceCard(
     presentation: LanDeviceCardPresentation,
     modifier: Modifier = Modifier,
-    showMac: Boolean = false,
     showDeviceTypeIcon: Boolean = true,
     onClick: (() -> Unit)? = null,
     onQuickWake: (() -> Unit)? = null,
@@ -121,35 +120,32 @@ fun LanDeviceCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.XS),
             ) {
-                Text(
-                    presentation.displayName.resolve(),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                presentation.ipAddress.takeIf(String::isNotBlank)?.let { ip ->
-                    Text(ip, style = NetworkToolboxTextStyles.TechnicalData)
+                // Two information lines; large fonts may wrap qualifiers, never shrink the text.
+                Row(horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.SM),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().testTag("lan_device_primary")) {
+                    Text(presentation.displayName.resolve(), Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleMedium, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis)
+                    val category = presentation.deviceType?.let(DeviceCenterPresentation::deviceTypeLabel)
+                        ?: presentation.recognition?.result?.deviceCategory?.let(LanRecognitionPresentation::category)
+                    if (category != null || presentation.role == null) Text(category?.resolve() ?: stringResource(R.string.lan_category_unknown),
+                        modifier = Modifier.weight(0.65f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                presentation.identitySummary?.let { identity ->
-                    Text(
-                        identity,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-                presentation.evidence?.let { evidence ->
-                    Text(
-                        evidence.resolve(),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-                if (showMac) {
-                    presentation.macAddress?.takeIf(String::isNotBlank)?.let { mac ->
-                        Text(
-                            "MAC · $mac",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = NetworkToolboxTextStyles.TechnicalData,
-                        )
-                    }
+                val service = LanRecognitionPresentation.listServices(presentation.recognition)
+                // Only saved/not-observed statuses belong here; probe source and latency are detail evidence.
+                val status = presentation.evidence?.takeIf { presentation.savedIdentitySummary }?.resolve()
+                val secondary = listOfNotNull(presentation.ipAddress.takeIf(String::isNotBlank),
+                    service.takeIf(String::isNotBlank), status).joinToString(" · ")
+                Text(secondary, Modifier.testTag("lan_device_secondary"),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // A compact layout must not conceal conflicting or incomplete evidence.
+                presentation.recognition?.rows?.filter {
+                    it.hint.category == LanRecognitionCategory.INSUFFICIENT_OR_CONFLICTING
+                }?.forEach { Text(it.text.resolve(), style = MaterialTheme.typography.bodySmall) }
+                LanRecognitionPresentation.listLimitations(presentation.recognition).forEach {
+                    Text(it.resolve(), style = MaterialTheme.typography.bodySmall)
                 }
             }
             Column(

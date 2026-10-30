@@ -67,6 +67,7 @@ fun TlsCheckScreen(
     onToggleChain: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    exportActions: @Composable () -> Unit = {},
 ) {
     var showBackDialog by remember { mutableStateOf(false) }
     fun requestBack() { if (uiState.isRunning) showBackDialog = true else onBack() }
@@ -103,7 +104,9 @@ fun TlsCheckScreen(
                     description = stringResource(R.string.web_tls_cancelled_desc),
                 )
             }
-            is TlsCheckRunState.Completed -> TlsCheckResultContent(
+            is TlsCheckRunState.Completed -> {
+                exportActions()
+                TlsCheckResultContent(
                 result = state.result,
                 detailsExpanded = uiState.detailsExpanded,
                 sansExpanded = uiState.sansExpanded,
@@ -111,7 +114,8 @@ fun TlsCheckScreen(
                 onToggleDetails = onToggleDetails,
                 onToggleSans = onToggleSans,
                 onToggleChain = onToggleChain,
-            )
+                )
+            }
         }
     }
 

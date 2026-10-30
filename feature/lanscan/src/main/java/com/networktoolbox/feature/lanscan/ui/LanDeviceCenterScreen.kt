@@ -82,6 +82,7 @@ fun LanDeviceCenterScreen(
     onQuickWake: (String) -> Unit = {},
     deviceDetailEvents: Flow<DeviceDetailEvent> = emptyFlow(),
     listState: LazyListState? = null,
+    recognition: com.networktoolbox.feature.lanscan.presentation.LanRecognitionSnapshot? = null,
 ) {
     val savedProfileEvidence = stringResource(R.string.lan_scan_saved_not_scanned)
     val waitingProfileEvidence = stringResource(R.string.lan_scan_waiting_saved)
@@ -96,11 +97,16 @@ fun LanDeviceCenterScreen(
         notFoundProfileEvidence = notFoundProfileEvidence,
         unfinishedProfileEvidence = unfinishedProfileEvidence,
         localizedTypeNames = localizedDeviceTypeNames(),
+        recognition = recognition,
     )
     val hasSearchOrFilter = searchState.query.trim().isNotEmpty() ||
         searchState.filter != DeviceCenterFilter.ALL
+    val identityFilter = searchState.filter == DeviceCenterFilter.IDENTIFIED ||
+        searchState.filter == DeviceCenterFilter.UNKNOWN_IDENTITY
+    val awaitingIdentityScan = identityFilter && uiState is LanScannerUiState.Ready
     val showNoMatch = hasSearchOrFilter && visibleItems != null &&
-        visibleItems.discovered.isEmpty() && visibleItems.notDiscovered.isEmpty()
+        visibleItems.discovered.isEmpty() && visibleItems.notDiscovered.isEmpty() &&
+        !awaitingIdentityScan
 
     val feedbackContext by rememberUpdatedState(LocalContext.current)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -117,6 +123,7 @@ fun LanDeviceCenterScreen(
         ToolScreenLazyLayout(
             modifier = Modifier.fillMaxSize(),
             listState = listState,
+            horizontalPadding = 20.dp,
         ) {
             item {
                 NetworkToolboxTopLevelHeader(
@@ -157,8 +164,35 @@ fun LanDeviceCenterScreen(
                 )
             }
 
+            if (visibleItems != null && (visibleItems.totalCount > 0 || hasSearchOrFilter)) {
+                item {
+                    Text(
+                        stringResource(R.string.lan_filtered_count, visibleItems.shownCount, visibleItems.totalCount),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            if (awaitingIdentityScan) {
+                item {
+                    Text(
+                        stringResource(R.string.lan_scan_first_for_identity),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             if (showNoMatch) {
                 item { DeviceCenterNoMatchState() }
+            }
+            if (identityFilter) {
+                item {
+                    Text(
+                        stringResource(R.string.lan_identity_filter_basis),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
         when (val state = uiState) {
@@ -235,6 +269,10 @@ fun LanDeviceCenterScreen(
             }
 
             is LanScannerUiState.Cancelled -> {
+                item {
+                    Text(stringResource(R.string.lan_supplement_snapshot),
+                        style = MaterialTheme.typography.bodySmall)
+                }
                 item {
                     DeviceCenterNetworkSummaryCard(
                         context = state.session.initialNetworkContext,
@@ -328,6 +366,8 @@ fun LanDeviceCenterScreen(
 private data class DeviceCenterVisibleItems(
     val discovered: List<DeviceCenterDeviceItem>,
     val notDiscovered: List<DeviceCenterDeviceItem>,
+    val totalCount: Int,
+    val shownCount: Int,
 )
 
 private fun deviceCenterVisibleItems(
@@ -339,6 +379,7 @@ private fun deviceCenterVisibleItems(
     notFoundProfileEvidence: String,
     unfinishedProfileEvidence: String,
     localizedTypeNames: Map<DeviceType, String>,
+    recognition: com.networktoolbox.feature.lanscan.presentation.LanRecognitionSnapshot?,
 ): DeviceCenterVisibleItems? {
     val baseItems: List<DeviceCenterDeviceItem>
     val notDiscoveredAvailable: Boolean
@@ -367,6 +408,7 @@ private fun deviceCenterVisibleItems(
                 context = state.networkContext,
                 includeUnseenFavorites = true,
                 unseenEvidence = UiText(waitingProfileEvidence),
+                recognition = recognition?.forState(state).orEmpty(),
             )
             notDiscoveredAvailable = false
         }
@@ -378,6 +420,7 @@ private fun deviceCenterVisibleItems(
                 context = state.session.initialNetworkContext,
                 includeUnseenFavorites = true,
                 unseenEvidence = UiText(notFoundProfileEvidence),
+                recognition = recognition?.forSession(state.session).orEmpty(),
             )
             notDiscoveredAvailable = true
         }
@@ -421,6 +464,8 @@ private fun deviceCenterVisibleItems(
     return DeviceCenterVisibleItems(
         discovered = filteredItems.filter(DeviceCenterDeviceItem::observedThisScan),
         notDiscovered = filteredItems.filterNot(DeviceCenterDeviceItem::observedThisScan),
+        totalCount = baseItems.size,
+        shownCount = filteredItems.size,
     )
 }
 
@@ -506,6 +551,8 @@ private fun DeviceCenterFilter.label(): String = when (this) {
     DeviceCenterFilter.DISCOVERED -> stringResource(R.string.lan_found_scan)
     DeviceCenterFilter.NOT_DISCOVERED -> stringResource(R.string.lan_not_found)
     DeviceCenterFilter.FAVORITES -> stringResource(R.string.lan_favorites)
+    DeviceCenterFilter.IDENTIFIED -> stringResource(R.string.lan_identified_filter)
+    DeviceCenterFilter.UNKNOWN_IDENTITY -> stringResource(R.string.lan_unknown_identity_filter)
 }
 
 @Composable

@@ -68,6 +68,7 @@ fun WebsiteDiagnosticsScreen(
     onToggleCertificate: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    exportActions: @Composable () -> Unit = {},
 ) {
     var showBackDialog by remember { mutableStateOf(false) }
     fun requestBack() { if (uiState.isRunning) showBackDialog = true else onBack() }
@@ -101,7 +102,6 @@ fun WebsiteDiagnosticsScreen(
                 enabled = !uiState.isRunning,
                 modifier = Modifier.fillMaxWidth().testTag("website_start"),
             ) { Text(stringResource(R.string.web_site_start)) }
-            Text(stringResource(R.string.web_privacy_note))
         }
 
         when (val state = uiState.runState) {
@@ -131,7 +131,9 @@ fun WebsiteDiagnosticsScreen(
                     description = stringResource(R.string.web_site_cancelled_desc),
                 )
             }
-            is WebsiteDiagnosticsRunState.Completed -> WebsiteDiagnosticResultContent(
+            is WebsiteDiagnosticsRunState.Completed -> {
+                exportActions()
+                WebsiteDiagnosticResultContent(
                 snapshot = state.snapshot,
                 detailsExpanded = uiState.detailsExpanded,
                 redirectsExpanded = uiState.redirectsExpanded,
@@ -141,7 +143,8 @@ fun WebsiteDiagnosticsScreen(
                 onToggleRedirects = onToggleRedirects,
                 onToggleRecommendations = onToggleRecommendations,
                 onToggleCertificate = onToggleCertificate,
-            )
+                )
+            }
         }
     }
 

@@ -7,10 +7,12 @@ import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.os.LocaleList
 import android.os.ParcelFileDescriptor
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.core.os.LocaleListCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import com.networktoolbox.core.common.diagnostic.*
@@ -21,6 +23,12 @@ import com.networktoolbox.feature.report.diagnostic.v2.orchestration.DiagnosticR
 import com.networktoolbox.feature.report.diagnostic.v4.DefaultDiagnosticAnalyzerV4
 import com.networktoolbox.feature.report.domain.AutomaticDiagnosticResult
 import com.networktoolbox.feature.report.presentation.ReportLocalizationContext
+import com.networktoolbox.feature.report.presentation.ReportTextFormat
+import com.networktoolbox.feature.report.presentation.ReportUiState
+import com.networktoolbox.feature.report.presentation.ReportStatus
+import com.networktoolbox.feature.report.ui.ReportScreen
+import com.networktoolbox.core.common.history.HistoryWriteOutcome
+import com.networktoolbox.core.designsystem.NetworkToolboxTheme
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import java.io.File
@@ -93,6 +101,13 @@ class DynamicReportLocalizationTest {
         }
         click("Export report")
         click("Copy text")
+        // Dialog dismissal/locale recreation can briefly leave no focused window.
+        // Android 12 rejects clipboard reads then; wait for the real host focus.
+        compose.waitUntil(timeoutMillis = 5_000) {
+            var focused = false
+            compose.activityRule.scenario.onActivity { focused = it.hasWindowFocus() }
+            focused
+        }
         compose.activityRule.scenario.onActivity {
             val text = (it.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
                 .primaryClip!!.getItemAt(0).text.toString()
@@ -106,6 +121,82 @@ class DynamicReportLocalizationTest {
         assertEquals(0, fixture.diagnosticStarts)
         assertEquals(0, fixture.pingStarts)
         assertEquals(0, fixture.scanStarts)
+    }
+
+    @Test fun bilingualTextActionsUseFrozenHistoryFactsAndNeverProbeOrWrite() {
+        val original = snapshot()
+        val stored = AutomaticDiagnosticHistorySnapshotSerializer.toHistoryRecord(original).copy(id = 130001)
+        history.records.value = listOf(stored)
+        for (tag in listOf("en", "zh-Hans")) {
+            locale(tag)
+            val captured = mutableListOf<Triple<String, ReportTextFormat, String>>()
+            compose.activity.setContent {
+                NetworkToolboxTheme {
+                    ReportScreen(ReportUiState(), context = com.networktoolbox.feature.report.presentation.ReportPresentationContext.SAVED_REPORT,
+                        restoredAutomaticResult = original,
+                        onRunCheck = { fail("History must not run diagnosis") }, onStopCheck = {}, onBack = {},
+                        onSaveText = { text, format, file -> captured += Triple(text, format, file) },
+                        onShareText = { text, format, file -> captured += Triple(text, format, file) })
+                }
+            }
+            val export = if (tag == "en") "Export report" else "导出报告"
+            for (action in if (tag == "en") listOf("Save TXT", "Share TXT", "Save Markdown (.md)", "Share Markdown (.md)")
+                else listOf("保存 TXT", "分享 TXT", "保存 Markdown (.md)", "分享 Markdown (.md)")) {
+                click(export)
+                click(action)
+            }
+            assertEquals(4, captured.size)
+            assertEquals(captured[0], captured[1])
+            assertEquals(captured[2], captured[3])
+            for ((text, format, file) in captured) {
+                assertTrue(file.endsWith(".${format.extension}"))
+                assertTrue(text.contains("192.168.1.20"))
+                assertTrue(text.contains("2001:db8::53"))
+                assertEquals(text, text.toByteArray(Charsets.UTF_8).toString(Charsets.UTF_8))
+                assertTrue(text.contains(if (tag == "en") "No active network available" else "没有可用的活动网络"))
+            }
+        }
+        assertEquals(listOf(stored), history.records.value)
+        assertEquals(0, history.writes)
+        assertEquals(0, fixture.diagnosticStarts)
+        assertEquals(0, fixture.pingStarts)
+        assertEquals(0, fixture.scanStarts)
+    }
+
+    @Test fun failedLocalHistoryWriteShowsFeedbackButKeepsReportAndExports() {
+        val report = snapshot().copy(historyWriteOutcome = HistoryWriteOutcome.FAILED)
+        for (tag in listOf("en", "zh-Hans")) {
+            locale(tag)
+            compose.activity.setContent {
+                NetworkToolboxTheme {
+                    ReportScreen(ReportUiState(ReportStatus.Completed(report)),
+                        onRunCheck = {}, onStopCheck = {}, onBack = {})
+                }
+            }
+            compose.onNodeWithText(if (tag == "en")
+                "Diagnosis completed, but this report could not be saved to local history. You can still export the current report."
+                else "诊断已完成，但未能保存到本地历史。仍可导出当前报告。").performScrollTo().assertExists()
+            compose.onNodeWithText(if (tag == "en") "Export report" else "导出报告").performScrollTo().assertHasClickAction()
+        }
+    }
+
+    @Test fun consecutiveTextSharesKeepBothFileProviderUrisReadable() {
+        val context = compose.activity.applicationContext
+        val cache = TextReportShareCache(context.cacheDir)
+        val name = "task130-provider.txt"
+        val first = cache.write("Original 原始报告", ReportTextFormat.TXT, name)
+        val firstUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", first)
+        val second = cache.write("Later 后续报告", ReportTextFormat.TXT, name)
+        val secondUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", second)
+        try {
+            assertNotEquals(firstUri, secondUri)
+            assertEquals("content", firstUri.scheme)
+            assertEquals("Original 原始报告", context.contentResolver.openInputStream(firstUri)!!.bufferedReader(Charsets.UTF_8).use { it.readText() })
+            assertEquals("Later 后续报告", context.contentResolver.openInputStream(secondUri)!!.bufferedReader(Charsets.UTF_8).use { it.readText() })
+        } finally {
+            first.delete(); first.parentFile?.delete()
+            second.delete(); second.parentFile?.delete()
+        }
     }
 
     @Test fun recentDiagnosisUsesLocalizedStableTypeWithoutRewritingStoredRecord() {

@@ -82,4 +82,10 @@
     <string name="lan_progress_summary">Scanned: %1$d / %2$d · Found: %3$d · %4$s</string>
     <string name="lan_joined">%1$s · %2$s</string>
     <string name="lan_port_scan">Port Scan</string>
+    <string name="lan_identified_filter">Identified</string>
+    <string name="lan_unknown_identity_filter">Unknown identity</string>
+    <string name="lan_filtered_count">Showing %1$d of %2$d devices</string>
+    <string name="lan_scan_first_for_identity">Run a LAN scan first to classify devices by observed identity.</string>
+    <string name="lan_identity_filter_basis">Based on roles and identity information observed in this scan, not manually saved names. A network name does not confirm a manufacturer or model. Unknown identity does not mean the device failed.</string>
+    <string name="lan_no_identity_filter_match">No devices match this identity filter in the current observations.</string>
 </resources>

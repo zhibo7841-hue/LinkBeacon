@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="web_export_open">Export results</string>
+    <string name="web_export_notice">Export a local, redacted snapshot. Public targets and observations remain visible. Review before sharing.</string>
+    <string name="web_export_copy">Copy results</string>
+    <string name="web_export_txt">Save TXT</string>
+    <string name="web_export_markdown">Save Markdown (.md)</string>
+    <string name="web_export_pdf">Save PDF</string>
+    <string name="web_export_share">Share PDF</string>
+    <string name="web_export_close">Close</string>
+    <string name="web_export_saved">Results saved</string>
+    <string name="web_export_copied">Results copied</string>
+    <string name="web_export_failed">Unable to export results. The original result is unchanged.</string>
+    <string name="web_export_expired">The pending export expired. Select Export results again.</string>
+    <string name="web_export_no_app">No compatible app is available for sharing.</string>
+</resources>

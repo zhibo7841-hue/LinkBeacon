@@ -22,8 +22,8 @@ android {
         applicationId = "com.networktoolbox"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 11
-        versionName = "0.9.1"
+        versionCode = 12
+        versionName = "0.10.0"
 
         // Keep dependency locales from shadowing supported fallback languages.
         resourceConfigurations += listOf("en", "b+zh+Hans")
@@ -52,6 +52,9 @@ android {
             if (providers.gradleProperty("wifiAnalyzerQa").isPresent) {
                 applicationIdSuffix = ".wifiqa"
             }
+            if (providers.gradleProperty("recognitionQa").isPresent) {
+                applicationIdSuffix = ".task168"
+            }
         }
         release {
             signingConfig = signingConfigs.getByName("release")
@@ -61,6 +64,36 @@ android {
                 "proguard-rules.pro",
             )
         }
+    }
+
+    // Private scope is packaged only into an explicitly opted-in instrumentation APK.
+    if (providers.gradleProperty("lanAuditQa").isPresent) {
+        check(providers.gradleProperty("wifiAnalyzerQa").isPresent)
+        sourceSets.getByName("androidTest").assets.srcDir(rootProject.file("build/task160/task161-authorization/assets"))
+    }
+    // Experimental protocol code is shared only by JVM/instrumentation tests.
+    if (providers.gradleProperty("recognitionQa").isPresent) {
+        // Explicitly isolated, debug-only experiment. No private assets or protocol code in release.
+        sourceSets.getByName("debug").apply {
+            java.srcDirs("src/recognitionQa/java", "src/recognitionQaCore/java", "src/nbstatTest/java")
+            manifest.srcFile("src/recognitionQa/AndroidManifest.xml")
+            assets.srcDir(rootProject.file(when {
+                providers.gradleProperty("categoryQa").isPresent -> "build/task171/authorization"
+                providers.gradleProperty("wsdQa").isPresent -> "build/task170/authorization"
+                else -> "build/task168/authorization"
+            }))
+        }
+        sourceSets.getByName("androidTest").java.srcDir("src/recognitionQaTest/java")
+        if (providers.gradleProperty("categoryQa").isPresent) {
+            sourceSets.getByName("androidTest").assets.srcDir(rootProject.file("build/task171/replay"))
+        }
+    } else {
+        sourceSets.getByName("test").java.srcDirs("src/nbstatTest/java", "src/recognitionQaCore/java")
+        sourceSets.getByName("androidTest").java.srcDir("src/nbstatTest/java")
+    }
+    if (providers.gradleProperty("nbstatQa").isPresent) {
+        check(providers.gradleProperty("wifiAnalyzerQa").isPresent)
+        sourceSets.getByName("androidTest").assets.srcDir(rootProject.file("build/task162/authorization/assets"))
     }
 
     compileOptions {
@@ -115,6 +148,7 @@ dependencies {
     implementation(project(":feature:traceroute"))
     implementation(project(":feature:webdiagnostics"))
     implementation(project(":feature:wifi"))
+    implementation(project(":feature:rdap"))
     implementation(project(":feature:port"))
     implementation(project(":feature:ping"))
     implementation(project(":feature:report"))
@@ -144,6 +178,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.room.runtime) // QA-only isolated production Room path.
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.ext.junit)

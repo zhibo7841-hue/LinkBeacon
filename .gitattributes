@@ -1,0 +1,5 @@
+# Preserve the reviewed IANA snapshot bytes used by the runtime SHA-256 check.
+core/network/src/main/assets/rdap/dns.json -text
+core/network/src/main/assets/rdap/ipv4.json -text
+core/network/src/main/assets/rdap/ipv6.json -text
+core/network/src/main/assets/rdap/public_suffix_list.dat -text

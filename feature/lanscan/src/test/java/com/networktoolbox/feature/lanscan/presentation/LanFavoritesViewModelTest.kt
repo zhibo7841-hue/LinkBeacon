@@ -862,12 +862,64 @@ class LanFavoritesViewModelTest {
         assertEquals("Original", viewModel.savedProfiles.value.single().customName)
     }
 
+    @Test fun `blank and whitespace clear the entire wol config without changing device metadata`() = runTest {
+        for (blank in listOf("", "   ")) {
+            val observed = device("10.0.1.20", "AA:BB:CC:DD:EE:FF")
+            val original = LanFavoriteIdentity.createSavedProfile(observed, context(), 10L)!!.copy(
+                id = 81, customName = "Study", notes = "Keep", userDeviceType = DeviceType.SERVER,
+                isFavorite = true, firstSeenAt = 7, lastSeenAt = 9,
+                wolConfig = WakeOnLanConfig(MacAddress.parse("02:11:22:33:44:55")!!, 7))
+            val repo = FakeFavoriteDeviceRepository(listOf(original))
+            var sends = 0
+            val vm = viewModel(context(), observed, repo, SendWakeOnLan { _ ->
+                sends++; error("Cleared configuration must never reach the sender")
+            })
+            advanceUntilIdle()
+            val route = LanDeviceDetailRouteKey.forFavorite(original)
+            vm.saveWakeOnLanByRouteKey(route, blank, "invalid ignored while clearing")
+            advanceUntilIdle()
+            assertEquals(original.copy(wolConfig = null), repo.observeProfiles().first().single())
+            vm.sendWakeOnLanByRouteKey(route)
+            advanceUntilIdle()
+            assertEquals(0, sends)
+            vm.startScan()
+            advanceUntilIdle()
+            assertNull(repo.observeProfiles().first().single().wolConfig)
+            assertEquals(original.macAddress, repo.observeProfiles().first().single().macAddress)
+        }
+    }
+
+    @Test fun `invalid nonempty wol mac does not clear or overwrite existing config`() = runTest {
+        val observed = device("10.0.1.20")
+        val original = LanFavoriteIdentity.createSavedProfile(observed, context(), 10L)!!.copy(id = 82,
+            wolConfig = WakeOnLanConfig(MacAddress.parse("02:11:22:33:44:55")!!))
+        val repo = FakeFavoriteDeviceRepository(listOf(original))
+        val vm = viewModel(context(), observed, repo)
+        advanceUntilIdle()
+        vm.saveWakeOnLanByRouteKey(LanDeviceDetailRouteKey.forFavorite(original), "invalid", "9")
+        advanceUntilIdle()
+        assertEquals(original, repo.observeProfiles().first().single())
+    }
+
+    @Test fun `clearing an unsaved observed device does not create a profile`() = runTest {
+        val observed = device("10.0.1.20")
+        val repo = FakeFavoriteDeviceRepository()
+        val vm = viewModel(context(), observed, repo)
+        advanceUntilIdle()
+        vm.startScan()
+        advanceUntilIdle()
+        vm.saveWakeOnLanByRouteKey(vm.detailRouteKey(observed), " ", "9")
+        advanceUntilIdle()
+        assertTrue(repo.observeProfiles().first().isEmpty())
+    }
+
     private fun viewModel(
         context: NetworkContext,
         device: LanDevice,
         repository: SavedDeviceRepository,
         sendWakeOnLan: SendWakeOnLan = NoOpSendWakeOnLan,
     ) = LanScannerViewModel(
+        networkLeaseProvider = FakeScanLeaseProvider(),
         observeReadiness = ObserveLanScanReadiness {
             flowOf(
                 LanScanReadiness(
@@ -1037,13 +1089,8 @@ private class FakeFavoriteDeviceRepository(
 
     override suspend fun setWakeOnLanConfig(id: Long, config: WakeOnLanConfig?) {
         if (failWrites) error("write failed")
-        val existing = state.value.firstOrNull { it.id == id } ?: return
-        if (config == null && !existing.isFavorite && existing.customName == null) {
-            delete(id)
-        } else {
-            state.value = state.value.map { profile ->
-                if (profile.id == id) profile.copy(wolConfig = config) else profile
-            }
+        state.value = state.value.map { profile ->
+            if (profile.id == id) profile.copy(wolConfig = config) else profile
         }
     }
 

@@ -26,6 +26,7 @@ fun WebDiagnosticsHistoryScreen(
     loading: Boolean,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    exportActions: @Composable () -> Unit = {},
 ) {
     var detailsExpanded by rememberSaveable(restored?.completedAtEpochMs) { mutableStateOf(false) }
     var nestedExpanded by rememberSaveable(restored?.completedAtEpochMs) { mutableStateOf(false) }
@@ -46,6 +47,7 @@ fun WebDiagnosticsHistoryScreen(
                 Text(stringResource(R.string.web_history_unavailable_help))
             }
             else -> {
+                exportActions()
                 ToolResultSection {
                     Text(stringResource(R.string.web_history_snapshot_notice))
                     Text(

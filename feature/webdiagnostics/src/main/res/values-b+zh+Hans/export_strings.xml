@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="web_export_open">导出结果</string>
+    <string name="web_export_notice">导出已脱敏的本地快照，公开目标和检测数据仍会保留。请检查后再分享。</string>
+    <string name="web_export_copy">复制结果</string>
+    <string name="web_export_txt">保存 TXT</string>
+    <string name="web_export_markdown">保存 Markdown (.md)</string>
+    <string name="web_export_pdf">保存 PDF</string>
+    <string name="web_export_share">分享 PDF</string>
+    <string name="web_export_close">关闭</string>
+    <string name="web_export_saved">结果已保存</string>
+    <string name="web_export_copied">结果已复制</string>
+    <string name="web_export_failed">无法导出结果，原检测结果不受影响。</string>
+    <string name="web_export_expired">待处理导出已过期，请重新选择导出结果。</string>
+    <string name="web_export_no_app">没有可用于分享的应用。</string>
+</resources>

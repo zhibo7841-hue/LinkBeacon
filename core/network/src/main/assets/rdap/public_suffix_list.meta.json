@@ -1,0 +1,11 @@
+{
+  "source": "https://publicsuffix.org/list/public_suffix_list.dat",
+  "retrieved": "2026-10-27",
+  "fetchedAtEpochMs": 1793031371552,
+  "sha256": "0232f4df0831911356e8ee1f4d5c3b6b12c0ed3f6bd66b0f81c8ab5d3d49e9ca",
+  "bytes": 338012,
+  "header": [
+    "// VERSION: 2026-10-22_08-36-41_UTC",
+    "// COMMIT: 8437e5262f13305f94087abe699b4fe2be1d1de8"
+  ]
+}

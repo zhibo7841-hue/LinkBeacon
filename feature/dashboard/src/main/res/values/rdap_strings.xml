@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_rdap">RDAP / WHOIS</string>
+    <string name="home_rdap_help">Domain &amp; IP registration</string>
+    <string name="home_page_title">Home</string>
+</resources>
