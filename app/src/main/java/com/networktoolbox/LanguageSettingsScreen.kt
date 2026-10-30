@@ -40,6 +40,17 @@ internal fun LanguageSettingsScreen(onBack: () -> Unit) {
     val tags = remember(configuration, revision) { AppCompatDelegate.getApplicationLocales().toLanguageTags() }
     val selected = AppLanguage.fromLanguageTags(tags)
     var showDialog by remember { mutableStateOf(false) }
+    var pendingLanguage by remember { mutableStateOf<AppLanguage?>(null) }
+    LaunchedEffect(pendingLanguage) {
+        val language = pendingLanguage ?: return@LaunchedEffect
+        pendingLanguage = null
+        // Apply only after recomposition has disposed the dialog window. Recreating in
+        // its click callback can leave Android 12 input focus on an exiting dialog.
+        val locales = if (language == AppLanguage.SYSTEM) LocaleListCompat.getEmptyLocaleList()
+            else LocaleListCompat.forLanguageTags(language.languageTags)
+        AppCompatDelegate.setApplicationLocales(locales)
+        revision++
+    }
     ToolScreenLayout {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
@@ -78,10 +89,7 @@ internal fun LanguageSettingsScreen(onBack: () -> Unit) {
                         Modifier.fillMaxWidth().heightIn(min = 48.dp)
                             .selectable(selected == language, role = Role.RadioButton, onClick = {
                                 showDialog = false
-                                val locales = if (language == AppLanguage.SYSTEM) LocaleListCompat.getEmptyLocaleList()
-                                    else LocaleListCompat.forLanguageTags(language.languageTags)
-                                AppCompatDelegate.setApplicationLocales(locales)
-                                revision++
+                                pendingLanguage = language
                             }).padding(horizontal = NetworkToolboxSpacing.SM),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(NetworkToolboxSpacing.MD),
