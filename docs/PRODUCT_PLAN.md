@@ -161,13 +161,15 @@ category coverage require separate acceptance. See
 
 ## Roadmap
 
-**Current release preparation (2026-10-30 / Task 197): v0.10.0 —
-Comprehensive Tester Feedback Optimization.** Maintainer overall version acceptance
-and Task 196 signed-RC technical acceptance are complete. Privacy/Data Safety
-closure and separately authorized release operations remain pending. Not Released.
-Stage C remains optional and separately gated; Task 192 scope deferral is unchanged.
-The v0.9.1 stable baseline and Google Play Alpha test are unaffected; see the
-v0.10.0 section below and [DECISIONS.md](DECISIONS.md).
+**Current delivered version (2026-11-05 / Task 207): v0.10.0 —
+Comprehensive Tester Feedback Optimization.** GitHub: **Published**;
+Google Play: **Published**, based on maintainer confirmation; bilingual privacy
+policy: **Published**. The v0.10.0 version cycle is formally delivered.
+Google Play Submission ID 5 has not been independently inspected in Console;
+its exact publication timestamp is unavailable and is not inferred from this
+record date. See [DECISIONS.md](DECISIONS.md) for evidence boundaries.
+Approved scope is unchanged: dedicated ESP enhancements remain deferred under
+Task 192, Stage C is not included, and no v0.11.0 development is authorized.
 
 
 ### V0.1
@@ -891,11 +893,18 @@ route and GitHub Released status are unchanged; v0.10.0 was not yet approved at 
 
 ## v0.10.0 — Comprehensive Tester Feedback Optimization
 
-**Status: Maintainer overall version acceptance confirmed; release preparation
-(2026-10-30 / Task 197). Approved Stage A/B delivery is accepted, subject to the
-existing Task 192 dedicated ESP deferral. Stage C is not included. Stage D
-technical RC acceptance passed; privacy/Data Safety closure remains pending.
-Not Released; acceptance does not authorize publication.**
+**Status: Published on GitHub and Google Play; version cycle formally delivered
+(Task 207, recorded 2026-11-05).** GitHub publication completed on 2026-10-30
+(Task 204); bilingual privacy policy publication completed on 2026-10-30
+(Task 203). Google Play publication is maintainer-confirmed; Submission ID 5's
+final Console state and actual publication date are not independently verified.
+Approved Stage A/B scope, Stage D technical acceptance and Task 192 dedicated
+ESP deferral remain unchanged; Stage C is not included.
+
+Release completion does not close DISCLOSURE-010 or certify all data processing
+as compliant. Existing Data Safety decisions and internal risk records remain.
+Earlier dated preparation and channel records below are historical checkpoints,
+not the current delivery status. No next-version work is authorized.
 Approved as a coordinated quality-focused
 response to the October 2026 closed-test feedback and v0.9.1 source audit.
 This current approval supersedes older historical notes saying v0.10.0 was

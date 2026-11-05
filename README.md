@@ -20,18 +20,29 @@ remains `com.networktoolbox` to preserve upgrade continuity.
 
 ## Development status
 
-- **Latest stable release:** [v0.9.1](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.1)
+- **Latest stable release:** [v0.10.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.10.0)
+- **Delivery:** GitHub and Google Play **Published**; bilingual privacy policy
+  **Published**. The v0.10.0 version cycle is complete.
+- Google Play publication is maintainer-confirmed; no exact publication date
+  is asserted here.
 
-### v0.9.1 — Privacy-policy access
+### v0.10.0 — Clearer Network Insights
+
+Improved Home/Tools layouts, LAN discovery and evidence-based identification,
+Wi-Fi measurements and device details; added domain/public-IP RDAP/WHOIS
+lookups and expanded Website/TLS report exports. This release also improves
+saved-report handling and Android 12 language-switch stability.
+Dedicated ESP32/ESP8266 and ESPHome recognition enhancements remain deferred.
+
+### Previous v0.9.1 release — Privacy-policy access
 
 This maintenance release adds in-app access to the full English / Simplified
 Chinese privacy policy, more accurate data-handling summaries, browser-failure
 and offline guidance, and policy-link copying. The frozen signed candidate has
 passed representative full regression on Android 12, including the formal
 v0.9.0 in-place upgrade and local-data retention. Published on October 12, 2026,
-the GitHub APK is byte-for-byte identical to that signed candidate. Google Play
-submission remains a separate pending step; GitHub publication is not Play
-approval.
+the GitHub APK is byte-for-byte identical to that signed candidate. This is
+historical v0.9.1 acceptance information; current channel status is listed above.
 
 ### Previous v0.9.0 release — Wi-Fi Analyzer
 
@@ -59,8 +70,9 @@ real-time RF spectrum, interference, channel-utilization, or best-channel tool.
   snapshots without repeating network requests or analysis. Sensitive URL and
   response data is redacted before storage.
 
-These checks explain the observed path and moment. Report/PDF/Share and
-Automatic Diagnosis integration for the new tools remain future work.
+These checks explain the observed path and moment. In v0.8.0, report/PDF/share
+and Automatic Diagnosis integration for these tools were future work.
+Website/TLS report exports are included in v0.10.0 as described above.
 
 ### Previous v0.7.1 release
 
@@ -128,7 +140,7 @@ that the target device powered on or became reachable.
 
 ## Language support
 
-v0.9.1 supports:
+v0.10.0 supports:
 
 - English.
 - Simplified Chinese.
@@ -158,14 +170,14 @@ the user. This does not mean that diagnostic results are uploaded.
 
 ## Download
 
-The latest stable release is **v0.9.1**:
+The latest stable release is **v0.10.0**:
 
-- [Download LinkBeacon-v0.9.1.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.1/LinkBeacon-v0.9.1.apk)
-- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.1/LinkBeacon-v0.9.1.apk.sha256)
-- [View the v0.9.1 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.1)
+- [Download LinkBeacon-v0.10.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.10.0/LinkBeacon-v0.10.0.apk)
+- [Download the SHA-256 checksum](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.10.0/LinkBeacon-v0.10.0.apk.sha256)
+- [View the v0.10.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.10.0)
 
 The matching SHA-256 checksum is provided with the release assets. An in-place
-upgrade from the formal v0.9.0 installation was verified without clearing local data.
+upgrade from the formal v0.9.1 installation was verified without clearing local data.
 
 Previous [v0.9.0 Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0):
 [APK](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.0/LinkBeacon-v0.9.0.apk)

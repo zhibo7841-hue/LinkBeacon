@@ -1,5 +1,30 @@
 # Decision Log
 
+## Decision: v0.10.0 delivery completed across GitHub and Google Play
+
+- Recorded: 2026-11-05 / Task 207. This is the confirmation record date, not an
+  inferred Google Play publication date.
+- Status: **GitHub v0.10.0 Published; Google Play v0.10.0 Published;
+  bilingual privacy policy Published; v0.10.0 version cycle formally delivered.**
+- GitHub evidence: Task 204 release completed on 2026-10-30; release commit
+  `1f24652e1faaf3bba7763d942d5e961062c4b965`, annotated tag `v0.10.0`.
+- Google Play evidence: the maintainer explicitly confirms review approval and
+  Production publication of v0.10.0. Submission ID: **5**. Direct Console
+  inspection remains unavailable through a safe connected channel; its final
+  state and exact publication timestamp are **NOT VERIFIED independently**.
+  Do not invent a timestamp or relabel Task 206's blocked execution as a pass.
+- Policy evidence: Task 203 deployed both language pages on 2026-10-30 and
+  completed online validation plus maintainer phone confirmation.
+- Scope: preserve the accepted feature set and Task 192 ESP32/ESP8266/ESPHome
+  deferral. No App, artifact, signing, permission, database or version change.
+- Publication is not blanket Google compliance certification. DISCLOSURE-010,
+  the existing Data Safety decision and internal risk records remain unchanged.
+- Repository follow-up: update current status and README download links only.
+  Keep earlier dated decisions as history. Local documentation changes await
+  maintainer review; no commit/push, branch/worktree/material deletion, or
+  v0.11.0 development is authorized.
+
+
 ## Decision: v0.10.0 version acceptance and release preparation
 
 - Date: 2026-10-30 / Task 197.

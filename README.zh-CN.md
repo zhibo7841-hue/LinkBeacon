@@ -19,15 +19,24 @@ NetworkToolbox 已在 v0.5.0 更名为 LinkBeacon。Android application ID
 
 ## 开发状态
 
-- **最新稳定版本：** [v0.9.1](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.1)
+- **最新稳定版本：** [v0.10.0](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.10.0)
+- **交付状态：** GitHub、Google Play 和双语隐私政策均已发布；v0.10.0 整个版本周期正式交付完成。
+- Google Play 发布以维护者确认为依据，此处不推定具体发布时间。
 
-### v0.9.1 — 隐私政策访问
+### v0.10.0 — 更清晰的网络观察与分析
+
+优化首页与工具布局、局域网发现及基于证据的识别、Wi-Fi 实测信息和设备详情；
+新增域名与公网 IP 的 RDAP/WHOIS 注册查询，扩展网站/TLS 报告导出。
+同时改进历史报告处理并修复 Android 12 语言切换稳定性问题。
+ESP32/ESP8266 与 ESPHome 专项识别增强继续延期。
+
+### 之前的 v0.9.1 版本 — 隐私政策访问
 
 此维护版本新增应用内中英文完整隐私政策入口，更准确的数据处理摘要、
 浏览器启动失败与离线说明，以及政策链接复制。冻结签名候选已通过 Android 12
 代表性完整回归，包括从正式 v0.9.0 原位升级和本地数据保留。2026 年 10 月 12 日
-发布的 GitHub APK 与该签名候选逐字节一致。Google Play 提交仍是独立的待完成
-步骤；GitHub 发布不代表 Google Play 审核通过。
+发布的 GitHub APK 与该签名候选逐字节一致。这是 v0.9.1 的历史验收记录，
+当前渠道状态以上方说明为准。
 
 ### 之前的 v0.9.0 版本 — Wi-Fi 分析
 
@@ -51,8 +60,8 @@ Android 要求精确位置权限和已开启的系统定位服务，才能提供
 - 版本化的 SSL/TLS 与网站诊断历史保存在本机，恢复不可变快照时不会重新请求
   网络或重新分析；敏感 URL 和响应信息在保存前经过遮盖。
 
-这些检测解释本次连接路径与检测时刻的证据。新工具的报告/PDF/分享和自动诊断
-集成留待后续版本。
+这些检测解释本次连接路径与检测时刻的证据。在 v0.8.0 阶段，这些工具的
+报告/PDF/分享和自动诊断集成尚待后续实现；网站/TLS 报告导出已在上述 v0.10.0 中交付。
 
 ### 之前的 v0.7.1 版本
 
@@ -114,7 +123,7 @@ LinkBeacon 展示检测事实、可能原因和排障建议。当现有证据无
 
 ## 语言支持
 
-v0.9.1 支持：
+v0.10.0 支持：
 
 - English。
 - 简体中文。
@@ -143,13 +152,13 @@ LinkBeacon 只会为了执行用户主动选择的检测而访问网络。这不
 
 ## 下载
 
-最新稳定版本为 **v0.9.1**：
+最新稳定版本为 **v0.10.0**：
 
-- [下载 LinkBeacon-v0.9.1.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.1/LinkBeacon-v0.9.1.apk)
-- [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.9.1/LinkBeacon-v0.9.1.apk.sha256)
-- [查看 v0.9.1 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.1)
+- [下载 LinkBeacon-v0.10.0.apk](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.10.0/LinkBeacon-v0.10.0.apk)
+- [下载 SHA-256 校验文件](https://github.com/zhibo7841-hue/LinkBeacon/releases/download/v0.10.0/LinkBeacon-v0.10.0.apk.sha256)
+- [查看 v0.10.0 GitHub Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.10.0)
 
-对应 SHA-256 校验文件与 Release 附件一同提供。已验证从正式 v0.9.0 安装原位
+对应 SHA-256 校验文件与 Release 附件一同提供。已验证从正式 v0.9.1 安装原位
 升级，无需清除本地数据。
 
 之前的 [v0.9.0 Release](https://github.com/zhibo7841-hue/LinkBeacon/releases/tag/v0.9.0)：
